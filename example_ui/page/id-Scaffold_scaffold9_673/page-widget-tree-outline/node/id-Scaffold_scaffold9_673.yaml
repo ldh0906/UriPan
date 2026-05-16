@@ -1,0 +1,10 @@
+key: Scaffold_scaffold9_673
+type: Scaffold
+props:
+  scaffold:
+    safeArea: false
+    hideKeyboardOnTap: true
+    backgroundColorValue:
+      inputValue:
+        value: "0"
+name: AddItemSelector

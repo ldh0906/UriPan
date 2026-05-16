@@ -1,0 +1,73 @@
+key: ComponentInstance_actioncard1_177
+type: Container
+props:
+  container: {}
+  expanded:
+    expandedType: EXPANDED
+    flexValue:
+      inputValue: 1
+name: ActionCard
+parameterValues:
+  parameterPasses:
+    design_system_usr_action_card_action_cardparam_bg:
+      paramIdentifier:
+        name: bg
+        key: design_system_usr_action_card_action_cardparam_bg
+      inputValue:
+        color:
+          value: "442722033"
+          paletteColorName: primary_container
+          darkModeColor:
+            value: "612470008"
+    design_system_usr_action_card_action_cardparam_desc:
+      paramIdentifier:
+        name: desc
+        key: design_system_usr_action_card_action_cardparam_desc
+      inputValue:
+        serializedValue: Start a new shared board
+    design_system_usr_action_card_action_cardparam_icon:
+      paramIdentifier:
+        name: icon
+        key: design_system_usr_action_card_action_cardparam_icon
+      widgetProperty:
+        icon:
+          sizeValue:
+            inputValue: 24
+          colorValue:
+            inputValue:
+              value: "4280166715"
+              paletteColorName: on_primary_container
+              darkModeColor:
+                value: "4294507260"
+          iconDataValue:
+            inputValue:
+              codePoint: 62775
+              family: MaterialIcons
+              matchTextDirection: false
+              name: add_rounded
+    design_system_usr_action_card_action_cardparam_icon_color:
+      paramIdentifier:
+        name: iconColor
+        key: design_system_usr_action_card_action_cardparam_icon_color
+      inputValue:
+        color:
+          value: "4280166715"
+          paletteColorName: on_primary_container
+          darkModeColor:
+            value: "4294507260"
+    design_system_usr_action_card_action_cardparam_label:
+      paramIdentifier:
+        name: label
+        key: design_system_usr_action_card_action_cardparam_label
+      inputValue:
+        serializedValue: Create
+    design_system_usr_action_card_action_cardparam_target:
+      paramIdentifier:
+        name: target
+        key: design_system_usr_action_card_action_cardparam_target
+      inputValue:
+        serializedValue: navigate:AddItemSelector
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_168
+componentClassKeyRef:
+  key: ComponentRoot_node_168

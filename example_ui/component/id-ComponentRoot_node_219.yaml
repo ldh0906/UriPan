@@ -1,0 +1,25 @@
+name: SectionHeader
+description: ""
+params:
+  design_system_usr_section_header_section_headerparam_on_tap:
+    identifier:
+      name: onTap
+      key: design_system_usr_section_header_section_headerparam_on_tap
+    defaultValue:
+      serializedValue: navigate:CalendarView
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_section_header_section_headerparam_title:
+    identifier:
+      name: title
+      key: design_system_usr_section_header_section_headerparam_title
+    defaultValue:
+      serializedValue: Schedules
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_219

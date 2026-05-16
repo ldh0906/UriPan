@@ -1,0 +1,13 @@
+key: Text_text2_267
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      inputValue: IMPORTANT
+    heightValue:
+      inputValue: 1.2
+    fontWeightValue:
+      inputValue: w700
+name: Text

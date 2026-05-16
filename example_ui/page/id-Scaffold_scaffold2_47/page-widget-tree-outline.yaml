@@ -1,0 +1,45 @@
+node:
+  key: Scaffold_scaffold2_47
+  body:
+    key: Column_column22_112
+    children:
+      - key: Column_column23_55
+        children:
+          - key: Container_container42_49
+            children:
+              - key: Icon_icon18_48
+          - key: Column_column24_53
+            children:
+              - key: Text_text47_50
+              - key: Text_text48_51
+      - key: Column_column25_98
+        children:
+          - key: Column_column26_71
+            children:
+              - key: Text_text49_56
+              - key: ComponentInstance_textfield1_69
+          - key: Column_column27_78
+            children:
+              - key: Row_row34_75
+                children:
+                  - key: Text_text50_72
+                  - key: ComponentInstance_stdbutton3_73
+              - key: ComponentInstance_textfield2_76
+          - key: Row_row35_96
+            children:
+              - key: ComponentInstance_stdcheckbox1_94
+      - key: Column_column28_105
+        children:
+          - key: ComponentInstance_stdbutton4_99
+          - key: Row_row36_103
+            children:
+              - key: Text_text51_100
+              - key: ComponentInstance_button3_101
+      - key: Spacer_spacer1_106
+      - key: Container_container43_110
+        children:
+          - key: Container_container43_109
+            children:
+              - key: Container_container43_108
+                children:
+                  - key: Text_text52_107

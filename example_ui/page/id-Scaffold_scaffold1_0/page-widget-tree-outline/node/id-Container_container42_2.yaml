@@ -1,0 +1,30 @@
+key: Container_container42_2
+type: Container
+props:
+  container:
+    dimensions:
+      width:
+        pixelsValue:
+          inputValue: 80
+      height:
+        pixelsValue:
+          inputValue: 80
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ALL
+        allValue:
+          inputValue: 24
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      boxShadow:
+        themeShadowToken:
+          name: md
+          key: md
+      colorValue:
+        inputValue:
+          themeColor: PRIMARY
+    childAlignment:
+      xValue:
+        inputValue: 0
+      yValue:
+        inputValue: 0
+name: Container

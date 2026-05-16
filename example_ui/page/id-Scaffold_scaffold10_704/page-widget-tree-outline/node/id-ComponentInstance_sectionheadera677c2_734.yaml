@@ -1,0 +1,34 @@
+key: ComponentInstance_sectionheadera677c2_734
+type: Container
+props:
+  container: {}
+name: SectionHeader2
+parameterValues:
+  parameterPasses:
+    design_system_usr_section_header_a677c768_section_header_a677c768param_icon:
+      paramIdentifier:
+        name: icon
+        key: design_system_usr_section_header_a677c768_section_header_a677c768param_icon
+      widgetProperty:
+        icon:
+          sizeValue:
+            inputValue: 18
+          colorValue:
+            inputValue:
+              themeColor: SECONDARY_TEXT
+          iconDataValue:
+            inputValue:
+              codePoint: 63430
+              family: MaterialIcons
+              matchTextDirection: false
+              name: group_rounded
+    design_system_usr_section_header_a677c768_section_header_a677c768param_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_section_header_a677c768_section_header_a677c768param_title
+      inputValue:
+        serializedValue: Assignees
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_721
+componentClassKeyRef:
+  key: ComponentRoot_node_721

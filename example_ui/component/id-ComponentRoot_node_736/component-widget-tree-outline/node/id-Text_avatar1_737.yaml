@@ -1,0 +1,70 @@
+key: Text_avatar1_737
+type: Text
+props:
+  text:
+    themeStyle: LABEL_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: ME
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: initials
+              key: design_system_usr_member_chip_member_chipparam_initials
+        nodeKeyRef:
+          key: ComponentRoot_node_736
+        uiBuilderValue:
+          serializedValue: ME
+      mostRecentInputValue: ME
+    fontSizeValue:
+      inputValue: 12
+    colorValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: WIDGET_CLASS_PARAMETER
+                  baseVariable:
+                    widgetClass:
+                      paramIdentifier:
+                        name: selected
+                        key: design_system_usr_member_chip_member_chipparam_selected
+                  nodeKeyRef:
+                    key: ComponentRoot_node_736
+                value:
+                  inputValue:
+                    color:
+                      value: "4294967295"
+                      paletteColorName: on_primary
+                      darkModeColor:
+                        value: "4294967295"
+            elseValue:
+              inputValue:
+                color:
+                  value: "4280166715"
+                  paletteColorName: on_surface
+                  darkModeColor:
+                    value: "4294507260"
+            returnParameter:
+              dataType:
+                scalarType: Color
+      mostRecentInputValue:
+        value: "4294967295"
+        paletteColorName: on_primary
+        darkModeColor:
+          value: "4294967295"
+    heightValue:
+      inputValue: 1.3
+    maxLinesValue:
+      inputValue: 1
+    fontWeightValue:
+      inputValue: w600
+    textAlignValue:
+      inputValue: ALIGN_CENTER
+    overflowReplacement: CLIP
+name: Avatar Label

@@ -1,0 +1,6 @@
+key: ComponentRoot_node_315
+type: Container
+props:
+  container: {}
+name: CalendarDay
+isDummyRoot: true

@@ -1,0 +1,29 @@
+key: Text_text1_264
+type: Text
+props:
+  text:
+    themeStyle: TITLE_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Weekend Trip
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: title
+              key: design_system_usr_notice_card_notice_cardparam_title
+        nodeKeyRef:
+          key: ComponentRoot_node_262
+        uiBuilderValue:
+          serializedValue: Weekend Trip
+      mostRecentInputValue: Weekend Trip
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    fontWeightValue:
+      inputValue: w700
+name: Text

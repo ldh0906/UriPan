@@ -1,0 +1,24 @@
+node:
+  key: Scaffold_scaffold9_673
+  body:
+    key: Stack_stack3_703
+    children:
+      - key: Container_container56_674
+      - key: Container_container57_702
+        children:
+          - key: Container_container57_701
+            children:
+              - key: Column_column69_700
+                children:
+                  - key: Container_container58_675
+                  - key: Column_column70_679
+                    children:
+                      - key: Text_text97_676
+                      - key: Text_text98_677
+                  - key: Column_column71_696
+                    children:
+                      - key: ComponentInstance_actionitem1_692
+                      - key: ComponentInstance_actionitem2_693
+                      - key: ComponentInstance_actionitem3_694
+                  - key: ComponentInstance_stdbutton7_697
+                  - key: Container_sizedbox10_698

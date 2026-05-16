@@ -1,0 +1,19 @@
+key: Text_text92_617
+type: Text
+props:
+  text:
+    themeStyle: TITLE_MEDIUM
+    selectable: false
+    textValue:
+      inputValue: Invite New Members
+    colorValue:
+      inputValue:
+        value: "4280166715"
+        paletteColorName: on_primary_container
+        darkModeColor:
+          value: "4294507260"
+    heightValue:
+      inputValue: 1.4
+    fontWeightValue:
+      inputValue: w700
+name: Text

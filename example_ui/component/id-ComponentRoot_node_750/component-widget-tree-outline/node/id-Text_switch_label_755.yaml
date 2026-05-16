@@ -1,0 +1,27 @@
+key: Text_switch_label_755
+type: Text
+props:
+  text:
+    themeStyle: BODY_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Mark as Important
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: label
+              key: design_system_std_switch_std_switchparam_label
+        nodeKeyRef:
+          key: ComponentRoot_node_750
+        uiBuilderValue:
+          serializedValue: Mark as Important
+      mostRecentInputValue: Mark as Important
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.5
+name: Text

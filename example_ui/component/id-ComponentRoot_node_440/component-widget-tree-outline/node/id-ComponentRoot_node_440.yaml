@@ -1,0 +1,6 @@
+key: ComponentRoot_node_440
+type: Container
+props:
+  container: {}
+name: TabItem
+isDummyRoot: true

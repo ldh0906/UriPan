@@ -1,0 +1,36 @@
+key: ComponentInstance_taskitem2_257
+type: Container
+props:
+  container: {}
+name: TaskItem
+parameterValues:
+  parameterPasses:
+    design_system_usr_task_item_task_itemparam_color:
+      paramIdentifier:
+        name: color
+        key: design_system_usr_task_item_task_itemparam_color
+      inputValue:
+        color:
+          themeColor: TERTIARY
+    design_system_usr_task_item_task_itemparam_name:
+      paramIdentifier:
+        name: name
+        key: design_system_usr_task_item_task_itemparam_name
+      inputValue:
+        serializedValue: Alice
+    design_system_usr_task_item_task_itemparam_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_task_item_task_itemparam_title
+      inputValue:
+        serializedValue: Wash the dishes
+    design_system_usr_task_item_task_itemparam_done:
+      paramIdentifier:
+        name: done
+        key: design_system_usr_task_item_task_itemparam_done
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_244
+componentClassKeyRef:
+  key: ComponentRoot_node_244

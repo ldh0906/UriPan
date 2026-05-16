@@ -1,0 +1,27 @@
+key: Text_text2_646
+type: Text
+props:
+  text:
+    themeStyle: BODY_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Admin
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: role
+              key: design_system_usr_member_tile_member_tileparam_role
+        nodeKeyRef:
+          key: ComponentRoot_node_642
+        uiBuilderValue:
+          serializedValue: Admin
+      mostRecentInputValue: Admin
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.4
+name: Text

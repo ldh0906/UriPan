@@ -1,0 +1,36 @@
+key: Text_avatar1_232
+type: Text
+props:
+  text:
+    themeStyle: LABEL_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: MK
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: initials
+              key: design_system_usr_schedule_item_schedule_itemparam_initials
+        nodeKeyRef:
+          key: ComponentRoot_node_226
+        uiBuilderValue:
+          serializedValue: MK
+      mostRecentInputValue: MK
+    fontSizeValue:
+      inputValue: 15.2
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.3
+    maxLinesValue:
+      inputValue: 1
+    fontWeightValue:
+      inputValue: w600
+    textAlignValue:
+      inputValue: ALIGN_CENTER
+    overflowReplacement: CLIP
+name: Avatar Label

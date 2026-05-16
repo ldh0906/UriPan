@@ -1,0 +1,47 @@
+key: ComponentInstance_feat3_23
+type: Container
+props:
+  container: {}
+name: FeatureCard
+parameterValues:
+  parameterPasses:
+    design_system_usr_feature_card_feature_cardparam_bg_color:
+      paramIdentifier:
+        name: bgColor
+        key: design_system_usr_feature_card_feature_cardparam_bg_color
+      inputValue:
+        serializedValue: warning_container
+    design_system_usr_feature_card_feature_cardparam_icon:
+      paramIdentifier:
+        name: icon
+        key: design_system_usr_feature_card_feature_cardparam_icon
+      widgetProperty:
+        icon:
+          sizeValue:
+            inputValue: 24
+          colorValue:
+            inputValue:
+              themeColor: WARNING
+          iconDataValue:
+            inputValue:
+              codePoint: 983078
+              family: MaterialIcons
+              matchTextDirection: false
+              name: notifications_active_rounded
+    design_system_usr_feature_card_feature_cardparam_icon_color:
+      paramIdentifier:
+        name: iconColor
+        key: design_system_usr_feature_card_feature_cardparam_icon_color
+      inputValue:
+        color:
+          themeColor: WARNING
+    design_system_usr_feature_card_feature_cardparam_label:
+      paramIdentifier:
+        name: label
+        key: design_system_usr_feature_card_feature_cardparam_label
+      inputValue:
+        serializedValue: Notices
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_13
+componentClassKeyRef:
+  key: ComponentRoot_node_13

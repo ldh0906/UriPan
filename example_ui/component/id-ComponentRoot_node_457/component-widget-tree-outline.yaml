@@ -1,0 +1,28 @@
+node:
+  key: ComponentRoot_node_457
+  children:
+    - key: Container_container1_477
+      children:
+        - key: Container_container1_476
+          children:
+            - key: Container_container1_475
+              children:
+                - key: Row_row1_474
+                  children:
+                    - key: Container_container2_459
+                      children:
+                        - key: Icon_icon1_458
+                    - key: Column_column1_470
+                      children:
+                        - key: Text_text1_460
+                        - key: Row_row2_468
+                          children:
+                            - key: Row_row3_464
+                              children:
+                                - key: Icon_icon2_461
+                                - key: Text_text2_462
+                            - key: Container_container3_465
+                            - key: Text_text3_466
+                    - key: Container_container4_472
+                      children:
+                        - key: Text_text4_471

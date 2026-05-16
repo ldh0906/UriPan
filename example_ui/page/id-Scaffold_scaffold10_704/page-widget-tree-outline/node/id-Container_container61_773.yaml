@@ -1,0 +1,10 @@
+key: Container_container61_773
+type: Container
+props:
+  container:
+    childAlignment:
+      xValue:
+        inputValue: 0
+      yValue:
+        inputValue: 0
+name: Container

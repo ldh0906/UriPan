@@ -1,0 +1,57 @@
+name: FeatureCard
+description: ""
+params:
+  design_system_usr_feature_card_feature_cardparam_bg_color:
+    identifier:
+      name: bgColor
+      key: design_system_usr_feature_card_feature_cardparam_bg_color
+    defaultValue:
+      serializedValue: info_container
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_feature_card_feature_cardparam_icon:
+    identifier:
+      name: icon
+      key: design_system_usr_feature_card_feature_cardparam_icon
+    defaultValue:
+      icon:
+        sizeValue:
+          inputValue: 24
+        colorValue:
+          inputValue:
+            themeColor: INFO
+        iconDataValue:
+          inputValue:
+            codePoint: 62974
+            family: MaterialIcons
+            matchTextDirection: false
+            name: calendar_today_rounded
+    dataType:
+      scalarType: WidgetProperty
+      subType:
+        widgetPropertyType: ICON
+    namedParameter:
+      isOptional: true
+  design_system_usr_feature_card_feature_cardparam_icon_color:
+    identifier:
+      name: iconColor
+      key: design_system_usr_feature_card_feature_cardparam_icon_color
+    defaultValue: {}
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_feature_card_feature_cardparam_label:
+    identifier:
+      name: label
+      key: design_system_usr_feature_card_feature_cardparam_label
+    defaultValue:
+      serializedValue: Schedules
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_13

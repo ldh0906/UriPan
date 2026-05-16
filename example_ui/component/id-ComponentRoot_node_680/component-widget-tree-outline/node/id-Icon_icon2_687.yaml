@@ -1,0 +1,16 @@
+key: Icon_icon2_687
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 16
+    colorValue:
+      inputValue:
+        themeColor: ACCENT_3
+    iconDataValue:
+      inputValue:
+        codePoint: 62841
+        family: MaterialIcons
+        matchTextDirection: false
+        name: arrow_forward_ios_rounded
+name: Icon

@@ -1,0 +1,54 @@
+key: Text_text9_246
+type: Text
+props:
+  text:
+    themeStyle: BODY_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Take out the trash
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: title
+              key: design_system_usr_task_item_task_itemparam_title
+        nodeKeyRef:
+          key: ComponentRoot_node_244
+        uiBuilderValue:
+          serializedValue: Take out the trash
+      mostRecentInputValue: Take out the trash
+    colorValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: WIDGET_CLASS_PARAMETER
+                  baseVariable:
+                    widgetClass:
+                      paramIdentifier:
+                        name: done
+                        key: design_system_usr_task_item_task_itemparam_done
+                  nodeKeyRef:
+                    key: ComponentRoot_node_244
+                value:
+                  inputValue:
+                    color:
+                      themeColor: ACCENT_3
+            elseValue:
+              inputValue:
+                color:
+                  themeColor: PRIMARY_TEXT
+            returnParameter:
+              dataType:
+                scalarType: Color
+      mostRecentInputValue:
+        themeColor: ACCENT_3
+    heightValue:
+      inputValue: 1.5
+    fontWeightValue:
+      inputValue: w500
+name: Text

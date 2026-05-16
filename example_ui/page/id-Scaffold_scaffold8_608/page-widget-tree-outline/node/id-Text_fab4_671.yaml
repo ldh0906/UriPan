@@ -1,0 +1,17 @@
+key: Text_fab4_671
+type: Text
+props:
+  text:
+    themeStyle: LABEL_LARGE
+    selectable: false
+    textValue:
+      inputValue: Add Member
+    colorValue:
+      inputValue:
+        value: "4294967295"
+        paletteColorName: on_primary
+        darkModeColor:
+          value: "4294967295"
+    heightValue:
+      inputValue: 1.3
+name: FAB Label

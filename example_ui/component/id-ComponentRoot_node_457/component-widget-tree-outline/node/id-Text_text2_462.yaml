@@ -1,0 +1,27 @@
+key: Text_text2_462
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "Today, 6:00 PM"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: dueDate
+              key: design_system_usr_task_item_93ec7210_task_item_93ec7210param_due_date
+        nodeKeyRef:
+          key: ComponentRoot_node_457
+        uiBuilderValue:
+          serializedValue: "Today, 6:00 PM"
+      mostRecentInputValue: "Today, 6:00 PM"
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.2
+name: Text

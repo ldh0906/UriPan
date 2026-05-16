@@ -1,0 +1,32 @@
+key: Text_text5_126
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Admin
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: role
+              key: design_system_usr_board_card_board_cardparam_role
+        nodeKeyRef:
+          key: ComponentRoot_node_118
+        uiBuilderValue:
+          serializedValue: Admin
+      mostRecentInputValue: Admin
+    colorValue:
+      inputValue:
+        value: "4280166715"
+        paletteColorName: on_primary_container
+        darkModeColor:
+          value: "4294507260"
+    heightValue:
+      inputValue: 1.2
+    fontWeightValue:
+      inputValue: w700
+name: Text

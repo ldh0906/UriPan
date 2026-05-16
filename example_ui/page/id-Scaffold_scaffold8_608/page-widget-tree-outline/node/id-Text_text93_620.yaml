@@ -1,0 +1,17 @@
+key: Text_text93_620
+type: Text
+props:
+  text:
+    themeStyle: BODY_MEDIUM
+    selectable: false
+    textValue:
+      inputValue: Share this code with your group members to let them join this board.
+    colorValue:
+      inputValue:
+        value: "3424528699"
+        paletteColorName: on-primary-container_80
+        darkModeColor:
+          value: "3438869244"
+    heightValue:
+      inputValue: 1.5
+name: Text

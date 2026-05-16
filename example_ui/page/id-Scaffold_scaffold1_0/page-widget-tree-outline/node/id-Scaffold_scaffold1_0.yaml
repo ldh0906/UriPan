@@ -1,0 +1,17 @@
+key: Scaffold_scaffold1_0
+type: Scaffold
+props:
+  scaffold:
+    safeArea: false
+    navBarItem:
+      show: false
+      alwaysShowNavBar: false
+    hideKeyboardOnTap: true
+    backgroundColorValue:
+      inputValue:
+        themeColor: PRIMARY_BACKGROUND
+  opacity:
+    opacityValue:
+      inputValue: 1
+    animatedOpacity: {}
+name: Welcome

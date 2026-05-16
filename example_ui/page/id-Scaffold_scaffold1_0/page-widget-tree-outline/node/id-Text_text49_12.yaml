@@ -1,0 +1,16 @@
+key: Text_text49_12
+type: Text
+props:
+  text:
+    themeStyle: BODY_LARGE
+    selectable: false
+    textValue:
+      inputValue: "A simple shared board for schedules, tasks, and notices. Keep your group in sync effortlessly."
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.5
+    textAlignValue:
+      inputValue: ALIGN_CENTER
+name: Text

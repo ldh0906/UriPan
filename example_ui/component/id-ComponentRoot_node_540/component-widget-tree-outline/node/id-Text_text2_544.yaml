@@ -1,0 +1,27 @@
+key: Text_text2_544
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "Oct 24, 10:15 AM"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: date
+              key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_date
+        nodeKeyRef:
+          key: ComponentRoot_node_540
+        uiBuilderValue:
+          serializedValue: "Oct 24, 10:15 AM"
+      mostRecentInputValue: "Oct 24, 10:15 AM"
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.2
+name: Text

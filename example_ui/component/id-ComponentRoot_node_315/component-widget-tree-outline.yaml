@@ -1,0 +1,13 @@
+node:
+  key: ComponentRoot_node_315
+  children:
+    - key: Container_container1_324
+      children:
+        - key: Column_column1_323
+          children:
+            - key: Text_text1_316
+            - key: Row_row1_321
+              children:
+                - key: Container_container2_317
+                - key: Container_container3_318
+                - key: Container_container4_319

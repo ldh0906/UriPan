@@ -1,0 +1,35 @@
+key: ComponentInstance_switch2_760
+type: Container
+props:
+  container: {}
+name: SwitchComponent
+parameterValues:
+  parameterPasses:
+    design_system_std_switch_std_switchparam_label:
+      paramIdentifier:
+        name: label
+        key: design_system_std_switch_std_switchparam_label
+      inputValue:
+        serializedValue: Require Confirmation
+    design_system_std_switch_std_switchparam_label_present:
+      paramIdentifier:
+        name: labelPresent
+        key: design_system_std_switch_std_switchparam_label_present
+      inputValue:
+        serializedValue: "true"
+    design_system_std_switch_std_switchparam_variant:
+      paramIdentifier:
+        name: variant
+        key: design_system_std_switch_std_switchparam_variant
+      inputValue:
+        serializedValue: Android
+    design_system_std_switch_std_switchparam_active:
+      paramIdentifier:
+        name: active
+        key: design_system_std_switch_std_switchparam_active
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_750
+componentClassKeyRef:
+  key: ComponentRoot_node_750

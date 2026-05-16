@@ -1,0 +1,71 @@
+node:
+  key: Scaffold_scaffold8_608
+  floatingActionButton:
+    key: Fab_fab4_672
+    children:
+      - key: Text_fab4_671
+  body:
+    key: Column_column63_670
+    children:
+      - key: Container_container51_615
+        children:
+          - key: Container_container51_614
+            children:
+              - key: Row_row49_613
+                children:
+                  - key: IconButton_iconbutton6_609
+                  - key: Text_text91_610
+                  - key: IconButton_iconbutton7_611
+      - key: ScrollColumn_column64_668
+        children:
+          - key: Container_column64_667
+            children:
+              - key: Column_column64_666
+                children:
+                  - key: Container_container52_635
+                    children:
+                      - key: Container_container52_634
+                        children:
+                          - key: Column_column65_633
+                            children:
+                              - key: Row_row50_619
+                                children:
+                                  - key: Icon_icon31_616
+                                  - key: Text_text92_617
+                              - key: Text_text93_620
+                              - key: Container_container53_631
+                                children:
+                                  - key: Container_container53_630
+                                    children:
+                                      - key: Row_row51_629
+                                        children:
+                                          - key: Column_column66_624
+                                            children:
+                                              - key: Text_text94_621
+                                              - key: Text_text95_622
+                                          - key: Container_container54_627
+                                            children:
+                                              - key: Container_container54_626
+                                                children:
+                                                  - key: Icon_icon32_625
+                  - key: Column_column67_662
+                    children:
+                      - key: Row_row52_641
+                        children:
+                          - key: Text_text96_636
+                          - key: Container_chip2_639
+                            children:
+                              - key: ChipRow_chip2_638
+                                children:
+                                  - key: Text_chip2_637
+                      - key: Column_column68_660
+                        children:
+                          - key: ComponentInstance_m1_655
+                          - key: ComponentInstance_m2_656
+                          - key: ComponentInstance_m3_657
+                          - key: ComponentInstance_m4_658
+                  - key: Container_container55_665
+                    children:
+                      - key: Container_container55_664
+                        children:
+                          - key: ComponentInstance_stdbutton6_663

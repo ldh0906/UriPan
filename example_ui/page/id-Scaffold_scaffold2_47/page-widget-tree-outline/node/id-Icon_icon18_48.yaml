@@ -1,0 +1,16 @@
+key: Icon_icon18_48
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 40
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY
+    iconDataValue:
+      inputValue:
+        codePoint: 63118
+        family: MaterialIcons
+        matchTextDirection: false
+        name: dashboard_rounded
+name: Icon

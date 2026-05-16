@@ -1,0 +1,41 @@
+key: Icon_icon1_263
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 20
+    colorValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: WIDGET_CLASS_PARAMETER
+                  baseVariable:
+                    widgetClass:
+                      paramIdentifier:
+                        name: isImportant
+                        key: design_system_usr_notice_card_notice_cardparam_is_important
+                  nodeKeyRef:
+                    key: ComponentRoot_node_262
+                value:
+                  inputValue:
+                    color:
+                      themeColor: WARNING
+            elseValue:
+              inputValue:
+                color:
+                  themeColor: INFO
+            returnParameter:
+              dataType:
+                scalarType: Color
+      mostRecentInputValue:
+        themeColor: WARNING
+    iconDataValue:
+      inputValue:
+        codePoint: 63510
+        family: MaterialIcons
+        matchTextDirection: false
+        name: info_rounded
+name: Icon

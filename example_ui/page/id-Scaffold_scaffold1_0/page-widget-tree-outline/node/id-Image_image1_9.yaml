@@ -1,0 +1,19 @@
+key: Image_image1_9
+type: Image
+props:
+  image:
+    type: FF_IMAGE_TYPE_NETWORK
+    fit: FF_BOX_FIT_COVER
+    dimensions:
+      width:
+        percentOfContainingWidgetValue:
+          inputValue: 100
+    cached: true
+    imageAlignment:
+      xValue:
+        inputValue: 0
+      yValue:
+        inputValue: 0
+    pathValue:
+      inputValue: https://images.unsplash.com/photo-1642359085898-d9fde39507c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NTYyMDF8MHwxfHNlYXJjaHwxNXx8Y2FsZW5kZXJ8ZW58MHx8fHwxNzc4OTQ1MDUwfDA&ixlib=rb-4.1.0&q=80&w=400
+name: Image

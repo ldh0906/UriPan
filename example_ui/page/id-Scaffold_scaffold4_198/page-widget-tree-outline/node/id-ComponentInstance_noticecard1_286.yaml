@@ -1,0 +1,35 @@
+key: ComponentInstance_noticecard1_286
+type: Container
+props:
+  container: {}
+name: NoticeCard
+parameterValues:
+  parameterPasses:
+    design_system_usr_notice_card_notice_cardparam_content:
+      paramIdentifier:
+        name: content
+        key: design_system_usr_notice_card_notice_cardparam_content
+      inputValue:
+        serializedValue: Don't forget to pack your swimsuits for the lake house trip this Saturday!
+    design_system_usr_notice_card_notice_cardparam_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_notice_card_notice_cardparam_title
+      inputValue:
+        serializedValue: Weekend Trip
+    design_system_usr_notice_card_notice_cardparam_confirmed:
+      paramIdentifier:
+        name: confirmed
+        key: design_system_usr_notice_card_notice_cardparam_confirmed
+      inputValue:
+        serializedValue: "false"
+    design_system_usr_notice_card_notice_cardparam_is_important:
+      paramIdentifier:
+        name: isImportant
+        key: design_system_usr_notice_card_notice_cardparam_is_important
+      inputValue:
+        serializedValue: "true"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_262
+componentClassKeyRef:
+  key: ComponentRoot_node_262

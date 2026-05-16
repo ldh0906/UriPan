@@ -1,0 +1,29 @@
+key: Row_row1_321
+type: Row
+props:
+  row:
+    mainAxisAlignment: main_axis_start
+    crossAxisAlignment: cross_axis_center
+    scrollable: false
+    listSpacing:
+      spacingValue:
+        inputValue: 2
+    minSizeValue:
+      inputValue: true
+  visibility:
+    visibleValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "true"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: hasEventsPresent
+              key: design_system_usr_calendar_day_calendar_dayparam_has_events_present
+        nodeKeyRef:
+          key: ComponentRoot_node_315
+        uiBuilderValue:
+          serializedValue: "true"
+      mostRecentInputValue: true
+name: Row

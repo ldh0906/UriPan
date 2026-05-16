@@ -1,0 +1,30 @@
+key: Text_text3_272
+type: Text
+props:
+  text:
+    themeStyle: BODY_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Don't forget to pack your swimsuits for the lake house trip this Saturday!
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: content
+              key: design_system_usr_notice_card_notice_cardparam_content
+        nodeKeyRef:
+          key: ComponentRoot_node_262
+        uiBuilderValue:
+          serializedValue: Don't forget to pack your swimsuits for the lake house trip this Saturday!
+      mostRecentInputValue: Don't forget to pack your swimsuits for the lake house trip this Saturday!
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.5
+    maxLinesValue:
+      inputValue: 2
+    overflowReplacement: ELLIPSIS
+name: Text

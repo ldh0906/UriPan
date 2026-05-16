@@ -1,0 +1,17 @@
+node:
+  key: ComponentRoot_node_680
+  children:
+    - key: Container_container1_691
+      children:
+        - key: Container_container1_690
+          children:
+            - key: Row_row1_689
+              children:
+                - key: Container_container2_682
+                  children:
+                    - key: Icon_icon1_681
+                - key: Column_column1_686
+                  children:
+                    - key: Text_text1_683
+                    - key: Text_text2_684
+                - key: Icon_icon2_687

@@ -1,0 +1,16 @@
+key: Icon_icon27_583
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 24
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    iconDataValue:
+      inputValue:
+        codePoint: 984776
+        family: MaterialIcons
+        matchTextDirection: false
+        name: calendar_month_rounded
+name: Icon

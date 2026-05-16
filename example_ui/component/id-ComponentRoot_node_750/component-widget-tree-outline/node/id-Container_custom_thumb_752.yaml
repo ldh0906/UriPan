@@ -1,0 +1,265 @@
+key: Container_custom_thumb_752
+type: Container
+props:
+  container:
+    dimensions:
+      width:
+        pixelsValue:
+          variable:
+            source: FUNCTION_CALL
+            functionCall:
+              conditionalValue:
+                ifConditionalValues:
+                  - condition:
+                      source: FUNCTION_CALL
+                      functionCall:
+                        values:
+                          - variable:
+                              source: WIDGET_CLASS_PARAMETER
+                              baseVariable:
+                                widgetClass:
+                                  paramIdentifier:
+                                    name: variant
+                                    key: design_system_std_switch_std_switchparam_variant
+                              nodeKeyRef:
+                                key: ComponentRoot_node_750
+                          - inputValue:
+                              serializedValue: iOS 26+
+                        condition:
+                          relation: EQUAL_TO
+                    value:
+                      inputValue:
+                        serializedValue: "39"
+                elseValue:
+                  inputValue:
+                    serializedValue: "26"
+                returnParameter:
+                  dataType:
+                    scalarType: Double
+          mostRecentInputValue: 26
+      height:
+        pixelsValue:
+          variable:
+            source: FUNCTION_CALL
+            functionCall:
+              conditionalValue:
+                ifConditionalValues:
+                  - condition:
+                      source: FUNCTION_CALL
+                      functionCall:
+                        values:
+                          - variable:
+                              source: WIDGET_CLASS_PARAMETER
+                              baseVariable:
+                                widgetClass:
+                                  paramIdentifier:
+                                    name: variant
+                                    key: design_system_std_switch_std_switchparam_variant
+                              nodeKeyRef:
+                                key: ComponentRoot_node_750
+                          - inputValue:
+                              serializedValue: iOS 26+
+                        condition:
+                          relation: EQUAL_TO
+                    value:
+                      inputValue:
+                        serializedValue: "24"
+                elseValue:
+                  inputValue:
+                    serializedValue: "26"
+                returnParameter:
+                  dataType:
+                    scalarType: Double
+          mostRecentInputValue: 26
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ONLY
+        topLeftValue:
+          variable:
+            source: FUNCTION_CALL
+            functionCall:
+              conditionalValue:
+                ifConditionalValues:
+                  - condition:
+                      source: FUNCTION_CALL
+                      functionCall:
+                        values:
+                          - variable:
+                              source: WIDGET_CLASS_PARAMETER
+                              baseVariable:
+                                widgetClass:
+                                  paramIdentifier:
+                                    name: variant
+                                    key: design_system_std_switch_std_switchparam_variant
+                              nodeKeyRef:
+                                key: ComponentRoot_node_750
+                          - inputValue:
+                              serializedValue: iOS 26+
+                        condition:
+                          relation: EQUAL_TO
+                    value:
+                      inputValue:
+                        serializedValue: "9999"
+                elseValue:
+                  inputValue:
+                    serializedValue: "13"
+                returnParameter:
+                  dataType:
+                    scalarType: Double
+          mostRecentInputValue: 13
+        topRightValue:
+          variable:
+            source: FUNCTION_CALL
+            functionCall:
+              conditionalValue:
+                ifConditionalValues:
+                  - condition:
+                      source: FUNCTION_CALL
+                      functionCall:
+                        values:
+                          - variable:
+                              source: WIDGET_CLASS_PARAMETER
+                              baseVariable:
+                                widgetClass:
+                                  paramIdentifier:
+                                    name: variant
+                                    key: design_system_std_switch_std_switchparam_variant
+                              nodeKeyRef:
+                                key: ComponentRoot_node_750
+                          - inputValue:
+                              serializedValue: iOS 26+
+                        condition:
+                          relation: EQUAL_TO
+                    value:
+                      inputValue:
+                        serializedValue: "9999"
+                elseValue:
+                  inputValue:
+                    serializedValue: "13"
+                returnParameter:
+                  dataType:
+                    scalarType: Double
+          mostRecentInputValue: 13
+        bottomLeftValue:
+          variable:
+            source: FUNCTION_CALL
+            functionCall:
+              conditionalValue:
+                ifConditionalValues:
+                  - condition:
+                      source: FUNCTION_CALL
+                      functionCall:
+                        values:
+                          - variable:
+                              source: WIDGET_CLASS_PARAMETER
+                              baseVariable:
+                                widgetClass:
+                                  paramIdentifier:
+                                    name: variant
+                                    key: design_system_std_switch_std_switchparam_variant
+                              nodeKeyRef:
+                                key: ComponentRoot_node_750
+                          - inputValue:
+                              serializedValue: iOS 26+
+                        condition:
+                          relation: EQUAL_TO
+                    value:
+                      inputValue:
+                        serializedValue: "9999"
+                elseValue:
+                  inputValue:
+                    serializedValue: "13"
+                returnParameter:
+                  dataType:
+                    scalarType: Double
+          mostRecentInputValue: 13
+        bottomRightValue:
+          variable:
+            source: FUNCTION_CALL
+            functionCall:
+              conditionalValue:
+                ifConditionalValues:
+                  - condition:
+                      source: FUNCTION_CALL
+                      functionCall:
+                        values:
+                          - variable:
+                              source: WIDGET_CLASS_PARAMETER
+                              baseVariable:
+                                widgetClass:
+                                  paramIdentifier:
+                                    name: variant
+                                    key: design_system_std_switch_std_switchparam_variant
+                              nodeKeyRef:
+                                key: ComponentRoot_node_750
+                          - inputValue:
+                              serializedValue: iOS 26+
+                        condition:
+                          relation: EQUAL_TO
+                    value:
+                      inputValue:
+                        serializedValue: "9999"
+                elseValue:
+                  inputValue:
+                    serializedValue: "13"
+                returnParameter:
+                  dataType:
+                    scalarType: Double
+          mostRecentInputValue: 13
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      colorValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: active
+                          key: design_system_std_switch_std_switchparam_active
+                    nodeKeyRef:
+                      key: ComponentRoot_node_750
+                  value:
+                    inputValue:
+                      color:
+                        value: "4294967295"
+                        paletteColorName: on_primary
+                        darkModeColor:
+                          value: "4294967295"
+                - condition:
+                    source: FUNCTION_CALL
+                    functionCall:
+                      values:
+                        - variable:
+                            source: WIDGET_CLASS_PARAMETER
+                            baseVariable:
+                              widgetClass:
+                                paramIdentifier:
+                                  name: variant
+                                  key: design_system_std_switch_std_switchparam_variant
+                            nodeKeyRef:
+                              key: ComponentRoot_node_750
+                        - inputValue:
+                            serializedValue: iOS 26+
+                      condition:
+                        relation: EQUAL_TO
+                  value:
+                    inputValue:
+                      color:
+                        themeColor: SECONDARY_BACKGROUND
+              elseValue:
+                inputValue:
+                  color:
+                    themeColor: PRIMARY_BACKGROUND
+              returnParameter:
+                dataType:
+                  scalarType: Color
+        mostRecentInputValue:
+          value: "4294967295"
+          paletteColorName: on_primary
+          darkModeColor:
+            value: "4294967295"
+name: Container

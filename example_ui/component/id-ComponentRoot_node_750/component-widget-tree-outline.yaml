@@ -1,0 +1,14 @@
+node:
+  key: ComponentRoot_node_750
+  children:
+    - key: Row_root_758
+      children:
+        - key: Switch_native_switch_751
+        - key: Container_custom_track_754
+          children:
+            - key: Container_custom_track_753
+              children:
+                - key: Container_custom_thumb_752
+        - key: Container_switch_label_756
+          children:
+            - key: Text_switch_label_755

@@ -1,0 +1,30 @@
+key: Text_text8_138
+type: Text
+props:
+  text:
+    themeStyle: BODY_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Dinner at 7 PM
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: schedules
+              key: design_system_usr_board_card_board_cardparam_schedules
+        nodeKeyRef:
+          key: ComponentRoot_node_118
+        uiBuilderValue:
+          serializedValue: Dinner at 7 PM
+      mostRecentInputValue: Dinner at 7 PM
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    maxLinesValue:
+      inputValue: 1
+    overflowReplacement: ELLIPSIS
+name: Text

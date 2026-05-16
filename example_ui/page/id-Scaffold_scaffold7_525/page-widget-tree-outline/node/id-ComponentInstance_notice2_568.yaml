@@ -1,0 +1,59 @@
+key: ComponentInstance_notice2_568
+type: Container
+props:
+  container: {}
+name: NoticeCard2
+parameterValues:
+  parameterPasses:
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_colors:
+      paramIdentifier:
+        name: confirmedColors
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_colors
+      inputValue:
+        serializedValue: secondary
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_count:
+      paramIdentifier:
+        name: confirmedCount
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_count
+      inputValue:
+        serializedValue: "1"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_initials:
+      paramIdentifier:
+        name: confirmedInitials
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_initials
+      inputValue:
+        serializedValue: BK
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_date:
+      paramIdentifier:
+        name: date
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_date
+      inputValue:
+        serializedValue: "Oct 22, 02:30 PM"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_is_important:
+      paramIdentifier:
+        name: isImportant
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_is_important
+      inputValue:
+        serializedValue: "false"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_preview:
+      paramIdentifier:
+        name: preview
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_preview
+      inputValue:
+        serializedValue: We've been seeing some confusion about the recycling bins. Please make sure to rinse out plastic containers before putting them in the blue bin.
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_title
+      inputValue:
+        serializedValue: "New House Rules: Trash"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_has_confirmed:
+      paramIdentifier:
+        name: hasConfirmed
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_has_confirmed
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_540
+componentClassKeyRef:
+  key: ComponentRoot_node_540

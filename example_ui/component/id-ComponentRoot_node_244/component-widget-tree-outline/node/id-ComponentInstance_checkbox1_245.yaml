@@ -1,0 +1,71 @@
+key: ComponentInstance_checkbox1_245
+type: Container
+props:
+  container: {}
+name: Checkbox
+parameterValues:
+  parameterPasses:
+    design_system_std_checkbox_std_checkboxparam_label:
+      paramIdentifier:
+        name: label
+        key: design_system_std_checkbox_std_checkboxparam_label
+      inputValue:
+        serializedValue: Email Notifications
+    design_system_std_checkbox_std_checkboxparam_subtitle:
+      paramIdentifier:
+        name: subtitle
+        key: design_system_std_checkbox_std_checkboxparam_subtitle
+      inputValue:
+        serializedValue: Receive weekly updates
+    design_system_std_checkbox_std_checkboxparam_color:
+      paramIdentifier:
+        name: color
+        key: design_system_std_checkbox_std_checkboxparam_color
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          color:
+            themeColor: PRIMARY
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: color
+              key: design_system_usr_task_item_task_itemparam_color
+        nodeKeyRef:
+          key: ComponentRoot_node_244
+        uiBuilderValue:
+          color:
+            themeColor: PRIMARY
+    design_system_std_checkbox_std_checkboxparam_is_checked:
+      paramIdentifier:
+        name: isChecked
+        key: design_system_std_checkbox_std_checkboxparam_is_checked
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "true"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: done
+              key: design_system_usr_task_item_task_itemparam_done
+        nodeKeyRef:
+          key: ComponentRoot_node_244
+        uiBuilderValue:
+          serializedValue: "true"
+    design_system_std_checkbox_std_checkboxparam_has_subtitle:
+      paramIdentifier:
+        name: hasSubtitle
+        key: design_system_std_checkbox_std_checkboxparam_has_subtitle
+      inputValue:
+        serializedValue: "true"
+    design_system_std_checkbox_std_checkboxparam_disabled:
+      paramIdentifier:
+        name: disabled
+        key: design_system_std_checkbox_std_checkboxparam_disabled
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_79
+componentClassKeyRef:
+  key: ComponentRoot_node_79

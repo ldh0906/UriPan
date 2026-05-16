@@ -1,0 +1,29 @@
+key: Text_text1_645
+type: Text
+props:
+  text:
+    themeStyle: TITLE_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Seoyun Kim
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: name
+              key: design_system_usr_member_tile_member_tileparam_name
+        nodeKeyRef:
+          key: ComponentRoot_node_642
+        uiBuilderValue:
+          serializedValue: Seoyun Kim
+      mostRecentInputValue: Seoyun Kim
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    fontWeightValue:
+      inputValue: w600
+name: Text

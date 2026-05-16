@@ -1,0 +1,30 @@
+key: Text_text7_134
+type: Text
+props:
+  text:
+    themeStyle: BODY_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: 3 Tasks remaining
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: tasks
+              key: design_system_usr_board_card_board_cardparam_tasks
+        nodeKeyRef:
+          key: ComponentRoot_node_118
+        uiBuilderValue:
+          serializedValue: 3 Tasks remaining
+      mostRecentInputValue: 3 Tasks remaining
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    maxLinesValue:
+      inputValue: 1
+    overflowReplacement: ELLIPSIS
+name: Text

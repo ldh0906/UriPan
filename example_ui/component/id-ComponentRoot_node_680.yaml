@@ -1,0 +1,77 @@
+name: ActionItem
+description: ""
+params:
+  design_system_usr_action_item_action_itemparam_icon:
+    identifier:
+      name: icon
+      key: design_system_usr_action_item_action_itemparam_icon
+    defaultValue:
+      icon:
+        sizeValue:
+          inputValue: 24
+        colorValue:
+          inputValue:
+            themeColor: INFO
+        iconDataValue:
+          inputValue:
+            codePoint: 62974
+            family: MaterialIcons
+            matchTextDirection: false
+            name: calendar_today_rounded
+    dataType:
+      scalarType: WidgetProperty
+      subType:
+        widgetPropertyType: ICON
+    namedParameter:
+      isOptional: true
+  design_system_usr_action_item_action_itemparam_icon_bg:
+    identifier:
+      name: iconBg
+      key: design_system_usr_action_item_action_itemparam_icon_bg
+    defaultValue:
+      serializedValue: info_container
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_action_item_action_itemparam_icon_color:
+    identifier:
+      name: iconColor
+      key: design_system_usr_action_item_action_itemparam_icon_color
+    defaultValue: {}
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_action_item_action_itemparam_on_tap:
+    identifier:
+      name: onTap
+      key: design_system_usr_action_item_action_itemparam_on_tap
+    defaultValue:
+      serializedValue: navigate:ItemDetailEdit
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_action_item_action_itemparam_subtitle:
+    identifier:
+      name: subtitle
+      key: design_system_usr_action_item_action_itemparam_subtitle
+    defaultValue:
+      serializedValue: "Events, meetings, or reminders"
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_action_item_action_itemparam_title:
+    identifier:
+      name: title
+      key: design_system_usr_action_item_action_itemparam_title
+    defaultValue:
+      serializedValue: Schedule
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_680

@@ -1,0 +1,14 @@
+key: Container_fab1_295
+type: Container
+props:
+  container:
+    childAlignment:
+      xValue:
+        inputValue: 1
+      yValue:
+        inputValue: 1
+  padding:
+    type: FF_PADDING_ALL
+    allValue:
+      inputValue: 24
+name: Margin

@@ -1,0 +1,6 @@
+key: ComponentRoot_node_262
+type: Container
+props:
+  container: {}
+name: NoticeCard
+isDummyRoot: true

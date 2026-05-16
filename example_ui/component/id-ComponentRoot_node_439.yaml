@@ -1,0 +1,95 @@
+name: TabGroup
+description: ""
+params:
+  design_system_std_tab_group_std_tab_groupparam_label_1:
+    identifier:
+      name: label1
+      key: design_system_std_tab_group_std_tab_groupparam_label_1
+    defaultValue:
+      serializedValue: All
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_2:
+    identifier:
+      name: label2
+      key: design_system_std_tab_group_std_tab_groupparam_label_2
+    defaultValue:
+      serializedValue: Mine
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_2_present:
+    identifier:
+      name: label2Present
+      key: design_system_std_tab_group_std_tab_groupparam_label_2_present
+    defaultValue:
+      serializedValue: "true"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_3:
+    identifier:
+      name: label3
+      key: design_system_std_tab_group_std_tab_groupparam_label_3
+    defaultValue:
+      serializedValue: Completed
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_3_present:
+    identifier:
+      name: label3Present
+      key: design_system_std_tab_group_std_tab_groupparam_label_3_present
+    defaultValue:
+      serializedValue: "true"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_4:
+    identifier:
+      name: label4
+      key: design_system_std_tab_group_std_tab_groupparam_label_4
+    defaultValue:
+      serializedValue: ""
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_4_present:
+    identifier:
+      name: label4Present
+      key: design_system_std_tab_group_std_tab_groupparam_label_4_present
+    defaultValue:
+      serializedValue: "false"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_5:
+    identifier:
+      name: label5
+      key: design_system_std_tab_group_std_tab_groupparam_label_5
+    defaultValue:
+      serializedValue: ""
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_group_std_tab_groupparam_label_5_present:
+    identifier:
+      name: label5Present
+      key: design_system_std_tab_group_std_tab_groupparam_label_5_present
+    defaultValue:
+      serializedValue: "false"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_439

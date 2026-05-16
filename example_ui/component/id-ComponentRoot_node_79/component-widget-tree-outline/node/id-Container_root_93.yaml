@@ -1,0 +1,35 @@
+key: Container_root_93
+type: Container
+props:
+  container: {}
+  padding:
+    type: FF_PADDING_ALL
+    allValue:
+      inputValue: 0
+  opacity:
+    opacityValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: WIDGET_CLASS_PARAMETER
+                  baseVariable:
+                    widgetClass:
+                      paramIdentifier:
+                        name: disabled
+                        key: design_system_std_checkbox_std_checkboxparam_disabled
+                  nodeKeyRef:
+                    key: ComponentRoot_node_79
+                value:
+                  inputValue:
+                    serializedValue: "0.55"
+            elseValue:
+              inputValue:
+                serializedValue: "1"
+            returnParameter:
+              dataType:
+                scalarType: Double
+      mostRecentInputValue: 1
+name: Margin

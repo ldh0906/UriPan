@@ -1,0 +1,6 @@
+rootAction:
+  key: nav_AddItemSelector_fab2
+  action:
+    key: id64z1v0
+trigger:
+  triggerType: ON_TAP

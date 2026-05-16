@@ -1,0 +1,10 @@
+key: Scaffold_scaffold2_47
+type: Scaffold
+props:
+  scaffold:
+    safeArea: false
+    hideKeyboardOnTap: true
+    backgroundColorValue:
+      inputValue:
+        themeColor: PRIMARY_BACKGROUND
+name: Login

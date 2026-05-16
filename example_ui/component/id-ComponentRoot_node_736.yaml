@@ -1,0 +1,44 @@
+name: MemberChip
+description: ""
+params:
+  design_system_usr_member_chip_member_chipparam_color:
+    identifier:
+      name: color
+      key: design_system_usr_member_chip_member_chipparam_color
+    defaultValue: {}
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_member_chip_member_chipparam_initials:
+    identifier:
+      name: initials
+      key: design_system_usr_member_chip_member_chipparam_initials
+    defaultValue:
+      serializedValue: ME
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_member_chip_member_chipparam_name:
+    identifier:
+      name: name
+      key: design_system_usr_member_chip_member_chipparam_name
+    defaultValue:
+      serializedValue: Me
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_member_chip_member_chipparam_selected:
+    identifier:
+      name: selected
+      key: design_system_usr_member_chip_member_chipparam_selected
+    defaultValue:
+      serializedValue: "true"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_736

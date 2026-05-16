@@ -1,0 +1,68 @@
+key: Container_container4_319
+type: Container
+props:
+  container:
+    dimensions:
+      width:
+        pixelsValue:
+          inputValue: 4
+      height:
+        pixelsValue:
+          inputValue: 4
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ALL
+        allValue:
+          inputValue: 9999
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      colorValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: isSelected
+                          key: design_system_usr_calendar_day_calendar_dayparam_is_selected
+                    nodeKeyRef:
+                      key: ComponentRoot_node_315
+                  value:
+                    inputValue:
+                      color:
+                        value: "4294967295"
+                        paletteColorName: on_primary
+                        darkModeColor:
+                          value: "4294967295"
+              elseValue:
+                inputValue:
+                  color:
+                    themeColor: INFO
+              returnParameter:
+                dataType:
+                  scalarType: Color
+        mostRecentInputValue:
+          value: "4294967295"
+          paletteColorName: on_primary
+          darkModeColor:
+            value: "4294967295"
+  visibility:
+    visibleValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "true"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: hasInfoPresent
+              key: design_system_usr_calendar_day_calendar_dayparam_has_info_present
+        nodeKeyRef:
+          key: ComponentRoot_node_315
+        uiBuilderValue:
+          serializedValue: "true"
+      mostRecentInputValue: true
+name: Container

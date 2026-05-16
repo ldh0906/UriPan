@@ -1,0 +1,83 @@
+key: ComponentInstance_calendarday23_353
+type: Container
+props:
+  container: {}
+name: CalendarDay
+parameterValues:
+  parameterPasses:
+    design_system_usr_calendar_day_calendar_dayparam_day:
+      paramIdentifier:
+        name: day
+        key: design_system_usr_calendar_day_calendar_dayparam_day
+      inputValue:
+        serializedValue: "23"
+    design_system_usr_calendar_day_calendar_dayparam_has_accent:
+      paramIdentifier:
+        name: hasAccent
+        key: design_system_usr_calendar_day_calendar_dayparam_has_accent
+      inputValue:
+        serializedValue: Has Accent
+    design_system_usr_calendar_day_calendar_dayparam_has_accent_present:
+      paramIdentifier:
+        name: hasAccentPresent
+        key: design_system_usr_calendar_day_calendar_dayparam_has_accent_present
+      inputValue:
+        serializedValue: "true"
+    design_system_usr_calendar_day_calendar_dayparam_has_events:
+      paramIdentifier:
+        name: hasEvents
+        key: design_system_usr_calendar_day_calendar_dayparam_has_events
+      inputValue:
+        serializedValue: Has Events
+    design_system_usr_calendar_day_calendar_dayparam_has_events_present:
+      paramIdentifier:
+        name: hasEventsPresent
+        key: design_system_usr_calendar_day_calendar_dayparam_has_events_present
+      inputValue:
+        serializedValue: "true"
+    design_system_usr_calendar_day_calendar_dayparam_has_info:
+      paramIdentifier:
+        name: hasInfo
+        key: design_system_usr_calendar_day_calendar_dayparam_has_info
+      inputValue:
+        serializedValue: Has Info
+    design_system_usr_calendar_day_calendar_dayparam_has_info_present:
+      paramIdentifier:
+        name: hasInfoPresent
+        key: design_system_usr_calendar_day_calendar_dayparam_has_info_present
+      inputValue:
+        serializedValue: "true"
+    design_system_usr_calendar_day_calendar_dayparam_has_success:
+      paramIdentifier:
+        name: hasSuccess
+        key: design_system_usr_calendar_day_calendar_dayparam_has_success
+      inputValue:
+        serializedValue: Has Success
+    design_system_usr_calendar_day_calendar_dayparam_has_success_present:
+      paramIdentifier:
+        name: hasSuccessPresent
+        key: design_system_usr_calendar_day_calendar_dayparam_has_success_present
+      inputValue:
+        serializedValue: "true"
+    design_system_usr_calendar_day_calendar_dayparam_is_today:
+      paramIdentifier:
+        name: isToday
+        key: design_system_usr_calendar_day_calendar_dayparam_is_today
+      inputValue:
+        serializedValue: "false"
+    design_system_usr_calendar_day_calendar_dayparam_is_outside:
+      paramIdentifier:
+        name: isOutside
+        key: design_system_usr_calendar_day_calendar_dayparam_is_outside
+      inputValue:
+        serializedValue: "true"
+    design_system_usr_calendar_day_calendar_dayparam_is_selected:
+      paramIdentifier:
+        name: isSelected
+        key: design_system_usr_calendar_day_calendar_dayparam_is_selected
+      inputValue:
+        serializedValue: "true"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_315
+componentClassKeyRef:
+  key: ComponentRoot_node_315

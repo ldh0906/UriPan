@@ -1,0 +1,44 @@
+name: ScheduleItem
+description: ""
+params:
+  design_system_usr_schedule_item_schedule_itemparam_color:
+    identifier:
+      name: color
+      key: design_system_usr_schedule_item_schedule_itemparam_color
+    defaultValue: {}
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_schedule_item_schedule_itemparam_initials:
+    identifier:
+      name: initials
+      key: design_system_usr_schedule_item_schedule_itemparam_initials
+    defaultValue:
+      serializedValue: MK
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_schedule_item_schedule_itemparam_time:
+    identifier:
+      name: time
+      key: design_system_usr_schedule_item_schedule_itemparam_time
+    defaultValue:
+      serializedValue: 10:00 AM - 11:00 AM
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_schedule_item_schedule_itemparam_title:
+    identifier:
+      name: title
+      key: design_system_usr_schedule_item_schedule_itemparam_title
+    defaultValue:
+      serializedValue: Grocery Shopping
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_226

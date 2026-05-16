@@ -1,0 +1,188 @@
+key: Container_container1_743
+type: Container
+props:
+  container:
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ALL
+        allValue:
+          inputValue: 9999
+      border:
+        top:
+          sizeValue:
+            inputValue: 1
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: selected
+                              key: design_system_usr_member_chip_member_chipparam_selected
+                        nodeKeyRef:
+                          key: ComponentRoot_node_736
+                      value:
+                        inputValue:
+                          serializedValue: SlotValue($color)
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+        right:
+          sizeValue:
+            inputValue: 1
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: selected
+                              key: design_system_usr_member_chip_member_chipparam_selected
+                        nodeKeyRef:
+                          key: ComponentRoot_node_736
+                      value:
+                        inputValue:
+                          serializedValue: SlotValue($color)
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+        bottom:
+          sizeValue:
+            inputValue: 1
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: selected
+                              key: design_system_usr_member_chip_member_chipparam_selected
+                        nodeKeyRef:
+                          key: ComponentRoot_node_736
+                      value:
+                        inputValue:
+                          serializedValue: SlotValue($color)
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+        left:
+          sizeValue:
+            inputValue: 1
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: selected
+                              key: design_system_usr_member_chip_member_chipparam_selected
+                        nodeKeyRef:
+                          key: ComponentRoot_node_736
+                      value:
+                        inputValue:
+                          serializedValue: SlotValue($color)
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      colorValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: selected
+                          key: design_system_usr_member_chip_member_chipparam_selected
+                    nodeKeyRef:
+                      key: ComponentRoot_node_736
+                  value:
+                    inputValue:
+                      serializedValue: SlotValue($color)
+              elseValue:
+                inputValue:
+                  color:
+                    themeColor: SECONDARY_BACKGROUND
+              returnParameter:
+                dataType:
+                  scalarType: Color
+        mostRecentInputValue:
+          themeColor: PRIMARY
+      borderColorValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: selected
+                          key: design_system_usr_member_chip_member_chipparam_selected
+                    nodeKeyRef:
+                      key: ComponentRoot_node_736
+                  value:
+                    inputValue:
+                      serializedValue: SlotValue($color)
+              elseValue:
+                inputValue:
+                  color:
+                    themeColor: ALTERNATE
+              returnParameter:
+                dataType:
+                  scalarType: Color
+        mostRecentInputValue:
+          themeColor: PRIMARY
+      borderWidthValue:
+        inputValue: 1
+name: Container

@@ -1,0 +1,16 @@
+key: Text_text89_592
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      inputValue: Notices
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY
+    heightValue:
+      inputValue: 1.2
+    fontWeightValue:
+      inputValue: w700
+name: Text

@@ -1,0 +1,46 @@
+key: Text_text3_466
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "Milk, Eggs, Pasta"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: memo
+              key: design_system_usr_task_item_93ec7210_task_item_93ec7210param_memo
+        nodeKeyRef:
+          key: ComponentRoot_node_457
+        uiBuilderValue:
+          serializedValue: "Milk, Eggs, Pasta"
+      mostRecentInputValue: "Milk, Eggs, Pasta"
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.2
+    maxLinesValue:
+      inputValue: 1
+    overflowReplacement: ELLIPSIS
+  visibility:
+    visibleValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "true"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: hasMemo
+              key: design_system_usr_task_item_93ec7210_task_item_93ec7210param_has_memo
+        nodeKeyRef:
+          key: ComponentRoot_node_457
+        uiBuilderValue:
+          serializedValue: "true"
+      mostRecentInputValue: true
+name: Text

@@ -1,0 +1,16 @@
+key: Icon_icon1_378
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 14
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    iconDataValue:
+      inputValue:
+        codePoint: 983339
+        family: MaterialIcons
+        matchTextDirection: false
+        name: schedule_rounded
+name: Icon

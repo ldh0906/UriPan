@@ -1,0 +1,16 @@
+key: Icon_icon21_411
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 24
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    iconDataValue:
+      inputValue:
+        codePoint: 983082
+        family: MaterialIcons
+        matchTextDirection: false
+        name: notifications_rounded
+name: Icon

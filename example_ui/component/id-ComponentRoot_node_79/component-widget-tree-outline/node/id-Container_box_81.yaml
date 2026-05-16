@@ -1,0 +1,320 @@
+key: Container_box_81
+type: Container
+props:
+  container:
+    dimensions:
+      width:
+        pixelsValue:
+          inputValue: 20
+      height:
+        pixelsValue:
+          inputValue: 20
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ALL
+        allValue:
+          inputValue: 8
+      border:
+        top:
+          sizeValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          serializedValue: "2"
+                  elseValue:
+                    inputValue:
+                      serializedValue: "2"
+                  returnParameter:
+                    dataType:
+                      scalarType: Double
+            mostRecentInputValue: 2
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          color:
+                            themeColor: PRIMARY
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+        right:
+          sizeValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          serializedValue: "2"
+                  elseValue:
+                    inputValue:
+                      serializedValue: "2"
+                  returnParameter:
+                    dataType:
+                      scalarType: Double
+            mostRecentInputValue: 2
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          color:
+                            themeColor: PRIMARY
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+        bottom:
+          sizeValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          serializedValue: "2"
+                  elseValue:
+                    inputValue:
+                      serializedValue: "2"
+                  returnParameter:
+                    dataType:
+                      scalarType: Double
+            mostRecentInputValue: 2
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          color:
+                            themeColor: PRIMARY
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+        left:
+          sizeValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          serializedValue: "2"
+                  elseValue:
+                    inputValue:
+                      serializedValue: "2"
+                  returnParameter:
+                    dataType:
+                      scalarType: Double
+            mostRecentInputValue: 2
+          colorValue:
+            variable:
+              source: FUNCTION_CALL
+              functionCall:
+                conditionalValue:
+                  ifConditionalValues:
+                    - condition:
+                        source: WIDGET_CLASS_PARAMETER
+                        baseVariable:
+                          widgetClass:
+                            paramIdentifier:
+                              name: isChecked
+                              key: design_system_std_checkbox_std_checkboxparam_is_checked
+                        nodeKeyRef:
+                          key: ComponentRoot_node_79
+                      value:
+                        inputValue:
+                          color:
+                            themeColor: PRIMARY
+                  elseValue:
+                    inputValue:
+                      color:
+                        themeColor: ALTERNATE
+                  returnParameter:
+                    dataType:
+                      scalarType: Color
+            mostRecentInputValue:
+              themeColor: PRIMARY
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      colorValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: isChecked
+                          key: design_system_std_checkbox_std_checkboxparam_is_checked
+                    nodeKeyRef:
+                      key: ComponentRoot_node_79
+                  value:
+                    inputValue:
+                      serializedValue: SlotValue($color)
+              elseValue:
+                inputValue:
+                  color:
+                    value: "0"
+              returnParameter:
+                dataType:
+                  scalarType: Color
+        mostRecentInputValue:
+          themeColor: PRIMARY
+      borderColorValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: isChecked
+                          key: design_system_std_checkbox_std_checkboxparam_is_checked
+                    nodeKeyRef:
+                      key: ComponentRoot_node_79
+                  value:
+                    inputValue:
+                      color:
+                        themeColor: PRIMARY
+              elseValue:
+                inputValue:
+                  color:
+                    themeColor: ALTERNATE
+              returnParameter:
+                dataType:
+                  scalarType: Color
+        mostRecentInputValue:
+          themeColor: PRIMARY
+      borderWidthValue:
+        variable:
+          source: FUNCTION_CALL
+          functionCall:
+            conditionalValue:
+              ifConditionalValues:
+                - condition:
+                    source: WIDGET_CLASS_PARAMETER
+                    baseVariable:
+                      widgetClass:
+                        paramIdentifier:
+                          name: isChecked
+                          key: design_system_std_checkbox_std_checkboxparam_is_checked
+                    nodeKeyRef:
+                      key: ComponentRoot_node_79
+                  value:
+                    inputValue:
+                      serializedValue: "2"
+              elseValue:
+                inputValue:
+                  serializedValue: "2"
+              returnParameter:
+                dataType:
+                  scalarType: Double
+        mostRecentInputValue: 2
+    childAlignment:
+      xValue:
+        inputValue: 0
+      yValue:
+        inputValue: 0
+name: Container

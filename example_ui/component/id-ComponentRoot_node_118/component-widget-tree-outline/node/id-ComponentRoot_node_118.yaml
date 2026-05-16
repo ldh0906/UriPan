@@ -1,0 +1,6 @@
+key: ComponentRoot_node_118
+type: Container
+props:
+  container: {}
+name: BoardCard
+isDummyRoot: true

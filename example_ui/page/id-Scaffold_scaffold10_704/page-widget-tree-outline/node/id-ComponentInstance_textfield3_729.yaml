@@ -1,0 +1,99 @@
+key: ComponentInstance_textfield3_729
+type: Container
+props:
+  container: {}
+  expanded:
+    expandedType: EXPANDED
+    flexValue:
+      inputValue: 1
+name: TextField
+parameterValues:
+  parameterPasses:
+    design_system_std_textfield_std_textfieldparam_label:
+      paramIdentifier:
+        name: label
+        key: design_system_std_textfield_std_textfieldparam_label
+      inputValue:
+        serializedValue: Start Time
+    design_system_std_textfield_std_textfieldparam_label_present:
+      paramIdentifier:
+        name: labelPresent
+        key: design_system_std_textfield_std_textfieldparam_label_present
+      inputValue:
+        serializedValue: "true"
+    design_system_std_textfield_std_textfieldparam_helper:
+      paramIdentifier:
+        name: helper
+        key: design_system_std_textfield_std_textfieldparam_helper
+      inputValue:
+        serializedValue: ""
+    design_system_std_textfield_std_textfieldparam_helper_present:
+      paramIdentifier:
+        name: helperPresent
+        key: design_system_std_textfield_std_textfieldparam_helper_present
+      inputValue:
+        serializedValue: "false"
+    design_system_std_textfield_std_textfieldparam_hint:
+      paramIdentifier:
+        name: hint
+        key: design_system_std_textfield_std_textfieldparam_hint
+      inputValue:
+        serializedValue: Type here...
+    design_system_std_textfield_std_textfieldparam_value:
+      paramIdentifier:
+        name: value
+        key: design_system_std_textfield_std_textfieldparam_value
+      inputValue:
+        serializedValue: 09:00 AM
+    design_system_std_textfield_std_textfieldparam_on_change:
+      paramIdentifier:
+        name: onChange
+        key: design_system_std_textfield_std_textfieldparam_on_change
+      inputValue:
+        serializedValue: ""
+    design_system_std_textfield_std_textfieldparam_on_submit:
+      paramIdentifier:
+        name: onSubmit
+        key: design_system_std_textfield_std_textfieldparam_on_submit
+      inputValue:
+        serializedValue: ""
+    design_system_std_textfield_std_textfieldparam_leading_icon:
+      paramIdentifier:
+        name: leadingIcon
+        key: design_system_std_textfield_std_textfieldparam_leading_icon
+      widgetProperty:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 983339
+              family: MaterialIcons
+              matchTextDirection: false
+              name: schedule_rounded
+    design_system_std_textfield_std_textfieldparam_leading_icon_present:
+      paramIdentifier:
+        name: leadingIconPresent
+        key: design_system_std_textfield_std_textfieldparam_leading_icon_present
+      inputValue:
+        serializedValue: "true"
+    design_system_std_textfield_std_textfieldparam_trailing_icon_present:
+      paramIdentifier:
+        name: trailingIconPresent
+        key: design_system_std_textfield_std_textfieldparam_trailing_icon_present
+      inputValue:
+        serializedValue: "false"
+    design_system_std_textfield_std_textfieldparam_variant:
+      paramIdentifier:
+        name: variant
+        key: design_system_std_textfield_std_textfieldparam_variant
+      inputValue:
+        serializedValue: outlined
+    design_system_std_textfield_std_textfieldparam_error:
+      paramIdentifier:
+        name: error
+        key: design_system_std_textfield_std_textfieldparam_error
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_57
+componentClassKeyRef:
+  key: ComponentRoot_node_57

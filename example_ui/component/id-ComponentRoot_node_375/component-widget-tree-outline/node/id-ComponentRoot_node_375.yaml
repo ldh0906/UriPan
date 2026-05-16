@@ -1,0 +1,6 @@
+key: ComponentRoot_node_375
+type: Container
+props:
+  container: {}
+name: ScheduleItem2
+isDummyRoot: true

@@ -1,0 +1,59 @@
+key: ComponentInstance_actionitem1_692
+type: Container
+props:
+  container: {}
+name: ActionItem
+parameterValues:
+  parameterPasses:
+    design_system_usr_action_item_action_itemparam_icon:
+      paramIdentifier:
+        name: icon
+        key: design_system_usr_action_item_action_itemparam_icon
+      widgetProperty:
+        icon:
+          sizeValue:
+            inputValue: 24
+          colorValue:
+            inputValue:
+              themeColor: INFO
+          iconDataValue:
+            inputValue:
+              codePoint: 62974
+              family: MaterialIcons
+              matchTextDirection: false
+              name: calendar_today_rounded
+    design_system_usr_action_item_action_itemparam_icon_bg:
+      paramIdentifier:
+        name: iconBg
+        key: design_system_usr_action_item_action_itemparam_icon_bg
+      inputValue:
+        serializedValue: info_container
+    design_system_usr_action_item_action_itemparam_icon_color:
+      paramIdentifier:
+        name: iconColor
+        key: design_system_usr_action_item_action_itemparam_icon_color
+      inputValue:
+        color:
+          themeColor: INFO
+    design_system_usr_action_item_action_itemparam_on_tap:
+      paramIdentifier:
+        name: onTap
+        key: design_system_usr_action_item_action_itemparam_on_tap
+      inputValue:
+        serializedValue: navigate:ItemDetailEdit
+    design_system_usr_action_item_action_itemparam_subtitle:
+      paramIdentifier:
+        name: subtitle
+        key: design_system_usr_action_item_action_itemparam_subtitle
+      inputValue:
+        serializedValue: "Events, meetings, or reminders"
+    design_system_usr_action_item_action_itemparam_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_action_item_action_itemparam_title
+      inputValue:
+        serializedValue: Schedule
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_680
+componentClassKeyRef:
+  key: ComponentRoot_node_680

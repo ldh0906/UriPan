@@ -1,0 +1,6 @@
+rootAction:
+  key: nav_TodayBoard_container3
+  action:
+    key: jxaec5dm
+trigger:
+  triggerType: ON_TAP

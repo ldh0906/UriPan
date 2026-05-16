@@ -1,0 +1,25 @@
+key: Container_container49_577
+type: Container
+props:
+  container:
+    childAlignment:
+      xValue:
+        inputValue: 1
+      yValue:
+        inputValue: 1
+  padding:
+    type: FF_PADDING_ONLY
+    leftValue:
+      inputValue: 0
+    topValue:
+      inputValue: 0
+    rightValue:
+      inputValue: 24
+    bottomValue:
+      inputValue: 32
+  alignment:
+    xValue:
+      inputValue: 1
+    yValue:
+      inputValue: 1
+name: Margin

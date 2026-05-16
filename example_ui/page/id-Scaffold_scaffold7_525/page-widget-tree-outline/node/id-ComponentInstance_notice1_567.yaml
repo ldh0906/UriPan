@@ -1,0 +1,59 @@
+key: ComponentInstance_notice1_567
+type: Container
+props:
+  container: {}
+name: NoticeCard2
+parameterValues:
+  parameterPasses:
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_colors:
+      paramIdentifier:
+        name: confirmedColors
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_colors
+      inputValue:
+        serializedValue: "primary,secondary,accent"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_count:
+      paramIdentifier:
+        name: confirmedCount
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_count
+      inputValue:
+        serializedValue: "3"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_initials:
+      paramIdentifier:
+        name: confirmedInitials
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_confirmed_initials
+      inputValue:
+        serializedValue: "AR,BK,JS"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_date:
+      paramIdentifier:
+        name: date
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_date
+      inputValue:
+        serializedValue: "Oct 24, 10:15 AM"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_is_important:
+      paramIdentifier:
+        name: isImportant
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_is_important
+      inputValue:
+        serializedValue: "true"
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_preview:
+      paramIdentifier:
+        name: preview
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_preview
+      inputValue:
+        serializedValue: "Hi everyone, just a reminder that the rent and electricity bill are due this Friday. Please transfer your share to the main account by Thursday evening."
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_title
+      inputValue:
+        serializedValue: Rent & Utilities Due
+    design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_has_confirmed:
+      paramIdentifier:
+        name: hasConfirmed
+        key: design_system_usr_notice_card_d177ee90_notice_card_d177ee90param_has_confirmed
+      inputValue:
+        serializedValue: "true"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_540
+componentClassKeyRef:
+  key: ComponentRoot_node_540

@@ -1,0 +1,19 @@
+key: Text_text52_107
+type: Text
+props:
+  text:
+    themeStyle: LABEL_SMALL
+    selectable: false
+    textValue:
+      inputValue: "By logging in, you agree to our Terms of Service"
+    colorValue:
+      inputValue:
+        value: "4280166715"
+        paletteColorName: on_background
+        darkModeColor:
+          value: "4294507260"
+    heightValue:
+      inputValue: 1.2
+    textAlignValue:
+      inputValue: ALIGN_CENTER
+name: Text

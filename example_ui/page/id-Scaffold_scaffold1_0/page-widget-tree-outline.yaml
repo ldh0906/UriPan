@@ -1,0 +1,41 @@
+node:
+  key: Scaffold_scaffold1_0
+  body:
+    key: ScrollColumn_column20_46
+    children:
+      - key: Container_column20_45
+        children:
+          - key: Column_column20_44
+            children:
+              - key: Column_column21_8
+                children:
+                  - key: Container_container42_2
+                    children:
+                      - key: Icon_icon18_1
+                  - key: Column_column22_6
+                    children:
+                      - key: Text_text47_3
+                      - key: Text_text48_4
+              - key: Container_container43_11
+                children:
+                  - key: Container_container43_10
+                    children:
+                      - key: Image_image1_9
+              - key: Text_text49_12
+              - key: Row_row34_25
+                children:
+                  - key: ComponentInstance_feat1_21
+                  - key: ComponentInstance_feat2_22
+                  - key: ComponentInstance_feat3_23
+              - key: Container_sizedbox1_26
+              - key: Column_column23_39
+                children:
+                  - key: ComponentInstance_stdbutton2_36
+                  - key: ComponentInstance_button2_37
+              - key: Container_container44_43
+                children:
+                  - key: Container_container44_42
+                    children:
+                      - key: Container_container44_41
+                        children:
+                          - key: Text_text50_40

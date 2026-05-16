@@ -1,0 +1,29 @@
+key: Text_text2_723
+type: Text
+props:
+  text:
+    themeStyle: LABEL_LARGE
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Time & Date
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: title
+              key: design_system_usr_section_header_a677c768_section_header_a677c768param_title
+        nodeKeyRef:
+          key: ComponentRoot_node_721
+        uiBuilderValue:
+          serializedValue: Time & Date
+      mostRecentInputValue: Time & Date
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.3
+    fontWeightValue:
+      inputValue: w600
+name: Text

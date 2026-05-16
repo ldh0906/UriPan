@@ -1,0 +1,126 @@
+node:
+  key: Scaffold_scaffold5_296
+  floatingActionButton:
+    key: Fab_fab2_428
+    children:
+      - key: Text_fab2_427
+  body:
+    key: Column_column37_426
+    children:
+      - key: Container_container42_305
+        children:
+          - key: Container_container42_304
+            children:
+              - key: Row_row37_303
+                children:
+                  - key: Column_column38_300
+                    children:
+                      - key: Text_text59_297
+                      - key: Text_text60_298
+                  - key: IconButton_iconbutton3_301
+      - key: Container_container43_367
+        children:
+          - key: Container_container43_366
+            children:
+              - key: Container_container43_365
+                children:
+                  - key: Column_column39_364
+                    children:
+                      - key: Row_row38_314
+                        children:
+                          - key: Text_text61_306
+                          - key: Text_text62_307
+                          - key: Text_text63_308
+                          - key: Text_text64_309
+                          - key: Text_text65_310
+                          - key: Text_text66_311
+                          - key: Text_text67_312
+                      - key: Column_column40_362
+                        children:
+                          - key: Row_row39_333
+                            children:
+                              - key: ComponentInstance_calendarday1_325
+                              - key: ComponentInstance_calendarday2_326
+                              - key: ComponentInstance_calendarday3_327
+                              - key: ComponentInstance_calendarday4_328
+                              - key: ComponentInstance_calendarday5_329
+                              - key: ComponentInstance_calendarday6_330
+                              - key: ComponentInstance_calendarday7_331
+                          - key: Row_row40_342
+                            children:
+                              - key: ComponentInstance_calendarday8_334
+                              - key: ComponentInstance_calendarday9_335
+                              - key: ComponentInstance_calendarday10_336
+                              - key: ComponentInstance_calendarday11_337
+                              - key: ComponentInstance_calendarday12_338
+                              - key: ComponentInstance_calendarday13_339
+                              - key: ComponentInstance_calendarday14_340
+                          - key: Row_row41_351
+                            children:
+                              - key: ComponentInstance_calendarday15_343
+                              - key: ComponentInstance_calendarday16_344
+                              - key: ComponentInstance_calendarday17_345
+                              - key: ComponentInstance_calendarday18_346
+                              - key: ComponentInstance_calendarday19_347
+                              - key: ComponentInstance_calendarday20_348
+                              - key: ComponentInstance_calendarday21_349
+                          - key: Row_row42_360
+                            children:
+                              - key: ComponentInstance_calendarday22_352
+                              - key: ComponentInstance_calendarday23_353
+                              - key: ComponentInstance_calendarday24_354
+                              - key: ComponentInstance_calendarday25_355
+                              - key: ComponentInstance_calendarday26_356
+                              - key: ComponentInstance_calendarday27_357
+                              - key: ComponentInstance_calendarday28_358
+      - key: Container_expanded8_398
+        children:
+          - key: ScrollColumn_column41_397
+            children:
+              - key: Container_column41_396
+                children:
+                  - key: Column_column41_395
+                    children:
+                      - key: Container_row43_374
+                        children:
+                          - key: Row_row43_373
+                            children:
+                              - key: Text_text68_368
+                              - key: Container_chip1_371
+                                children:
+                                  - key: ChipRow_chip1_370
+                                    children:
+                                      - key: Text_chip1_369
+                      - key: ComponentInstance_scheduleitem645ae3a1_391
+                      - key: ComponentInstance_scheduleitem645ae3a2_392
+                      - key: ComponentInstance_scheduleitem645ae3a3_393
+                      - key: Container_sizedbox5_394
+      - key: Container_container44_424
+        children:
+          - key: Column_container44_423
+            children:
+              - key: Container_container44_422
+              - key: Container_container44_421
+                children:
+                  - key: Row_row44_420
+                    children:
+                      - key: Column_column42_402
+                        children:
+                          - key: Icon_icon18_399
+                          - key: Text_text69_400
+                      - key: Column_column43_406
+                        children:
+                          - key: Icon_icon19_403
+                          - key: Text_text70_404
+                      - key: Column_column44_410
+                        children:
+                          - key: Icon_icon20_407
+                          - key: Text_text71_408
+                      - key: Column_column45_414
+                        children:
+                          - key: Icon_icon21_411
+                          - key: Text_text72_412
+                      - key: Column_column46_418
+                        children:
+                          - key: Icon_icon22_415
+                          - key: Text_text73_416

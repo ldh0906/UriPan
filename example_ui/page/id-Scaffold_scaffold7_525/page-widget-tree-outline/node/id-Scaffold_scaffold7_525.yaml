@@ -1,0 +1,10 @@
+key: Scaffold_scaffold7_525
+type: Scaffold
+props:
+  scaffold:
+    safeArea: false
+    hideKeyboardOnTap: true
+    backgroundColorValue:
+      inputValue:
+        themeColor: PRIMARY_BACKGROUND
+name: NoticesBoard

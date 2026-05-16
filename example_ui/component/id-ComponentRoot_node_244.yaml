@@ -1,0 +1,44 @@
+name: TaskItem
+description: ""
+params:
+  design_system_usr_task_item_task_itemparam_color:
+    identifier:
+      name: color
+      key: design_system_usr_task_item_task_itemparam_color
+    defaultValue: {}
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_task_item_task_itemparam_name:
+    identifier:
+      name: name
+      key: design_system_usr_task_item_task_itemparam_name
+    defaultValue:
+      serializedValue: Mark
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_task_item_task_itemparam_title:
+    identifier:
+      name: title
+      key: design_system_usr_task_item_task_itemparam_title
+    defaultValue:
+      serializedValue: Take out the trash
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_task_item_task_itemparam_done:
+    identifier:
+      name: done
+      key: design_system_usr_task_item_task_itemparam_done
+    defaultValue:
+      serializedValue: "true"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_244

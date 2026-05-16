@@ -1,0 +1,30 @@
+key: Text_text2_172
+type: Text
+props:
+  text:
+    themeStyle: BODY_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Start a new shared board
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: desc
+              key: design_system_usr_action_card_action_cardparam_desc
+        nodeKeyRef:
+          key: ComponentRoot_node_168
+        uiBuilderValue:
+          serializedValue: Start a new shared board
+      mostRecentInputValue: Start a new shared board
+    colorValue:
+      inputValue:
+        themeColor: SECONDARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    maxLinesValue:
+      inputValue: 2
+    overflowReplacement: ELLIPSIS
+name: Text

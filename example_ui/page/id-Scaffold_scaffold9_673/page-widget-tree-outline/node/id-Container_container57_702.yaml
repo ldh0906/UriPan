@@ -1,0 +1,29 @@
+key: Container_container57_702
+type: Container
+props:
+  container:
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ONLY
+        topLeftValue:
+          inputValue: 24
+        topRightValue:
+          inputValue: 24
+        bottomLeftValue:
+          inputValue: 0
+        bottomRightValue:
+          inputValue: 0
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      boxShadow:
+        themeShadowToken:
+          name: xl
+          key: xl
+      colorValue:
+        inputValue:
+          themeColor: PRIMARY_BACKGROUND
+  alignment:
+    xValue:
+      inputValue: 0
+    yValue:
+      inputValue: 1
+name: Container

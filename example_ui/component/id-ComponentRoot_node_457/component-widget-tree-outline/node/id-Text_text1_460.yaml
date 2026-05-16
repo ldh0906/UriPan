@@ -1,0 +1,57 @@
+key: Text_text1_460
+type: Text
+props:
+  text:
+    themeStyle: BODY_LARGE
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Buy groceries for dinner
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: title
+              key: design_system_usr_task_item_93ec7210_task_item_93ec7210param_title
+        nodeKeyRef:
+          key: ComponentRoot_node_457
+        uiBuilderValue:
+          serializedValue: Buy groceries for dinner
+      mostRecentInputValue: Buy groceries for dinner
+    colorValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: WIDGET_CLASS_PARAMETER
+                  baseVariable:
+                    widgetClass:
+                      paramIdentifier:
+                        name: isDone
+                        key: design_system_usr_task_item_93ec7210_task_item_93ec7210param_is_done
+                  nodeKeyRef:
+                    key: ComponentRoot_node_457
+                value:
+                  inputValue:
+                    color:
+                      themeColor: SECONDARY_TEXT
+            elseValue:
+              inputValue:
+                color:
+                  themeColor: PRIMARY_TEXT
+            returnParameter:
+              dataType:
+                scalarType: Color
+      mostRecentInputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.5
+    maxLinesValue:
+      inputValue: 1
+    fontWeightValue:
+      inputValue: w500
+    overflowReplacement: ELLIPSIS
+name: Text

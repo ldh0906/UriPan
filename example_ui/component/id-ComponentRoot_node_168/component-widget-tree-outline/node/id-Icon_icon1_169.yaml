@@ -1,0 +1,65 @@
+key: Icon_icon1_169
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 24
+    colorValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          color:
+            value: "4280166715"
+            paletteColorName: on_primary_container
+            darkModeColor:
+              value: "4294507260"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: iconColor
+              key: design_system_usr_action_card_action_cardparam_icon_color
+        nodeKeyRef:
+          key: ComponentRoot_node_168
+        uiBuilderValue:
+          color:
+            value: "4280166715"
+            paletteColorName: on_primary_container
+            darkModeColor:
+              value: "4294507260"
+      mostRecentInputValue:
+        value: "4280166715"
+        paletteColorName: on_primary_container
+        darkModeColor:
+          value: "4294507260"
+    iconDataValue:
+      inputValue:
+        codePoint: 62775
+        family: MaterialIcons
+        matchTextDirection: false
+        name: add_rounded
+    variable:
+      source: WIDGET_CLASS_PARAMETER
+      defaultValue:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 62775
+              family: MaterialIcons
+              matchTextDirection: false
+              name: add_rounded
+      baseVariable:
+        widgetClass:
+          paramIdentifier:
+            name: icon
+            key: design_system_usr_action_card_action_cardparam_icon
+      nodeKeyRef:
+        key: ComponentRoot_node_168
+      uiBuilderValue:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 62775
+              family: MaterialIcons
+              matchTextDirection: false
+              name: add_rounded
+name: Icon

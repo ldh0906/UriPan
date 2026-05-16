@@ -1,0 +1,42 @@
+key: ComponentInstance_scheduleitem645ae3a2_392
+type: Container
+props:
+  container: {}
+name: ScheduleItem2
+parameterValues:
+  parameterPasses:
+    design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_color:
+      paramIdentifier:
+        name: color
+        key: design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_color
+      inputValue:
+        color:
+          themeColor: TERTIARY
+    design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_end:
+      paramIdentifier:
+        name: end
+        key: design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_end
+      inputValue:
+        serializedValue: 03:00 PM
+    design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_initials:
+      paramIdentifier:
+        name: initials
+        key: design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_initials
+      inputValue:
+        serializedValue: JD
+    design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_start:
+      paramIdentifier:
+        name: start
+        key: design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_start
+      inputValue:
+        serializedValue: 02:00 PM
+    design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_title:
+      paramIdentifier:
+        name: title
+        key: design_system_usr_schedule_item_645ae3a8_schedule_item_645ae3a8param_title
+      inputValue:
+        serializedValue: Project Sync Meeting
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_375
+componentClassKeyRef:
+  key: ComponentRoot_node_375

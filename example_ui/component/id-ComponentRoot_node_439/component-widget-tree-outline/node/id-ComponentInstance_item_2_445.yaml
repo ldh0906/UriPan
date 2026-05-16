@@ -1,0 +1,54 @@
+key: ComponentInstance_item_2_445
+type: Container
+props:
+  container: {}
+  expanded:
+    expandedType: EXPANDED
+    flexValue:
+      inputValue: 1
+  visibility:
+    visibleValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "true"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: label2Present
+              key: design_system_std_tab_group_std_tab_groupparam_label_2_present
+        nodeKeyRef:
+          key: ComponentRoot_node_439
+        uiBuilderValue:
+          serializedValue: "true"
+      mostRecentInputValue: true
+name: TabItem
+parameterValues:
+  parameterPasses:
+    design_system_std_tab_item_std_tab_itemparam_label:
+      paramIdentifier:
+        name: label
+        key: design_system_std_tab_item_std_tab_itemparam_label
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Mine
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: label2
+              key: design_system_std_tab_group_std_tab_groupparam_label_2
+        nodeKeyRef:
+          key: ComponentRoot_node_439
+        uiBuilderValue:
+          serializedValue: Mine
+    design_system_std_tab_item_std_tab_itemparam_selected:
+      paramIdentifier:
+        name: selected
+        key: design_system_std_tab_item_std_tab_itemparam_selected
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_440
+componentClassKeyRef:
+  key: ComponentRoot_node_440

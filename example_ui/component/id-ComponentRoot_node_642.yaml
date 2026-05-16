@@ -1,0 +1,46 @@
+name: MemberTile
+description: ""
+params:
+  design_system_usr_member_tile_member_tileparam_initials:
+    identifier:
+      name: initials
+      key: design_system_usr_member_tile_member_tileparam_initials
+    defaultValue:
+      serializedValue: SY
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_member_tile_member_tileparam_member_color:
+    identifier:
+      name: memberColor
+      key: design_system_usr_member_tile_member_tileparam_member_color
+    defaultValue:
+      color:
+        value: "4294937216"
+    dataType:
+      scalarType: Color
+    namedParameter:
+      isOptional: true
+  design_system_usr_member_tile_member_tileparam_name:
+    identifier:
+      name: name
+      key: design_system_usr_member_tile_member_tileparam_name
+    defaultValue:
+      serializedValue: Seoyun Kim
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_usr_member_tile_member_tileparam_role:
+    identifier:
+      name: role
+      key: design_system_usr_member_tile_member_tileparam_role
+    defaultValue:
+      serializedValue: Admin
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_642

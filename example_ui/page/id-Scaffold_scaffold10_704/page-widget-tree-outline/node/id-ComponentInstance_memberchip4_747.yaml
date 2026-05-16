@@ -1,0 +1,36 @@
+key: ComponentInstance_memberchip4_747
+type: Container
+props:
+  container: {}
+name: MemberChip
+parameterValues:
+  parameterPasses:
+    design_system_usr_member_chip_member_chipparam_color:
+      paramIdentifier:
+        name: color
+        key: design_system_usr_member_chip_member_chipparam_color
+      inputValue:
+        color:
+          value: "4283215696"
+    design_system_usr_member_chip_member_chipparam_initials:
+      paramIdentifier:
+        name: initials
+        key: design_system_usr_member_chip_member_chipparam_initials
+      inputValue:
+        serializedValue: AW
+    design_system_usr_member_chip_member_chipparam_name:
+      paramIdentifier:
+        name: name
+        key: design_system_usr_member_chip_member_chipparam_name
+      inputValue:
+        serializedValue: Alex
+    design_system_usr_member_chip_member_chipparam_selected:
+      paramIdentifier:
+        name: selected
+        key: design_system_usr_member_chip_member_chipparam_selected
+      inputValue:
+        serializedValue: "false"
+  widgetClassNodeKeyRef:
+    key: ComponentRoot_node_736
+componentClassKeyRef:
+  key: ComponentRoot_node_736

@@ -1,0 +1,224 @@
+key: Row_input_row_63
+type: Row
+props:
+  row:
+    mainAxisAlignment: main_axis_start
+    crossAxisAlignment: cross_axis_center
+    scrollable: false
+    minSizeValue:
+      inputValue: false
+  padding:
+    type: FF_PADDING_ONLY
+    leftValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: filled
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: ghost
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+            elseValue:
+              inputValue:
+                serializedValue: "8"
+            returnParameter:
+              dataType:
+                scalarType: Double
+      mostRecentInputValue: 8
+    topValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: filled
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: ghost
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+            elseValue:
+              inputValue:
+                serializedValue: "8"
+            returnParameter:
+              dataType:
+                scalarType: Double
+      mostRecentInputValue: 8
+    rightValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: filled
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: ghost
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+            elseValue:
+              inputValue:
+                serializedValue: "8"
+            returnParameter:
+              dataType:
+                scalarType: Double
+      mostRecentInputValue: 8
+    bottomValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: filled
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_textfield_std_textfieldparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_57
+                      - inputValue:
+                          serializedValue: ghost
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    serializedValue: "8"
+            elseValue:
+              inputValue:
+                serializedValue: "8"
+            returnParameter:
+              dataType:
+                scalarType: Double
+      mostRecentInputValue: 8
+name: Row

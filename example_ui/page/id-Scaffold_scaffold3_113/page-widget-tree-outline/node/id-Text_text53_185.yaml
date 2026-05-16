@@ -1,0 +1,16 @@
+key: Text_text53_185
+type: Text
+props:
+  text:
+    themeStyle: BODY_LARGE
+    selectable: false
+    textValue:
+      inputValue: John Doe
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.5
+    fontWeightValue:
+      inputValue: w700
+name: Text

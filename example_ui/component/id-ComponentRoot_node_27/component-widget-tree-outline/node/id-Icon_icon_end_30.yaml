@@ -1,0 +1,165 @@
+key: Icon_icon_end_30
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 16
+    colorValue:
+      variable:
+        source: FUNCTION_CALL
+        functionCall:
+          conditionalValue:
+            ifConditionalValues:
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_button_std_buttonparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_27
+                      - inputValue:
+                          serializedValue: secondary
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    color:
+                      value: "4294967295"
+                      paletteColorName: on_secondary
+                      darkModeColor:
+                        value: "4278190080"
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_button_std_buttonparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_27
+                      - inputValue:
+                          serializedValue: outline
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    color:
+                      themeColor: PRIMARY_TEXT
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_button_std_buttonparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_27
+                      - inputValue:
+                          serializedValue: ghost
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    color:
+                      themeColor: PRIMARY
+              - condition:
+                  source: FUNCTION_CALL
+                  functionCall:
+                    values:
+                      - variable:
+                          source: WIDGET_CLASS_PARAMETER
+                          baseVariable:
+                            widgetClass:
+                              paramIdentifier:
+                                name: variant
+                                key: design_system_std_button_std_buttonparam_variant
+                          nodeKeyRef:
+                            key: ComponentRoot_node_27
+                      - inputValue:
+                          serializedValue: destructive
+                    condition:
+                      relation: EQUAL_TO
+                value:
+                  inputValue:
+                    color:
+                      value: "4294967295"
+                      paletteColorName: on_error
+                      darkModeColor:
+                        value: "4294967295"
+            elseValue:
+              inputValue:
+                color:
+                  value: "4294967295"
+                  paletteColorName: on_primary
+                  darkModeColor:
+                    value: "4294967295"
+            returnParameter:
+              dataType:
+                scalarType: Color
+      mostRecentInputValue:
+        value: "4294967295"
+        paletteColorName: on_primary
+        darkModeColor:
+          value: "4294967295"
+    iconDataValue:
+      inputValue:
+        codePoint: 62775
+        family: MaterialIcons
+        matchTextDirection: false
+        name: add_rounded
+    variable:
+      source: WIDGET_CLASS_PARAMETER
+      defaultValue:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 62775
+              family: MaterialIcons
+              matchTextDirection: false
+              name: add_rounded
+      baseVariable:
+        widgetClass:
+          paramIdentifier:
+            name: iconEnd
+            key: design_system_std_button_std_buttonparam_icon_end
+      nodeKeyRef:
+        key: ComponentRoot_node_27
+      uiBuilderValue:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 62775
+              family: MaterialIcons
+              matchTextDirection: false
+              name: add_rounded
+  visibility:
+    visibleValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: "false"
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: iconEndPresent
+              key: design_system_std_button_std_buttonparam_icon_end_present
+        nodeKeyRef:
+          key: ComponentRoot_node_27
+        uiBuilderValue:
+          serializedValue: "false"
+      mostRecentInputValue: false
+name: Icon

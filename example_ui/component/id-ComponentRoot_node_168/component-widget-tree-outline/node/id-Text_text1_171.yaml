@@ -1,0 +1,29 @@
+key: Text_text1_171
+type: Text
+props:
+  text:
+    themeStyle: TITLE_MEDIUM
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Create
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: label
+              key: design_system_usr_action_card_action_cardparam_label
+        nodeKeyRef:
+          key: ComponentRoot_node_168
+        uiBuilderValue:
+          serializedValue: Create
+      mostRecentInputValue: Create
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    fontWeightValue:
+      inputValue: w700
+name: Text

@@ -1,0 +1,25 @@
+name: TabItem
+description: ""
+params:
+  design_system_std_tab_item_std_tab_itemparam_label:
+    identifier:
+      name: label
+      key: design_system_std_tab_item_std_tab_itemparam_label
+    defaultValue:
+      serializedValue: SlotValue($label_1)
+    dataType:
+      scalarType: String
+    namedParameter:
+      isOptional: true
+  design_system_std_tab_item_std_tab_itemparam_selected:
+    identifier:
+      name: selected
+      key: design_system_std_tab_item_std_tab_itemparam_selected
+    defaultValue:
+      serializedValue: "true"
+    dataType:
+      scalarType: Boolean
+    namedParameter:
+      isOptional: true
+node:
+  key: ComponentRoot_node_440

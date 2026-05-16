@@ -1,0 +1,9 @@
+key: Container_sizedbox5_394
+type: Container
+props:
+  container:
+    dimensions:
+      height:
+        pixelsValue:
+          inputValue: 80
+name: SizedBox

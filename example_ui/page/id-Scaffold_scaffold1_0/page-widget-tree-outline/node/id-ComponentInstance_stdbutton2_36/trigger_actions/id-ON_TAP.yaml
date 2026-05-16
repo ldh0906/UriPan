@@ -1,0 +1,6 @@
+rootAction:
+  key: gmpm5cya
+  action:
+    key: msp3027j
+trigger:
+  triggerType: ON_TAP

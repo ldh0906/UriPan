@@ -1,0 +1,56 @@
+key: Icon_icon1_681
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 24
+    colorValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          color:
+            themeColor: INFO
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: iconColor
+              key: design_system_usr_action_item_action_itemparam_icon_color
+        nodeKeyRef:
+          key: ComponentRoot_node_680
+        uiBuilderValue:
+          color:
+            themeColor: INFO
+      mostRecentInputValue:
+        themeColor: INFO
+    iconDataValue:
+      inputValue:
+        codePoint: 62974
+        family: MaterialIcons
+        matchTextDirection: false
+        name: calendar_today_rounded
+    variable:
+      source: WIDGET_CLASS_PARAMETER
+      defaultValue:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 62974
+              family: MaterialIcons
+              matchTextDirection: false
+              name: calendar_today_rounded
+      baseVariable:
+        widgetClass:
+          paramIdentifier:
+            name: icon
+            key: design_system_usr_action_item_action_itemparam_icon
+      nodeKeyRef:
+        key: ComponentRoot_node_680
+      uiBuilderValue:
+        icon:
+          iconDataValue:
+            inputValue:
+              codePoint: 62974
+              family: MaterialIcons
+              matchTextDirection: false
+              name: calendar_today_rounded
+name: Icon

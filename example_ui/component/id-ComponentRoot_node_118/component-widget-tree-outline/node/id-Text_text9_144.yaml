@@ -1,0 +1,30 @@
+key: Text_text9_144
+type: Text
+props:
+  text:
+    themeStyle: BODY_SMALL
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: 1 New notice
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: notices
+              key: design_system_usr_board_card_board_cardparam_notices
+        nodeKeyRef:
+          key: ComponentRoot_node_118
+        uiBuilderValue:
+          serializedValue: 1 New notice
+      mostRecentInputValue: 1 New notice
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.4
+    maxLinesValue:
+      inputValue: 1
+    overflowReplacement: ELLIPSIS
+name: Text

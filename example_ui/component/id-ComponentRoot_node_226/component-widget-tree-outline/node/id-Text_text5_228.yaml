@@ -1,0 +1,32 @@
+key: Text_text5_228
+type: Text
+props:
+  text:
+    themeStyle: BODY_LARGE
+    selectable: false
+    textValue:
+      variable:
+        source: WIDGET_CLASS_PARAMETER
+        defaultValue:
+          serializedValue: Grocery Shopping
+        baseVariable:
+          widgetClass:
+            paramIdentifier:
+              name: title
+              key: design_system_usr_schedule_item_schedule_itemparam_title
+        nodeKeyRef:
+          key: ComponentRoot_node_226
+        uiBuilderValue:
+          serializedValue: Grocery Shopping
+      mostRecentInputValue: Grocery Shopping
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.5
+    maxLinesValue:
+      inputValue: 1
+    fontWeightValue:
+      inputValue: w600
+    overflowReplacement: ELLIPSIS
+name: Text

@@ -1,0 +1,16 @@
+key: Icon_icon1_649
+type: Icon
+props:
+  icon:
+    sizeValue:
+      inputValue: 20
+    colorValue:
+      inputValue:
+        themeColor: ACCENT_3
+    iconDataValue:
+      inputValue:
+        codePoint: 63035
+        family: MaterialIcons
+        matchTextDirection: false
+        name: chevron_right_rounded
+name: Icon

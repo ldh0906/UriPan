@@ -1,0 +1,41 @@
+key: Container_container4_472
+type: Container
+props:
+  container:
+    dimensions:
+      width:
+        pixelsValue:
+          inputValue: 32
+      height:
+        pixelsValue:
+          inputValue: 32
+    boxDecoration:
+      borderRadius:
+        type: FF_BORDER_RADIUS_ALL
+        allValue:
+          inputValue: 9999
+      boxShape: FF_BOX_SHAPE_RECTANGLE
+      colorValue:
+        variable:
+          source: WIDGET_CLASS_PARAMETER
+          defaultValue:
+            color:
+              value: "4294930499"
+          baseVariable:
+            widgetClass:
+              paramIdentifier:
+                name: memberColor
+                key: design_system_usr_task_item_93ec7210_task_item_93ec7210param_member_color
+          nodeKeyRef:
+            key: ComponentRoot_node_457
+          uiBuilderValue:
+            color:
+              value: "4294930499"
+        mostRecentInputValue:
+          value: "4294930499"
+    childAlignment:
+      xValue:
+        inputValue: 0
+      yValue:
+        inputValue: 0
+name: Container

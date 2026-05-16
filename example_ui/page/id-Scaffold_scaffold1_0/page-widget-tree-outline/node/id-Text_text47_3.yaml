@@ -1,0 +1,16 @@
+key: Text_text47_3
+type: Text
+props:
+  text:
+    themeStyle: HEADLINE_LARGE
+    selectable: false
+    textValue:
+      inputValue: UriPan
+    colorValue:
+      inputValue:
+        themeColor: PRIMARY_TEXT
+    heightValue:
+      inputValue: 1.2
+    fontWeightValue:
+      inputValue: w800
+name: Text

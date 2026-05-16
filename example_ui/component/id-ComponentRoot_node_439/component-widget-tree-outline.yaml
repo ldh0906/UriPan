@@ -1,0 +1,12 @@
+node:
+  key: ComponentRoot_node_439
+  children:
+    - key: Container_root_451
+      children:
+        - key: Row_root_450
+          children:
+            - key: ComponentInstance_item_1_444
+            - key: ComponentInstance_item_2_445
+            - key: ComponentInstance_item_3_446
+            - key: ComponentInstance_item_4_447
+            - key: ComponentInstance_item_5_448
