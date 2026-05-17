@@ -38,6 +38,11 @@ migrate_working_dir/
 memory.md
 skills-lock.json
 
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+
 # Symbolication related
 app.*.symbols
 

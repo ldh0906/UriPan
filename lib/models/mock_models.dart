@@ -2,6 +2,175 @@ import 'package:flutter/material.dart';
 
 enum BoardItemType { schedule, task, notice }
 
+const Object _unset = Object();
+
+Color _colorFromJson(Object? value, Color fallback) {
+  if (value is int) {
+    return Color(value);
+  }
+  return fallback;
+}
+
+int _colorToJson(Color color) => color.toARGB32();
+
+List<T> _typedList<T>(
+  Object? value,
+  T Function(Map<String, dynamic> json) parser,
+) {
+  if (value is! List) return const [];
+  return value
+      .whereType<Map>()
+      .map((item) => parser(Map<String, dynamic>.from(item)))
+      .toList();
+}
+
+class UserProfile {
+  const UserProfile({
+    required this.name,
+    required this.email,
+    required this.initials,
+    required this.color,
+    this.keepLoggedIn = true,
+  });
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      name: json['name'] as String? ?? 'John Doe',
+      email: json['email'] as String? ?? 'john.doe@example.com',
+      initials: json['initials'] as String? ?? 'JD',
+      color: _colorFromJson(json['color'], const Color(0xFF647D31)),
+      keepLoggedIn: json['keepLoggedIn'] as bool? ?? true,
+    );
+  }
+
+  final String name;
+  final String email;
+  final String initials;
+  final Color color;
+  final bool keepLoggedIn;
+
+  UserProfile copyWith({
+    String? name,
+    String? email,
+    String? initials,
+    Color? color,
+    bool? keepLoggedIn,
+  }) {
+    return UserProfile(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      initials: initials ?? this.initials,
+      color: color ?? this.color,
+      keepLoggedIn: keepLoggedIn ?? this.keepLoggedIn,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'initials': initials,
+      'color': _colorToJson(color),
+      'keepLoggedIn': keepLoggedIn,
+    };
+  }
+}
+
+class BoardSettings {
+  const BoardSettings({
+    this.notificationsEnabled = true,
+    this.autoArchiveCompletedTasks = false,
+    this.requireNoticeConfirmation = true,
+  });
+
+  factory BoardSettings.fromJson(Map<String, dynamic> json) {
+    return BoardSettings(
+      notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+      autoArchiveCompletedTasks:
+          json['autoArchiveCompletedTasks'] as bool? ?? false,
+      requireNoticeConfirmation:
+          json['requireNoticeConfirmation'] as bool? ?? true,
+    );
+  }
+
+  final bool notificationsEnabled;
+  final bool autoArchiveCompletedTasks;
+  final bool requireNoticeConfirmation;
+
+  BoardSettings copyWith({
+    bool? notificationsEnabled,
+    bool? autoArchiveCompletedTasks,
+    bool? requireNoticeConfirmation,
+  }) {
+    return BoardSettings(
+      notificationsEnabled:
+          notificationsEnabled ?? this.notificationsEnabled,
+      autoArchiveCompletedTasks:
+          autoArchiveCompletedTasks ?? this.autoArchiveCompletedTasks,
+      requireNoticeConfirmation:
+          requireNoticeConfirmation ?? this.requireNoticeConfirmation,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'notificationsEnabled': notificationsEnabled,
+      'autoArchiveCompletedTasks': autoArchiveCompletedTasks,
+      'requireNoticeConfirmation': requireNoticeConfirmation,
+    };
+  }
+}
+
+class AppSnapshot {
+  const AppSnapshot({
+    required this.user,
+    required this.boards,
+    this.activeInviteCode,
+    this.isAuthenticated = false,
+  });
+
+  factory AppSnapshot.fromJson(Map<String, dynamic> json) {
+    return AppSnapshot(
+      user: UserProfile.fromJson(
+        Map<String, dynamic>.from(json['user'] as Map? ?? const {}),
+      ),
+      boards: _typedList(json['boards'], BoardWorkspace.fromJson),
+      activeInviteCode: json['activeInviteCode'] as String?,
+      isAuthenticated: json['isAuthenticated'] as bool? ?? false,
+    );
+  }
+
+  final UserProfile user;
+  final List<BoardWorkspace> boards;
+  final String? activeInviteCode;
+  final bool isAuthenticated;
+
+  AppSnapshot copyWith({
+    UserProfile? user,
+    List<BoardWorkspace>? boards,
+    Object? activeInviteCode = _unset,
+    bool? isAuthenticated,
+  }) {
+    return AppSnapshot(
+      user: user ?? this.user,
+      boards: boards ?? this.boards,
+      activeInviteCode: activeInviteCode == _unset
+          ? this.activeInviteCode
+          : activeInviteCode as String?,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user': user.toJson(),
+      'boards': boards.map((board) => board.toJson()).toList(),
+      'activeInviteCode': activeInviteCode,
+      'isAuthenticated': isAuthenticated,
+    };
+  }
+}
+
 class BoardItemDraft {
   const BoardItemDraft({
     this.id,
@@ -140,6 +309,24 @@ class FamilyMember {
       color: color,
     );
   }
+
+  factory FamilyMember.fromJson(Map<String, dynamic> json) {
+    return FamilyMember(
+      name: json['name'] as String? ?? 'Member',
+      initials: json['initials'] as String? ?? 'ME',
+      role: json['role'] as String? ?? 'Member',
+      color: _colorFromJson(json['color'], Colors.blue),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'initials': initials,
+      'role': role,
+      'color': _colorToJson(color),
+    };
+  }
 }
 
 class BoardData {
@@ -176,6 +363,122 @@ class BoardData {
       notices: notices ?? this.notices,
     );
   }
+
+  factory BoardData.fromJson(Map<String, dynamic> json) {
+    return BoardData(
+      name: json['name'] as String? ?? 'Untitled Board',
+      role: json['role'] as String? ?? 'Member',
+      members: json['members'] as String? ?? '0',
+      schedules: json['schedules'] as String? ?? 'No schedules yet',
+      tasks: json['tasks'] as String? ?? 'No tasks yet',
+      notices: json['notices'] as String? ?? 'No notices',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'role': role,
+      'members': members,
+      'schedules': schedules,
+      'tasks': tasks,
+      'notices': notices,
+    };
+  }
+}
+
+class BoardWorkspace {
+  const BoardWorkspace({
+    required this.board,
+    required this.inviteCode,
+    required this.members,
+    required this.schedules,
+    required this.tasks,
+    required this.notices,
+    this.settings = const BoardSettings(),
+  });
+
+  factory BoardWorkspace.fromJson(Map<String, dynamic> json) {
+    return BoardWorkspace(
+      board: BoardData.fromJson(
+        Map<String, dynamic>.from(json['board'] as Map? ?? const {}),
+      ),
+      inviteCode: json['inviteCode'] as String? ?? 'URIPAN-2024',
+      members: _typedList(json['members'], FamilyMember.fromJson),
+      schedules: _typedList(json['schedules'], ScheduleItemData.fromJson),
+      tasks: _typedList(json['tasks'], TaskItemData.fromJson),
+      notices: _typedList(json['notices'], NoticeItemData.fromJson),
+      settings: BoardSettings.fromJson(
+        Map<String, dynamic>.from(json['settings'] as Map? ?? const {}),
+      ),
+    );
+  }
+
+  final BoardData board;
+  final String inviteCode;
+  final List<FamilyMember> members;
+  final List<ScheduleItemData> schedules;
+  final List<TaskItemData> tasks;
+  final List<NoticeItemData> notices;
+  final BoardSettings settings;
+
+  BoardWorkspace copyWith({
+    BoardData? board,
+    String? inviteCode,
+    List<FamilyMember>? members,
+    List<ScheduleItemData>? schedules,
+    List<TaskItemData>? tasks,
+    List<NoticeItemData>? notices,
+    BoardSettings? settings,
+  }) {
+    return BoardWorkspace(
+      board: board ?? this.board,
+      inviteCode: inviteCode ?? this.inviteCode,
+      members: members ?? this.members,
+      schedules: schedules ?? this.schedules,
+      tasks: tasks ?? this.tasks,
+      notices: notices ?? this.notices,
+      settings: settings ?? this.settings,
+    );
+  }
+
+  BoardWorkspace withSyncedSummary() {
+    final remainingTasks = tasks.where((task) => !task.isDone).length;
+    final unreadNotices =
+        notices.where((notice) => !notice.confirmedByMe).length;
+
+    return copyWith(
+      board: board.copyWith(
+        members: '${members.length}',
+        schedules: schedules.isEmpty
+            ? 'No schedules yet'
+            : _plural(schedules.length, 'schedule', suffix: ' planned'),
+        tasks: remainingTasks == 0
+            ? 'No tasks remaining'
+            : _plural(remainingTasks, 'task', suffix: ' remaining'),
+        notices: unreadNotices == 0
+            ? 'No new notices'
+            : _plural(unreadNotices, 'New notice'),
+      ),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'board': board.toJson(),
+      'inviteCode': inviteCode,
+      'members': members.map((member) => member.toJson()).toList(),
+      'schedules': schedules.map((item) => item.toJson()).toList(),
+      'tasks': tasks.map((item) => item.toJson()).toList(),
+      'notices': notices.map((item) => item.toJson()).toList(),
+      'settings': settings.toJson(),
+    };
+  }
+}
+
+String _plural(int count, String word, {String suffix = ''}) {
+  final plural = count == 1 ? word : '${word}s';
+  return '$count $plural$suffix';
 }
 
 class ScheduleItemData {
@@ -216,6 +519,30 @@ class ScheduleItemData {
       end: end ?? this.end,
       color: color ?? this.color,
     );
+  }
+
+  factory ScheduleItemData.fromJson(Map<String, dynamic> json) {
+    return ScheduleItemData(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      initials: json['initials'] as String? ?? 'ME',
+      date: json['date'] as String? ?? '',
+      start: json['start'] as String? ?? '',
+      end: json['end'] as String? ?? '',
+      color: _colorFromJson(json['color'], Colors.blue),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'initials': initials,
+      'date': date,
+      'start': start,
+      'end': end,
+      'color': _colorToJson(color),
+    };
   }
 }
 
@@ -260,6 +587,32 @@ class TaskItemData {
       memo: memo ?? this.memo,
     );
   }
+
+  factory TaskItemData.fromJson(Map<String, dynamic> json) {
+    return TaskItemData(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      assignee: json['assignee'] as String? ?? 'Me',
+      initials: json['initials'] as String? ?? 'ME',
+      dueDate: json['dueDate'] as String? ?? '',
+      color: _colorFromJson(json['color'], Colors.blue),
+      isDone: json['isDone'] as bool? ?? false,
+      memo: json['memo'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'assignee': assignee,
+      'initials': initials,
+      'dueDate': dueDate,
+      'color': _colorToJson(color),
+      'isDone': isDone,
+      'memo': memo,
+    };
+  }
 }
 
 class NoticeItemData {
@@ -302,5 +655,34 @@ class NoticeItemData {
       confirmedCount: confirmedCount ?? this.confirmedCount,
       confirmedInitials: confirmedInitials ?? this.confirmedInitials,
     );
+  }
+
+  factory NoticeItemData.fromJson(Map<String, dynamic> json) {
+    return NoticeItemData(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      preview: json['preview'] as String? ?? '',
+      date: json['date'] as String? ?? '',
+      isImportant: json['isImportant'] as bool? ?? false,
+      confirmedByMe: json['confirmedByMe'] as bool? ?? false,
+      confirmedCount: json['confirmedCount'] as int? ?? 0,
+      confirmedInitials: (json['confirmedInitials'] as List?)
+              ?.whereType<String>()
+              .toList() ??
+          const [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'preview': preview,
+      'date': date,
+      'isImportant': isImportant,
+      'confirmedByMe': confirmedByMe,
+      'confirmedCount': confirmedCount,
+      'confirmedInitials': confirmedInitials,
+    };
   }
 }

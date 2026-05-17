@@ -9,17 +9,29 @@ class GroupSelectionScreen extends StatelessWidget {
   const GroupSelectionScreen({
     super.key,
     required this.boards,
+    required this.user,
+    required this.settings,
     required this.onCreateBoard,
     required this.onJoinBoard,
     required this.onSelectBoard,
+    required this.onUserChanged,
+    required this.onSettingsChanged,
+    required this.onLogout,
+    required this.onResetLocalData,
   });
 
   static const routeName = '/boards';
 
   final List<BoardData> boards;
+  final UserProfile user;
+  final BoardSettings settings;
   final ValueChanged<String> onCreateBoard;
   final ValueChanged<String> onJoinBoard;
   final ValueChanged<BoardData> onSelectBoard;
+  final ValueChanged<UserProfile> onUserChanged;
+  final ValueChanged<BoardSettings> onSettingsChanged;
+  final VoidCallback onLogout;
+  final Future<void> Function() onResetLocalData;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +59,7 @@ class GroupSelectionScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const MemberAvatar(initials: 'JD', color: AppColors.primary),
+                MemberAvatar(initials: user.initials, color: user.color),
               ],
             ),
             const SizedBox(height: 24),
@@ -106,17 +118,17 @@ class GroupSelectionScreen extends StatelessWidget {
               color: AppColors.primarySoft,
               child: Row(
                 children: [
-                  const MemberAvatar(
-                      initials: 'JD', color: AppColors.primary, size: 44),
+                  MemberAvatar(
+                      initials: user.initials, color: user.color, size: 44),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('John Doe',
+                        Text(user.name,
                             style: Theme.of(context).textTheme.titleSmall),
                         Text(
-                          'john.doe@example.com',
+                          user.email,
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
@@ -224,29 +236,55 @@ class GroupSelectionScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(
+              ListTile(
                 leading: MemberAvatar(
-                  initials: 'JD',
-                  color: AppColors.primary,
+                  initials: user.initials,
+                  color: user.color,
                   size: 38,
                 ),
-                title: Text('John Doe'),
-                subtitle: Text('john.doe@example.com'),
+                title: Text(user.name),
+                subtitle: Text(user.email),
+                trailing: const Icon(Icons.edit_outlined),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showProfileDialog(context);
+                },
               ),
               const Divider(height: 1),
               SwitchListTile.adaptive(
-                value: true,
-                onChanged: (_) {},
+                value: settings.notificationsEnabled,
+                onChanged: (value) => onSettingsChanged(
+                  settings.copyWith(notificationsEnabled: value),
+                ),
                 title: const Text('Board notifications'),
                 secondary: const Icon(Icons.notifications_outlined),
+              ),
+              SwitchListTile.adaptive(
+                value: settings.autoArchiveCompletedTasks,
+                onChanged: (value) => onSettingsChanged(
+                  settings.copyWith(autoArchiveCompletedTasks: value),
+                ),
+                title: const Text('Auto-archive completed tasks'),
+                secondary: const Icon(Icons.inventory_2_outlined),
+              ),
+              ListTile(
+                leading: const Icon(Icons.restore_rounded),
+                title: const Text('Reset local demo data'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmReset(context);
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.logout_rounded),
                 title: const Text('Log out'),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('No changes made.')),
+                  onLogout();
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/',
+                    (route) => false,
                   );
                 },
               ),
@@ -255,6 +293,100 @@ class GroupSelectionScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _showProfileDialog(BuildContext context) async {
+    var name = user.name;
+    var email = user.email;
+    final updated = await showDialog<UserProfile>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit profile'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                initialValue: name,
+                decoration: const InputDecoration(labelText: 'Name'),
+                onChanged: (value) => name = value,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: email,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                onChanged: (value) => email = value,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                context,
+                user.copyWith(
+                  name: name.trim().isEmpty ? user.name : name.trim(),
+                  email: email.trim().isEmpty ? user.email : email.trim(),
+                  initials: _initialsFor(name),
+                ),
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    if (updated == null || !context.mounted) return;
+    onUserChanged(updated);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated.')),
+    );
+  }
+
+  Future<void> _confirmReset(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reset local data?'),
+          content: const Text(
+              'This restores the built-in demo boards and removes local edits.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Reset'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !context.mounted) return;
+    await onResetLocalData();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Local data reset.')),
+    );
+  }
+
+  String _initialsFor(String value) {
+    final parts = value
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return user.initials;
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 }
 

@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:uripan/main.dart';
+import 'package:uripan/services/app_repository.dart';
 
 void main() {
+  Future<void> pumpApp(WidgetTester tester) async {
+    await tester.pumpWidget(UriPanApp(repository: MemoryAppRepository()));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('UriPan welcome screen renders', (WidgetTester tester) async {
-    await tester.pumpWidget(const UriPanApp());
+    await pumpApp(tester);
 
     expect(find.text('UriPan'), findsOneWidget);
     expect(find.text('Shared board for your team'), findsOneWidget);
   });
 
   testWidgets('new task can be created from the add flow', (tester) async {
-    await tester.pumpWidget(const UriPanApp());
+    await pumpApp(tester);
 
     await tester.tap(find.text('Login').first);
     await tester.pumpAndSettle();
@@ -38,7 +44,7 @@ void main() {
   });
 
   testWidgets('board can be created locally', (tester) async {
-    await tester.pumpWidget(const UriPanApp());
+    await pumpApp(tester);
 
     await tester.tap(find.text('Login').first);
     await tester.pumpAndSettle();
@@ -55,7 +61,7 @@ void main() {
   });
 
   testWidgets('member role can be changed locally', (tester) async {
-    await tester.pumpWidget(const UriPanApp());
+    await pumpApp(tester);
 
     await tester.tap(find.text('Login').first);
     await tester.pumpAndSettle();
@@ -79,7 +85,7 @@ void main() {
 
 
   testWidgets('existing task can be edited locally', (tester) async {
-    await tester.pumpWidget(const UriPanApp());
+    await pumpApp(tester);
 
     await tester.tap(find.text('Login').first);
     await tester.pumpAndSettle();
@@ -103,7 +109,7 @@ void main() {
   });
 
   testWidgets('active board can be left locally', (tester) async {
-    await tester.pumpWidget(const UriPanApp());
+    await pumpApp(tester);
 
     await tester.tap(find.text('Login').first);
     await tester.pumpAndSettle();
