@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/mock_models.dart';
 import '../screens/calendar_view_screen.dart';
+import '../screens/item_detail_edit_screen.dart';
 import '../screens/members_invite_screen.dart';
 import '../screens/notices_board_screen.dart';
 import '../screens/tasks_list_screen.dart';
@@ -118,7 +119,16 @@ class TodayBoardScreen extends StatelessWidget {
                   ...schedules.take(3).map(
                         (item) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: ScheduleCard(item: item, compact: true),
+                          child: ScheduleCard(
+                              item: item,
+                              compact: true,
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                ItemDetailEditScreen.routeName,
+                                arguments:
+                                    BoardItemEditArguments.fromSchedule(item),
+                              ),
+                            ),
                         ),
                       ),
                   const SizedBox(height: 10),
@@ -131,6 +141,11 @@ class TodayBoardScreen extends StatelessWidget {
                           child: TaskCard(
                             item: item,
                             compact: true,
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              ItemDetailEditScreen.routeName,
+                              arguments: BoardItemEditArguments.fromTask(item),
+                            ),
                             onChanged: (value) => onTaskChanged(item, value),
                           ),
                         ),
@@ -147,6 +162,11 @@ class TodayBoardScreen extends StatelessWidget {
                             item: item,
                             memberCount: members.length,
                             compact: true,
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              ItemDetailEditScreen.routeName,
+                              arguments: BoardItemEditArguments.fromNotice(item),
+                            ),
                             onConfirm: () => onNoticeConfirmed(item),
                           ),
                         ),

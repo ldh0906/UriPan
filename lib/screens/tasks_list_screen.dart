@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/mock_models.dart';
+import '../screens/item_detail_edit_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 
@@ -148,6 +149,11 @@ class _TasksListScreenState extends State<TasksListScreen> {
                         },
                         child: TaskCard(
                           item: task,
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            ItemDetailEditScreen.routeName,
+                            arguments: BoardItemEditArguments.fromTask(task),
+                          ),
                           onChanged: (value) =>
                               widget.onTaskChanged(task, value),
                         ),

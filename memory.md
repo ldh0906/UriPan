@@ -365,3 +365,43 @@
 - WSL에서 작업 중이므로 Windows Android SDK(`/mnt/c/Users/.../Android/Sdk`)를 Flutter Linux 빌드에 연결하지 말 것.
 - 완료된 SDK/Gradle 캐시는 남겨두라는 요청이 있었다. 삭제 요청이 명확하지 않으면 `/home/a/Android/Sdk`, `/home/a/.gradle`, Flutter cache는 지우지 말 것.
 - `test/screen_capture_test.dart`는 현재 화면 캡처용으로 정리된 보조 테스트다. 기본 테스트에는 영향을 주지 않도록 skip된다.
+
+## 2026-05-17 Codex continuation
+
+이번 세션에서 `memory.md`를 읽고 "complete app" 목표의 다음 단계로 기존 항목 수정 흐름을 구현했다.
+
+추가 구현:
+
+- 일정/할 일/공지 카드에 편집 진입을 연결했다.
+  - Today 화면의 일정/할 일/공지 카드 탭 시 편집 화면으로 이동
+  - Calendar 화면의 일정 카드 탭 시 편집 화면으로 이동
+  - Tasks 화면의 할 일 카드 탭 시 편집 화면으로 이동
+  - Notices 화면의 공지 카드 탭 시 편집 화면으로 이동
+- `ItemDetailEditScreen`을 신규 생성과 기존 항목 수정에 모두 쓰도록 확장했다.
+  - 기존 항목 제목/날짜/시간/메모/중요 여부/확인 요청/완료 상태를 편집 폼에 주입
+  - 편집 모드에서는 항목 타입 변경을 비활성화해서 다른 타입 리스트와 ID가 꼬이지 않도록 처리
+  - 저장 후 `saved`/`updated` 메시지를 구분
+- 앱 루트 상태의 저장 로직을 `saveBoardItem`으로 통합했다.
+  - 새 항목은 기존처럼 리스트 앞에 추가
+  - 기존 항목은 같은 ID를 찾아 제자리 업데이트
+  - 공지 수정 시 기존 확인 상태/확인 인원은 유지
+  - 저장 후 active board summary 재동기화
+- 카드 공통 위젯에 `onTap` 편집 affordance를 추가했다.
+  - 편집 가능한 카드에는 edit 아이콘 표시
+- `BoardItemEditArguments`를 추가해서 route arguments로 기존 항목 데이터를 전달한다.
+- 위젯 테스트에 "existing task can be edited locally" 테스트를 추가했다.
+
+검증 상태:
+
+- 현재 컨테이너(`/workspace/UriPan`)에는 `flutter`/`dart` 실행 파일이 PATH에 없고, 이전 WSL 경로 `/home/a/development/flutter/bin/flutter`도 존재하지 않아 `flutter test`/`dart analyze`는 실행하지 못했다.
+- 대신 `git diff --check`는 통과했다.
+
+다음 권장 작업:
+
+1. Flutter SDK가 있는 환경에서 `dart format lib test`, `dart analyze lib test`, `flutter test` 실행.
+2. 앱 완성도를 위해 다음 중 우선 구현:
+   - 로컬 저장소(shared_preferences/hive 등) 또는 백엔드 연동으로 앱 재시작 후 데이터 유지
+   - 실제 인증/회원가입/세션
+   - 보드별로 멤버/일정/할 일/공지를 분리 저장
+   - 초대 코드 생성/검증
+3. 이번 변경은 아직 로컬 앱 상태 기반이며 서버/영속 저장소는 연결하지 않았다.

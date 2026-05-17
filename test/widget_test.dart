@@ -77,6 +77,31 @@ void main() {
     expect(find.text('Viewer'), findsOneWidget);
   });
 
+
+  testWidgets('existing task can be edited locally', (tester) async {
+    await tester.pumpWidget(const UriPanApp());
+
+    await tester.tap(find.text('Login').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Login').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sweet Home'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Tasks'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Wash the dishes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit Task'), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).first, 'Wash dishes and pans');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wash dishes and pans'), findsOneWidget);
+    expect(find.text('Wash the dishes'), findsNothing);
+  });
+
   testWidgets('active board can be left locally', (tester) async {
     await tester.pumpWidget(const UriPanApp());
 

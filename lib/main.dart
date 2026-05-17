@@ -36,51 +36,70 @@ class _UriPanAppState extends State<UriPanApp> {
   String _nextId(String prefix) =>
       '$prefix-${DateTime.now().microsecondsSinceEpoch}';
 
-  void addBoardItem(BoardItemDraft draft) {
+  void saveBoardItem(BoardItemDraft draft) {
     setState(() {
+      final existingId = draft.id;
       switch (draft.type) {
         case BoardItemType.schedule:
-          schedules.insert(
-            0,
-            ScheduleItemData(
-              id: _nextId('schedule'),
-              title: draft.title,
-              initials: draft.initials,
-              date: draft.date,
-              start: draft.startTime,
-              end: draft.endTime,
-              color: draft.color,
-            ),
+          final index = existingId == null
+              ? -1
+              : schedules.indexWhere((item) => item.id == existingId);
+          final item = ScheduleItemData(
+            id: existingId ?? _nextId('schedule'),
+            title: draft.title,
+            initials: draft.initials,
+            date: draft.date,
+            start: draft.startTime,
+            end: draft.endTime,
+            color: draft.color,
           );
+          if (index >= 0) {
+            schedules[index] = item;
+          } else {
+            schedules.insert(0, item);
+          }
         case BoardItemType.task:
-          tasks.insert(
-            0,
-            TaskItemData(
-              id: _nextId('task'),
-              title: draft.title,
-              assignee: draft.assignee,
-              initials: draft.initials,
-              dueDate: draft.date,
-              color: draft.color,
-              isDone: draft.isCompleted,
-              memo: draft.notes,
-            ),
+          final index = existingId == null
+              ? -1
+              : tasks.indexWhere((item) => item.id == existingId);
+          final item = TaskItemData(
+            id: existingId ?? _nextId('task'),
+            title: draft.title,
+            assignee: draft.assignee,
+            initials: draft.initials,
+            dueDate: draft.date,
+            color: draft.color,
+            isDone: draft.isCompleted,
+            memo: draft.notes,
           );
+          if (index >= 0) {
+            tasks[index] = item;
+          } else {
+            tasks.insert(0, item);
+          }
         case BoardItemType.notice:
-          notices.insert(
-            0,
-            NoticeItemData(
-              id: _nextId('notice'),
-              title: draft.title,
-              preview: draft.notes ?? draft.title,
-              date: draft.date,
-              isImportant: draft.isImportant,
-              confirmedByMe: !draft.requiresConfirmation,
-              confirmedCount: draft.requiresConfirmation ? 0 : 1,
-              confirmedInitials:
-                  draft.requiresConfirmation ? const [] : const ['ME'],
-            ),
+          final index = existingId == null
+              ? -1
+              : notices.indexWhere((item) => item.id == existingId);
+          final previous = index >= 0 ? notices[index] : null;
+          final item = NoticeItemData(
+            id: existingId ?? _nextId('notice'),
+            title: draft.title,
+            preview: draft.notes ?? draft.title,
+            date: draft.date,
+            isImportant: draft.isImportant,
+            confirmedByMe:
+                previous?.confirmedByMe ?? !draft.requiresConfirmation,
+            confirmedCount: previous?.confirmedCount ??
+                (draft.requiresConfirmation ? 0 : 1),
+            confirmedInitials: previous?.confirmedInitials ??
+                (draft.requiresConfirmation ? const [] : const ['ME']),
           );
+          if (index >= 0) {
+            notices[index] = item;
+          } else {
+            notices.insert(0, item);
+          }
       }
       _syncActiveBoardSummary();
     });
@@ -284,9 +303,13 @@ class _UriPanAppState extends State<UriPanApp> {
           final arguments = ModalRoute.of(context)?.settings.arguments;
           return ItemDetailEditScreen(
             members: members,
-            initialType:
-                arguments is BoardItemType ? arguments : BoardItemType.schedule,
-            onSave: addBoardItem,
+            initialType: arguments is BoardItemEditArguments
+                ? arguments.type
+                : arguments is BoardItemType
+                    ? arguments
+                    : BoardItemType.schedule,
+            editingItem: arguments is BoardItemEditArguments ? arguments : null,
+            onSave: saveBoardItem,
           );
         },
       },
