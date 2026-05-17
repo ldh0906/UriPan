@@ -54,7 +54,7 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
       bottomNavigation: const AppBottomNav(currentIndex: 3),
       safeBottom: false,
       floatingActionButton: const AddItemFab(
-        label: 'New Notice',
+        label: '새 공지',
         itemType: BoardItemType.notice,
       ),
       child: Column(
@@ -67,7 +67,7 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                 Row(
                   children: [
                     Expanded(
-                        child: Text('Notices',
+                        child: Text('공지',
                             style: Theme.of(context).textTheme.headlineSmall)),
                     IconButton(
                       onPressed: () {
@@ -85,7 +85,7 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                   ],
                 ),
                 Text(
-                  'Group: ${widget.boardName}',
+                  '그룹: ${widget.boardName}',
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -94,7 +94,7 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                 if (isSearching) ...[
                   const SizedBox(height: 14),
                   AppTextField(
-                    hint: 'Search notices',
+                    hint: '공지 검색',
                     leadingIcon: Icons.search_rounded,
                     onChanged: (value) => setState(() => searchQuery = value),
                   ),
@@ -102,9 +102,9 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                 const SizedBox(height: 18),
                 SegmentedButton<int>(
                   segments: const [
-                    ButtonSegment(value: 0, label: Text('All Notices')),
-                    ButtonSegment(value: 1, label: Text('Unread')),
-                    ButtonSegment(value: 2, label: Text('Pinned')),
+                    ButtonSegment(value: 0, label: Text('전체 공지')),
+                    ButtonSegment(value: 1, label: Text('미확인')),
+                    ButtonSegment(value: 2, label: Text('중요')),
                   ],
                   selected: {selectedTab},
                   onSelectionChanged: (value) =>
@@ -118,8 +118,8 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
             child: visibleNotices.isEmpty
                 ? const EmptyState(
                     icon: Icons.campaign_outlined,
-                    title: 'No notices found',
-                    message: 'Try a different filter or search term.',
+                    title: '공지 없음',
+                    message: '다른 필터나 검색어를 사용해보세요.',
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 106),
@@ -145,7 +145,8 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                         onDismissed: (_) {
                           widget.onNoticeDeleted(notice);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('${notice.title} deleted.')),
+                            SnackBar(
+                                content: Text('${notice.title} 공지를 삭제했습니다.')),
                           );
                         },
                         child: NoticeCard(
@@ -154,7 +155,8 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                           onTap: () => Navigator.pushNamed(
                             context,
                             ItemDetailEditScreen.routeName,
-                            arguments: BoardItemEditArguments.fromNotice(notice),
+                            arguments:
+                                BoardItemEditArguments.fromNotice(notice),
                           ),
                           onConfirm: () => widget.onNoticeConfirmed(notice),
                         ),

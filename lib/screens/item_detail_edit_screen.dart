@@ -99,14 +99,14 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    '${widget.editingItem == null ? 'New' : 'Edit'} ${_typeLabel(itemType)}',
+                    '${widget.editingItem == null ? '새' : '수정'} ${_typeLabel(itemType)}',
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),
                 ),
                 TextButton(
                   onPressed: _save,
-                  child: const Text('Save'),
+                  child: const Text('저장'),
                 ),
               ],
             ),
@@ -120,12 +120,11 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                   SegmentedButton<BoardItemType>(
                     segments: const [
                       ButtonSegment(
-                          value: BoardItemType.schedule,
-                          label: Text('Schedule')),
+                          value: BoardItemType.schedule, label: Text('일정')),
                       ButtonSegment(
-                          value: BoardItemType.task, label: Text('Task')),
+                          value: BoardItemType.task, label: Text('할 일')),
                       ButtonSegment(
-                          value: BoardItemType.notice, label: Text('Notice')),
+                          value: BoardItemType.notice, label: Text('공지')),
                     ],
                     selected: {itemType},
                     showSelectedIcon: false,
@@ -143,19 +142,19 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                         : null,
                   ),
                   const SizedBox(height: 18),
-                  Text('Title', style: Theme.of(context).textTheme.titleMedium),
+                  Text('제목', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   AppTextField(
-                    hint: 'Enter title',
+                    hint: '제목을 입력하세요',
                     controller: titleController,
                   ),
                   const SizedBox(height: 22),
                   const SectionHeader(
-                      title: 'Time & Date', icon: Icons.calendar_today_rounded),
+                      title: '날짜와 시간', icon: Icons.calendar_today_rounded),
                   const SizedBox(height: 10),
                   AppTextField(
-                    label: itemType == BoardItemType.task ? 'Due Date' : 'Date',
-                    hint: 'Type here...',
+                    label: itemType == BoardItemType.task ? '마감일' : '날짜',
+                    hint: '선택하세요',
                     controller: dateController,
                     leadingIcon: Icons.event_rounded,
                     readOnly: true,
@@ -167,8 +166,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                       children: [
                         Expanded(
                           child: AppTextField(
-                            label: 'Start Time',
-                            hint: 'Type here...',
+                            label: '시작 시간',
+                            hint: '선택하세요',
                             controller: startTimeController,
                             leadingIcon: Icons.schedule_rounded,
                             readOnly: true,
@@ -178,8 +177,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: AppTextField(
-                            label: 'End Time',
-                            hint: 'Type here...',
+                            label: '종료 시간',
+                            hint: '선택하세요',
                             controller: endTimeController,
                             leadingIcon: Icons.schedule_rounded,
                             readOnly: true,
@@ -191,9 +190,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                   ],
                   const SizedBox(height: 22),
                   SectionHeader(
-                    title: itemType == BoardItemType.notice
-                        ? 'Audience'
-                        : 'Assignees',
+                    title: itemType == BoardItemType.notice ? '대상' : '담당자',
                     icon: Icons.group_rounded,
                   ),
                   const SizedBox(height: 10),
@@ -202,8 +199,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                     runSpacing: 10,
                     children: [
                       _MemberChip(
-                        label: 'Me',
-                        initials: 'ME',
+                        label: '나',
+                        initials: '나',
                         color: AppColors.primary,
                         selected: selectedMembers.contains(0),
                         onTap: () => _toggleMember(0),
@@ -230,7 +227,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                           value: important,
                           onChanged: (value) =>
                               setState(() => important = value),
-                          title: const Text('Mark as Important'),
+                          title: const Text('중요 표시'),
                           activeThumbColor: AppColors.primary,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -239,7 +236,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                           value: requireConfirmation,
                           onChanged: (value) =>
                               setState(() => requireConfirmation = value),
-                          title: const Text('Require Confirmation'),
+                          title: const Text('확인 요청'),
                           activeThumbColor: AppColors.primary,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -249,8 +246,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                             value: completed,
                             onChanged: (value) =>
                                 setState(() => completed = value ?? false),
-                            title: const Text('Mark as Completed'),
-                            subtitle: const Text('Useful for chores and tasks'),
+                            title: const Text('완료로 표시'),
+                            subtitle: const Text('집안일과 할 일에 사용할 수 있습니다'),
                             activeColor: AppColors.primary,
                             contentPadding: EdgeInsets.zero,
                             controlAffinity: ListTileControlAffinity.leading,
@@ -260,17 +257,16 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const SectionHeader(
-                      title: 'Notes', icon: Icons.notes_rounded),
+                  const SectionHeader(title: '메모', icon: Icons.notes_rounded),
                   const SizedBox(height: 10),
                   AppTextField(
-                    hint: 'Add extra details here...',
+                    hint: '추가 내용을 입력하세요...',
                     controller: notesController,
                     maxLines: 5,
                   ),
                   const SizedBox(height: 24),
                   PrimaryButton(
-                    label: 'Save ${_typeLabel(itemType)}',
+                    label: '${_typeLabel(itemType)} 저장',
                     icon: Icons.check_rounded,
                     onPressed: _save,
                   ),
@@ -325,7 +321,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     final title = titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title is required.')),
+        const SnackBar(content: Text('제목을 입력하세요.')),
       );
       return;
     }
@@ -336,9 +332,9 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
         id: widget.editingItem?.id,
         type: itemType,
         title: title,
-        date: _fallback(dateController.text, 'Today'),
-        startTime: _fallback(startTimeController.text, '09:00 AM'),
-        endTime: _fallback(endTimeController.text, '10:00 AM'),
+        date: _fallback(dateController.text, '오늘'),
+        startTime: _fallback(startTimeController.text, '오전 9:00'),
+        endTime: _fallback(endTimeController.text, '오전 10:00'),
         assignee: member.name,
         initials: member.initials,
         color: member.color,
@@ -354,7 +350,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${_typeLabel(itemType)} ${widget.editingItem == null ? 'saved' : 'updated'}.',
+          '${_typeLabel(itemType)}을(를) ${widget.editingItem == null ? '저장했습니다' : '수정했습니다'}.',
         ),
       ),
     );
@@ -382,8 +378,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     final selected = selectedMembers.first;
     if (selected == 0) {
       return const _DraftMember(
-        name: 'Me',
-        initials: 'ME',
+        name: '나',
+        initials: '나',
         color: AppColors.primary,
       );
     }
@@ -399,8 +395,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     }
 
     return const _DraftMember(
-      name: 'Me',
-      initials: 'ME',
+      name: '나',
+      initials: '나',
       color: AppColors.primary,
     );
   }
@@ -417,34 +413,34 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월',
     ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    return '${date.year}년 ${months[date.month - 1]} ${date.day}일';
   }
 
   String _formatTime(TimeOfDay time) {
-    final suffix = time.hour >= 12 ? 'PM' : 'AM';
+    final suffix = time.hour >= 12 ? '오후' : '오전';
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute $suffix';
+    return '$suffix $hour:$minute';
   }
 
   String _typeLabel(BoardItemType type) {
     return switch (type) {
-      BoardItemType.schedule => 'Schedule',
-      BoardItemType.task => 'Task',
-      BoardItemType.notice => 'Notice',
+      BoardItemType.schedule => '일정',
+      BoardItemType.task => '할 일',
+      BoardItemType.notice => '공지',
     };
   }
 
@@ -458,18 +454,17 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
 
   String _defaultTitle(BoardItemType type) {
     return switch (type) {
-      BoardItemType.schedule => 'Weekend Hiking Trip',
-      BoardItemType.task => 'Prepare dinner groceries',
-      BoardItemType.notice => 'Weekend Trip Reminder',
+      BoardItemType.schedule => '주말 등산 모임',
+      BoardItemType.task => '저녁 장보기 준비',
+      BoardItemType.notice => '주말 여행 안내',
     };
   }
 
   String _defaultNotes(BoardItemType type) {
     return switch (type) {
-      BoardItemType.schedule =>
-        "Meet at the trailhead by 8:45 AM. Don't forget water and snacks!",
-      BoardItemType.task => 'Add any details needed to finish this task.',
-      BoardItemType.notice => 'Share the details everyone should read.',
+      BoardItemType.schedule => '오전 8시 45분까지 등산로 입구에서 만나요. 물과 간식을 잊지 마세요!',
+      BoardItemType.task => '할 일을 끝내는 데 필요한 내용을 적어주세요.',
+      BoardItemType.notice => '모두가 확인해야 할 내용을 공유하세요.',
     };
   }
 }

@@ -39,7 +39,7 @@ class MembersInviteScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.person_add_alt_rounded),
-        label: const Text('Invite'),
+        label: const Text('초대'),
       ),
       safeBottom: false,
       child: SingleChildScrollView(
@@ -54,7 +54,7 @@ class MembersInviteScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_rounded),
                   ),
                   Expanded(
-                      child: Text('Members',
+                      child: Text('멤버',
                           style: Theme.of(context).textTheme.headlineSmall)),
                   IconButton(
                     onPressed: () => _showBoardActions(context),
@@ -82,14 +82,14 @@ class MembersInviteScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                            child: Text('Invite New Members',
+                            child: Text('새 멤버 초대',
                                 style:
                                     Theme.of(context).textTheme.titleMedium)),
                       ],
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Share this code with your group members to let them join $boardName.',
+                      '이 코드를 공유하면 멤버가 $boardName 보드에 참여할 수 있습니다.',
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -109,7 +109,7 @@ class MembersInviteScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'INVITE CODE',
+                            '초대 코드',
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
@@ -139,10 +139,10 @@ class MembersInviteScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                      child: Text('Group Members (${members.length})',
+                      child: Text('그룹 멤버 (${members.length})',
                           style: Theme.of(context).textTheme.titleMedium)),
                   ActionChip(
-                    label: const Text('Manage Roles'),
+                    label: const Text('역할 관리'),
                     backgroundColor: AppColors.surface,
                     side: const BorderSide(color: AppColors.surfaceVariant),
                     onPressed: () => _showRoleSummary(context),
@@ -162,7 +162,7 @@ class MembersInviteScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               PrimaryButton(
-                label: 'Leave Board',
+                label: '보드 나가기',
                 icon: Icons.logout_rounded,
                 variant: ButtonVariant.ghost,
                 fullWidth: false,
@@ -180,7 +180,7 @@ class MembersInviteScreen extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: inviteCode));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Invite code copied.')),
+      const SnackBar(content: Text('초대 코드를 복사했습니다.')),
     );
   }
 
@@ -189,7 +189,7 @@ class MembersInviteScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Member Roles'),
+          title: const Text('멤버 역할'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -209,7 +209,7 @@ class MembersInviteScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Done'),
+              child: const Text('확인'),
             ),
           ],
         );
@@ -228,7 +228,7 @@ class MembersInviteScreen extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.copy_rounded),
-                title: const Text('Copy invite code'),
+                title: const Text('초대 코드 복사'),
                 onTap: () {
                   Navigator.pop(context);
                   _copyInviteCode(context);
@@ -236,7 +236,7 @@ class MembersInviteScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.admin_panel_settings_outlined),
-                title: const Text('View roles'),
+                title: const Text('역할 보기'),
                 onTap: () {
                   Navigator.pop(context);
                   _showRoleSummary(context);
@@ -247,7 +247,7 @@ class MembersInviteScreen extends StatelessWidget {
                 onChanged: (value) => onSettingsChanged(
                   settings.copyWith(requireNoticeConfirmation: value),
                 ),
-                title: const Text('Default notice confirmation'),
+                title: const Text('공지 확인 기본값'),
                 secondary: const Icon(Icons.fact_check_outlined),
               ),
               SwitchListTile.adaptive(
@@ -255,7 +255,7 @@ class MembersInviteScreen extends StatelessWidget {
                 onChanged: (value) => onSettingsChanged(
                   settings.copyWith(notificationsEnabled: value),
                 ),
-                title: const Text('Notifications'),
+                title: const Text('알림'),
                 secondary: const Icon(Icons.notifications_outlined),
               ),
             ],
@@ -270,13 +270,12 @@ class MembersInviteScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Leave board?'),
-          content: Text(
-              'Leave $boardName? You can rejoin later with an invite code.'),
+          title: const Text('보드를 나갈까요?'),
+          content: Text('$boardName 보드를 나갈까요? 나중에 초대 코드로 다시 참여할 수 있습니다.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () {
@@ -288,10 +287,10 @@ class MembersInviteScreen extends StatelessWidget {
                   (route) => route.isFirst,
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Left $boardName.')),
+                  SnackBar(content: Text('$boardName 보드에서 나갔습니다.')),
                 );
               },
-              child: const Text('Leave'),
+              child: const Text('나가기'),
             ),
           ],
         );
@@ -367,18 +366,17 @@ class MemberTile extends StatelessWidget {
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.mail_outline_rounded),
-                title: const Text('Send reminder'),
+                title: const Text('알림 보내기'),
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('Reminder queued for ${member.name}.')),
+                    SnackBar(content: Text('${member.name}에게 보낼 알림을 준비했습니다.')),
                   );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.verified_user_outlined),
-                title: const Text('Change role'),
+                title: const Text('역할 변경'),
                 onTap: () {
                   Navigator.pop(context);
                   _showRolePicker(context, member);
@@ -386,7 +384,7 @@ class MemberTile extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.person_remove_outlined),
-                title: const Text('Remove from board'),
+                title: const Text('보드에서 제거'),
                 textColor: AppColors.error,
                 iconColor: AppColors.error,
                 onTap: () {
@@ -410,7 +408,7 @@ class MemberTile extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final role in const ['Admin', 'Member', 'Viewer'])
+              for (final role in const ['관리자', '멤버', '읽기 전용'])
                 ListTile(
                   leading: Icon(
                     role == member.role
@@ -422,7 +420,9 @@ class MemberTile extends StatelessWidget {
                     Navigator.pop(context);
                     onRoleChanged(member, role);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${member.name} is now $role.')),
+                      SnackBar(
+                          content:
+                              Text('${member.name}님의 역할을 $role(으)로 변경했습니다.')),
                     );
                   },
                 ),
@@ -438,23 +438,22 @@ class MemberTile extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Remove ${member.name}?'),
-          content:
-              const Text('This member will no longer appear on the board.'),
+          title: Text('${member.name}님을 제거할까요?'),
+          content: const Text('이 멤버는 더 이상 보드에 표시되지 않습니다.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () {
                 Navigator.pop(context);
                 onRemoved(member);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${member.name} removed.')),
+                  SnackBar(content: Text('${member.name}님을 제거했습니다.')),
                 );
               },
-              child: const Text('Remove'),
+              child: const Text('제거'),
             ),
           ],
         );

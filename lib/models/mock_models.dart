@@ -35,7 +35,7 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      name: json['name'] as String? ?? 'John Doe',
+      name: json['name'] as String? ?? '김지훈',
       email: json['email'] as String? ?? 'john.doe@example.com',
       initials: json['initials'] as String? ?? 'JD',
       color: _colorFromJson(json['color'], const Color(0xFF647D31)),
@@ -103,8 +103,7 @@ class BoardSettings {
     bool? requireNoticeConfirmation,
   }) {
     return BoardSettings(
-      notificationsEnabled:
-          notificationsEnabled ?? this.notificationsEnabled,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       autoArchiveCompletedTasks:
           autoArchiveCompletedTasks ?? this.autoArchiveCompletedTasks,
       requireNoticeConfirmation:
@@ -263,8 +262,8 @@ class BoardItemEditArguments {
       date: item.date,
       startTime: '',
       endTime: '',
-      assignee: 'Everyone',
-      initials: 'ALL',
+      assignee: '모두',
+      initials: '전체',
       color: Colors.transparent,
       isImportant: item.isImportant,
       requiresConfirmation: !item.confirmedByMe,
@@ -312,9 +311,9 @@ class FamilyMember {
 
   factory FamilyMember.fromJson(Map<String, dynamic> json) {
     return FamilyMember(
-      name: json['name'] as String? ?? 'Member',
+      name: json['name'] as String? ?? '멤버',
       initials: json['initials'] as String? ?? 'ME',
-      role: json['role'] as String? ?? 'Member',
+      role: json['role'] as String? ?? '멤버',
       color: _colorFromJson(json['color'], Colors.blue),
     );
   }
@@ -366,12 +365,12 @@ class BoardData {
 
   factory BoardData.fromJson(Map<String, dynamic> json) {
     return BoardData(
-      name: json['name'] as String? ?? 'Untitled Board',
-      role: json['role'] as String? ?? 'Member',
+      name: json['name'] as String? ?? '이름 없는 보드',
+      role: json['role'] as String? ?? '멤버',
       members: json['members'] as String? ?? '0',
-      schedules: json['schedules'] as String? ?? 'No schedules yet',
-      tasks: json['tasks'] as String? ?? 'No tasks yet',
-      notices: json['notices'] as String? ?? 'No notices',
+      schedules: json['schedules'] as String? ?? '아직 일정 없음',
+      tasks: json['tasks'] as String? ?? '아직 할 일 없음',
+      notices: json['notices'] as String? ?? '공지 없음',
     );
   }
 
@@ -450,15 +449,10 @@ class BoardWorkspace {
     return copyWith(
       board: board.copyWith(
         members: '${members.length}',
-        schedules: schedules.isEmpty
-            ? 'No schedules yet'
-            : _plural(schedules.length, 'schedule', suffix: ' planned'),
-        tasks: remainingTasks == 0
-            ? 'No tasks remaining'
-            : _plural(remainingTasks, 'task', suffix: ' remaining'),
-        notices: unreadNotices == 0
-            ? 'No new notices'
-            : _plural(unreadNotices, 'New notice'),
+        schedules:
+            schedules.isEmpty ? '아직 일정 없음' : '일정 ${schedules.length}개 예정',
+        tasks: remainingTasks == 0 ? '남은 할 일 없음' : '남은 할 일 $remainingTasks개',
+        notices: unreadNotices == 0 ? '새 공지 없음' : '새 공지 $unreadNotices개',
       ),
     );
   }
@@ -474,11 +468,6 @@ class BoardWorkspace {
       'settings': settings.toJson(),
     };
   }
-}
-
-String _plural(int count, String word, {String suffix = ''}) {
-  final plural = count == 1 ? word : '${word}s';
-  return '$count $plural$suffix';
 }
 
 class ScheduleItemData {
@@ -592,7 +581,7 @@ class TaskItemData {
     return TaskItemData(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
-      assignee: json['assignee'] as String? ?? 'Me',
+      assignee: json['assignee'] as String? ?? '나',
       initials: json['initials'] as String? ?? 'ME',
       dueDate: json['dueDate'] as String? ?? '',
       color: _colorFromJson(json['color'], Colors.blue),
@@ -666,10 +655,9 @@ class NoticeItemData {
       isImportant: json['isImportant'] as bool? ?? false,
       confirmedByMe: json['confirmedByMe'] as bool? ?? false,
       confirmedCount: json['confirmedCount'] as int? ?? 0,
-      confirmedInitials: (json['confirmedInitials'] as List?)
-              ?.whereType<String>()
-              .toList() ??
-          const [],
+      confirmedInitials:
+          (json['confirmedInitials'] as List?)?.whereType<String>().toList() ??
+              const [],
     );
   }
 

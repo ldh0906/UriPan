@@ -38,7 +38,7 @@ class TodayBoardScreen extends StatelessWidget {
 
     return ScreenShell(
       bottomNavigation: const AppBottomNav(currentIndex: 0),
-      floatingActionButton: const AddItemFab(label: 'Add Item'),
+      floatingActionButton: const AddItemFab(label: '항목 추가'),
       safeBottom: false,
       child: CustomScrollView(
         slivers: [
@@ -94,12 +94,12 @@ class TodayBoardScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Today's Pulse",
+                              Text('오늘의 현황',
                                   style:
                                       Theme.of(context).textTheme.titleMedium),
                               const SizedBox(height: 3),
                               Text(
-                                '${schedules.length} schedules, $remainingTasks tasks remaining',
+                                '일정 ${schedules.length}개, 남은 할 일 $remainingTasks개',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -113,27 +113,26 @@ class TodayBoardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 22),
                   const SectionHeader(
-                      title: 'Schedules',
-                      routeName: CalendarViewScreen.routeName),
+                      title: '일정', routeName: CalendarViewScreen.routeName),
                   const SizedBox(height: 10),
                   ...schedules.take(3).map(
                         (item) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: ScheduleCard(
-                              item: item,
-                              compact: true,
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                ItemDetailEditScreen.routeName,
-                                arguments:
-                                    BoardItemEditArguments.fromSchedule(item),
-                              ),
+                            item: item,
+                            compact: true,
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              ItemDetailEditScreen.routeName,
+                              arguments:
+                                  BoardItemEditArguments.fromSchedule(item),
                             ),
+                          ),
                         ),
                       ),
                   const SizedBox(height: 10),
                   const SectionHeader(
-                      title: 'Tasks', routeName: TasksListScreen.routeName),
+                      title: '할 일', routeName: TasksListScreen.routeName),
                   const SizedBox(height: 10),
                   ...tasks.take(4).map(
                         (item) => Padding(
@@ -152,8 +151,7 @@ class TodayBoardScreen extends StatelessWidget {
                       ),
                   const SizedBox(height: 10),
                   const SectionHeader(
-                      title: 'Notices',
-                      routeName: NoticesBoardScreen.routeName),
+                      title: '공지', routeName: NoticesBoardScreen.routeName),
                   const SizedBox(height: 10),
                   ...notices.take(2).map(
                         (item) => Padding(
@@ -165,7 +163,8 @@ class TodayBoardScreen extends StatelessWidget {
                             onTap: () => Navigator.pushNamed(
                               context,
                               ItemDetailEditScreen.routeName,
-                              arguments: BoardItemEditArguments.fromNotice(item),
+                              arguments:
+                                  BoardItemEditArguments.fromNotice(item),
                             ),
                             onConfirm: () => onNoticeConfirmed(item),
                           ),
@@ -183,28 +182,28 @@ class TodayBoardScreen extends StatelessWidget {
 
   String _formatToday(DateTime date) {
     const weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+      '월요일',
+      '화요일',
+      '수요일',
+      '목요일',
+      '금요일',
+      '토요일',
+      '일요일',
     ];
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월',
     ];
-    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
+    return '${months[date.month - 1]} ${date.day}일 ${weekdays[date.weekday - 1]}';
   }
 }

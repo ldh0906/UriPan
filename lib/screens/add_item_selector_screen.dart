@@ -18,11 +18,10 @@ class AddItemSelectorScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            Text('Add New Item',
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text('새 항목 추가', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 6),
             Text(
-              'What would you like to share with the group?',
+              '그룹과 무엇을 공유할까요?',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -31,8 +30,8 @@ class AddItemSelectorScreen extends StatelessWidget {
             const SizedBox(height: 24),
             ActionItemCard(
               icon: Icons.calendar_today_rounded,
-              title: 'Schedule',
-              subtitle: 'Events, meetings, or reminders',
+              title: '일정',
+              subtitle: '약속, 모임, 알림',
               color: AppColors.info,
               background: AppColors.infoSoft,
               onTap: () => _openEditor(context, BoardItemType.schedule),
@@ -40,8 +39,8 @@ class AddItemSelectorScreen extends StatelessWidget {
             const SizedBox(height: 12),
             ActionItemCard(
               icon: Icons.check_circle_outline_rounded,
-              title: 'Task',
-              subtitle: 'To-dos and responsibilities',
+              title: '할 일',
+              subtitle: '해야 할 일과 담당 업무',
               color: AppColors.success,
               background: AppColors.successSoft,
               onTap: () => _openEditor(context, BoardItemType.task),
@@ -49,15 +48,15 @@ class AddItemSelectorScreen extends StatelessWidget {
             const SizedBox(height: 12),
             ActionItemCard(
               icon: Icons.campaign_rounded,
-              title: 'Notice',
-              subtitle: 'Important announcements',
+              title: '공지',
+              subtitle: '중요한 안내와 공지사항',
               color: AppColors.warning,
               background: AppColors.warningSoft,
               onTap: () => _openEditor(context, BoardItemType.notice),
             ),
             const Spacer(),
             PrimaryButton(
-              label: 'Cancel',
+              label: '취소',
               variant: ButtonVariant.ghost,
               onPressed: () => Navigator.pop(context),
             ),

@@ -17,7 +17,7 @@ class LocalAppRepository implements AppRepository {
   LocalAppRepository({SharedPreferences? preferences})
       : _preferences = preferences;
 
-  static const _storageKey = 'uripan.app.snapshot.v1';
+  static const _storageKey = 'uripan.app.snapshot.v2';
 
   SharedPreferences? _preferences;
 

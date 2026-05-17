@@ -14,119 +14,118 @@ void main() {
     await pumpApp(tester);
 
     expect(find.text('UriPan'), findsOneWidget);
-    expect(find.text('Shared board for your team'), findsOneWidget);
+    expect(find.text('우리끼리 함께 쓰는 공유 보드'), findsOneWidget);
   });
 
   testWidgets('new task can be created from the add flow', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('Login').first);
+    await tester.tap(find.text('로그인').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Login').last);
+    await tester.tap(find.text('로그인').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sweet Home'));
+    await tester.tap(find.text('우리 집'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Add Item'));
+    await tester.tap(find.text('항목 추가'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Task'));
+    await tester.tap(find.text('할 일'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byType(TextFormField).first,
-      'Clean kitchen windows',
+      '부엌 창문 닦기',
     );
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('저장'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Tasks'), findsWidgets);
-    expect(find.text('Clean kitchen windows'), findsOneWidget);
+    expect(find.text('할 일'), findsWidgets);
+    expect(find.text('부엌 창문 닦기'), findsOneWidget);
   });
 
   testWidgets('board can be created locally', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('Login').first);
+    await tester.tap(find.text('로그인').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Login').last);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Create'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Trip Crew');
-    await tester.tap(find.text('Create').last);
+    await tester.tap(find.text('로그인').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Trip Crew'), findsOneWidget);
+    await tester.tap(find.text('만들기'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '여행 모임');
+    await tester.tap(find.text('만들기').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('여행 모임'), findsOneWidget);
   });
 
   testWidgets('member role can be changed locally', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('Login').first);
+    await tester.tap(find.text('로그인').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Login').last);
+    await tester.tap(find.text('로그인').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sweet Home'));
+    await tester.tap(find.text('우리 집'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Members'));
+    await tester.tap(find.text('멤버'));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.more_vert_rounded).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Change role'));
+    await tester.tap(find.text('역할 변경'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Viewer'));
+    await tester.tap(find.text('읽기 전용'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Seoyun Kim'), findsOneWidget);
-    expect(find.text('Viewer'), findsOneWidget);
+    expect(find.text('김서윤'), findsOneWidget);
+    expect(find.text('읽기 전용'), findsOneWidget);
   });
-
 
   testWidgets('existing task can be edited locally', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('Login').first);
+    await tester.tap(find.text('로그인').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Login').last);
+    await tester.tap(find.text('로그인').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sweet Home'));
+    await tester.tap(find.text('우리 집'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Icons.check_circle_outline));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Wash the dishes'));
+    await tester.tap(find.text('설거지하기'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Edit Task'), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField).first, 'Wash dishes and pans');
-    await tester.tap(find.text('Save'));
+    expect(find.text('수정 할 일'), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).first, '설거지와 냄비 정리');
+    await tester.tap(find.text('저장'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Wash dishes and pans'), findsOneWidget);
-    expect(find.text('Wash the dishes'), findsNothing);
+    expect(find.text('설거지와 냄비 정리'), findsOneWidget);
+    expect(find.text('설거지하기'), findsNothing);
   });
 
   testWidgets('active board can be left locally', (tester) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('Login').first);
+    await tester.tap(find.text('로그인').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Login').last);
+    await tester.tap(find.text('로그인').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sweet Home'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Members'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Leave Board'));
-    await tester.tap(find.text('Leave Board'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Leave'));
+    await tester.tap(find.text('우리 집'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Your Boards'), findsOneWidget);
-    expect(find.text('Algorithms Study'), findsOneWidget);
+    await tester.tap(find.text('멤버'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('보드 나가기'));
+    await tester.tap(find.text('보드 나가기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('나가기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('내 보드'), findsOneWidget);
+    expect(find.text('알고리즘 스터디'), findsOneWidget);
   });
 }

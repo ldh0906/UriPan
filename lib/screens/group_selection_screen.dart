@@ -47,11 +47,11 @@ class GroupSelectionScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Your Boards',
+                      Text('내 보드',
                           style: Theme.of(context).textTheme.headlineMedium),
                       const SizedBox(height: 4),
                       Text(
-                        "Select a group to view today's activities",
+                        '오늘의 활동을 볼 그룹을 선택하세요',
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
@@ -68,8 +68,8 @@ class GroupSelectionScreen extends StatelessWidget {
               child: boards.isEmpty
                   ? const EmptyState(
                       icon: Icons.dashboard_customize_outlined,
-                      title: 'No boards yet',
-                      message: 'Create or join a board to start sharing.',
+                      title: '아직 보드가 없습니다',
+                      message: '보드를 만들거나 초대 코드로 참여해보세요.',
                     )
                   : ListView.separated(
                       itemCount: boards.length,
@@ -89,16 +89,15 @@ class GroupSelectionScreen extends StatelessWidget {
                     ),
             ),
             const SizedBox(height: 12),
-            Text('Manage Boards',
-                style: Theme.of(context).textTheme.titleMedium),
+            Text('보드 관리', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: ActionMiniCard(
                     icon: Icons.add_rounded,
-                    title: 'Create',
-                    subtitle: 'Start a new shared board',
+                    title: '만들기',
+                    subtitle: '새 공유 보드 시작',
                     onTap: () => _showCreateBoardDialog(context),
                   ),
                 ),
@@ -106,8 +105,8 @@ class GroupSelectionScreen extends StatelessWidget {
                 Expanded(
                   child: ActionMiniCard(
                     icon: Icons.group_add_rounded,
-                    title: 'Join',
-                    subtitle: 'Enter an invite code',
+                    title: '참여',
+                    subtitle: '초대 코드 입력',
                     onTap: () => _showJoinBoardDialog(context),
                   ),
                 ),
@@ -152,18 +151,18 @@ class GroupSelectionScreen extends StatelessWidget {
   }
 
   Future<void> _showCreateBoardDialog(BuildContext context) async {
-    var boardName = 'New Board';
+    var boardName = '새 보드';
     final name = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Create board'),
+          title: const Text('보드 만들기'),
           content: TextFormField(
             initialValue: boardName,
             autofocus: true,
             decoration: const InputDecoration(
-              labelText: 'Board name',
-              hintText: 'Family, study, roommates...',
+              labelText: '보드 이름',
+              hintText: '가족, 스터디, 룸메이트...',
             ),
             onChanged: (value) => boardName = value,
             onFieldSubmitted: (value) => Navigator.pop(context, value),
@@ -171,11 +170,11 @@ class GroupSelectionScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, boardName),
-              child: const Text('Create'),
+              child: const Text('만들기'),
             ),
           ],
         );
@@ -185,7 +184,7 @@ class GroupSelectionScreen extends StatelessWidget {
     if (trimmed == null || trimmed.isEmpty || !context.mounted) return;
     onCreateBoard(trimmed);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$trimmed created.')),
+      SnackBar(content: Text('$trimmed 보드를 만들었습니다.')),
     );
   }
 
@@ -195,13 +194,13 @@ class GroupSelectionScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Join board'),
+          title: const Text('보드 참여'),
           content: TextFormField(
             initialValue: code,
             autofocus: true,
             textCapitalization: TextCapitalization.characters,
             decoration: const InputDecoration(
-              labelText: 'Invite code',
+              labelText: '초대 코드',
               hintText: 'URIPAN-2024',
             ),
             onChanged: (value) => code = value,
@@ -210,11 +209,11 @@ class GroupSelectionScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, code),
-              child: const Text('Join'),
+              child: const Text('참여'),
             ),
           ],
         );
@@ -224,7 +223,7 @@ class GroupSelectionScreen extends StatelessWidget {
     if (trimmed == null || trimmed.isEmpty || !context.mounted) return;
     onJoinBoard(trimmed);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Board joined.')),
+      const SnackBar(content: Text('보드에 참여했습니다.')),
     );
   }
 
@@ -257,7 +256,7 @@ class GroupSelectionScreen extends StatelessWidget {
                 onChanged: (value) => onSettingsChanged(
                   settings.copyWith(notificationsEnabled: value),
                 ),
-                title: const Text('Board notifications'),
+                title: const Text('보드 알림'),
                 secondary: const Icon(Icons.notifications_outlined),
               ),
               SwitchListTile.adaptive(
@@ -265,12 +264,12 @@ class GroupSelectionScreen extends StatelessWidget {
                 onChanged: (value) => onSettingsChanged(
                   settings.copyWith(autoArchiveCompletedTasks: value),
                 ),
-                title: const Text('Auto-archive completed tasks'),
+                title: const Text('완료한 할 일 자동 보관'),
                 secondary: const Icon(Icons.inventory_2_outlined),
               ),
               ListTile(
                 leading: const Icon(Icons.restore_rounded),
-                title: const Text('Reset local demo data'),
+                title: const Text('로컬 데모 데이터 초기화'),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmReset(context);
@@ -278,7 +277,7 @@ class GroupSelectionScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.logout_rounded),
-                title: const Text('Log out'),
+                title: const Text('로그아웃'),
                 onTap: () {
                   Navigator.pop(context);
                   onLogout();
@@ -304,19 +303,19 @@ class GroupSelectionScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Edit profile'),
+          title: const Text('프로필 수정'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
                 initialValue: name,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: '이름'),
                 onChanged: (value) => name = value,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 initialValue: email,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: '이메일'),
                 keyboardType: TextInputType.emailAddress,
                 onChanged: (value) => email = value,
               ),
@@ -325,7 +324,7 @@ class GroupSelectionScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(
@@ -336,7 +335,7 @@ class GroupSelectionScreen extends StatelessWidget {
                   initials: _initialsFor(name),
                 ),
               ),
-              child: const Text('Save'),
+              child: const Text('저장'),
             ),
           ],
         );
@@ -345,7 +344,7 @@ class GroupSelectionScreen extends StatelessWidget {
     if (updated == null || !context.mounted) return;
     onUserChanged(updated);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated.')),
+      const SnackBar(content: Text('프로필을 수정했습니다.')),
     );
   }
 
@@ -354,17 +353,16 @@ class GroupSelectionScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Reset local data?'),
-          content: const Text(
-              'This restores the built-in demo boards and removes local edits.'),
+          title: const Text('로컬 데이터를 초기화할까요?'),
+          content: const Text('기본 데모 보드로 되돌리고 로컬 수정 내용을 삭제합니다.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Reset'),
+              child: const Text('초기화'),
             ),
           ],
         );
@@ -374,7 +372,7 @@ class GroupSelectionScreen extends StatelessWidget {
     await onResetLocalData();
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Local data reset.')),
+      const SnackBar(content: Text('로컬 데이터를 초기화했습니다.')),
     );
   }
 
@@ -426,8 +424,7 @@ class BoardCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _BoardMeta(
-              icon: Icons.group_rounded, text: '${data.members} members'),
+          _BoardMeta(icon: Icons.group_rounded, text: '멤버 ${data.members}명'),
           _BoardMeta(icon: Icons.calendar_today_rounded, text: data.schedules),
           _BoardMeta(
               icon: Icons.check_circle_outline_rounded, text: data.tasks),

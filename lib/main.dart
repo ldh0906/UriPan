@@ -104,7 +104,8 @@ class _UriPanAppState extends State<UriPanApp> {
         .replaceAll(RegExp('[^A-Z0-9]'), '')
         .padRight(4, 'X')
         .substring(0, 4);
-    final suffix = DateTime.now().millisecondsSinceEpoch
+    final suffix = DateTime.now()
+        .millisecondsSinceEpoch
         .toRadixString(36)
         .toUpperCase()
         .substring(4, 8);
@@ -133,7 +134,8 @@ class _UriPanAppState extends State<UriPanApp> {
 
   void login(String email, bool keepLoggedIn) {
     final trimmed = email.trim();
-    final name = trimmed.isEmpty ? _snapshot.user.name : trimmed.split('@').first;
+    final name =
+        trimmed.isEmpty ? _snapshot.user.name : trimmed.split('@').first;
     _commit(
       _snapshot.copyWith(
         isAuthenticated: true,
@@ -147,7 +149,7 @@ class _UriPanAppState extends State<UriPanApp> {
   }
 
   void signUp(String name, String email, bool keepLoggedIn) {
-    final displayName = name.trim().isEmpty ? 'New Member' : name.trim();
+    final displayName = name.trim().isEmpty ? '새 멤버' : name.trim();
     _commit(
       _snapshot.copyWith(
         isAuthenticated: true,
@@ -247,18 +249,18 @@ class _UriPanAppState extends State<UriPanApp> {
     final board = BoardWorkspace(
       board: BoardData(
         name: name,
-        role: 'Admin',
+        role: '관리자',
         members: '1',
-        schedules: 'No schedules yet',
-        tasks: 'No tasks yet',
-        notices: 'No notices',
+        schedules: '아직 일정 없음',
+        tasks: '아직 할 일 없음',
+        notices: '공지 없음',
       ),
       inviteCode: _inviteCodeFor(name),
       members: [
         FamilyMember(
           name: user.name,
           initials: user.initials,
-          role: 'Admin',
+          role: '관리자',
           color: user.color,
         ),
       ],
@@ -294,19 +296,19 @@ class _UriPanAppState extends State<UriPanApp> {
     final joined = (template ??
             BoardWorkspace(
               board: const BoardData(
-                name: 'Joined Board',
-                role: 'Member',
+                name: '참여한 보드',
+                role: '멤버',
                 members: '2',
-                schedules: 'No schedules yet',
-                tasks: 'No tasks yet',
-                notices: 'No notices',
+                schedules: '아직 일정 없음',
+                tasks: '아직 할 일 없음',
+                notices: '공지 없음',
               ),
               inviteCode: code,
               members: [
                 FamilyMember(
                   name: _snapshot.user.name,
                   initials: _snapshot.user.initials,
-                  role: 'Member',
+                  role: '멤버',
                   color: _snapshot.user.color,
                 ),
               ],
@@ -314,14 +316,17 @@ class _UriPanAppState extends State<UriPanApp> {
               tasks: const [],
               notices: const [],
             ))
-        .copyWith(board: (template?.board ?? const BoardData(
-              name: 'Joined Board',
-              role: 'Member',
-              members: '2',
-              schedules: 'No schedules yet',
-              tasks: 'No tasks yet',
-              notices: 'No notices',
-            )).copyWith(role: 'Member'))
+        .copyWith(
+            board: (template?.board ??
+                    const BoardData(
+                      name: '참여한 보드',
+                      role: '멤버',
+                      members: '2',
+                      schedules: '아직 일정 없음',
+                      tasks: '아직 할 일 없음',
+                      notices: '공지 없음',
+                    ))
+                .copyWith(role: '멤버'))
         .withSyncedSummary();
 
     _commit(
@@ -341,7 +346,8 @@ class _UriPanAppState extends State<UriPanApp> {
   }
 
   void updateActiveBoardSettings(BoardSettings settings) {
-    _updateActiveWorkspace((workspace) => workspace.copyWith(settings: settings));
+    _updateActiveWorkspace(
+        (workspace) => workspace.copyWith(settings: settings));
   }
 
   void toggleTask(TaskItemData task, bool? value) {
@@ -427,8 +433,9 @@ class _UriPanAppState extends State<UriPanApp> {
   void removeMember(FamilyMember member) {
     _updateActiveWorkspace(
       (workspace) => workspace.copyWith(
-        members:
-            workspace.members.where((item) => item.name != member.name).toList(),
+        members: workspace.members
+            .where((item) => item.name != member.name)
+            .toList(),
       ),
     );
   }
@@ -474,7 +481,7 @@ class _UriPanAppState extends State<UriPanApp> {
             ),
         GroupSelectionScreen.routeName: (_) => _buildGroupSelectionScreen(),
         TodayBoardScreen.routeName: (_) => TodayBoardScreen(
-              boardName: _activeWorkspace?.board.name ?? 'No Board',
+              boardName: _activeWorkspace?.board.name ?? '보드 없음',
               members: _activeMembers,
               schedules: _activeSchedules,
               tasks: _activeTasks,
@@ -483,26 +490,26 @@ class _UriPanAppState extends State<UriPanApp> {
               onNoticeConfirmed: toggleNoticeConfirmation,
             ),
         CalendarViewScreen.routeName: (_) => CalendarViewScreen(
-              boardName: _activeWorkspace?.board.name ?? 'No Board',
+              boardName: _activeWorkspace?.board.name ?? '보드 없음',
               members: _activeMembers,
               schedules: _activeSchedules,
               onScheduleDeleted: deleteSchedule,
             ),
         TasksListScreen.routeName: (_) => TasksListScreen(
-              boardName: _activeWorkspace?.board.name ?? 'No Board',
+              boardName: _activeWorkspace?.board.name ?? '보드 없음',
               tasks: _activeTasks,
               onTaskChanged: toggleTask,
               onTaskDeleted: deleteTask,
             ),
         NoticesBoardScreen.routeName: (_) => NoticesBoardScreen(
-              boardName: _activeWorkspace?.board.name ?? 'No Board',
+              boardName: _activeWorkspace?.board.name ?? '보드 없음',
               notices: _activeNotices,
               members: _activeMembers,
               onNoticeConfirmed: toggleNoticeConfirmation,
               onNoticeDeleted: deleteNotice,
             ),
         MembersInviteScreen.routeName: (_) => MembersInviteScreen(
-              boardName: _activeWorkspace?.board.name ?? 'No Board',
+              boardName: _activeWorkspace?.board.name ?? '보드 없음',
               inviteCode: _activeWorkspace?.inviteCode ?? 'NO-BOARD',
               members: _activeMembers,
               settings: _activeSettings,
@@ -560,7 +567,7 @@ class _UriPanAppState extends State<UriPanApp> {
         .split(RegExp(r'\s+'))
         .where((part) => part.isNotEmpty)
         .toList();
-    if (parts.isEmpty) return 'ME';
+    if (parts.isEmpty) return '나';
     if (parts.length == 1) {
       return parts.first.substring(0, 1).toUpperCase();
     }

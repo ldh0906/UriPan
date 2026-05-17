@@ -52,7 +52,7 @@ class _TasksListScreenState extends State<TasksListScreen> {
     return ScreenShell(
       bottomNavigation: const AppBottomNav(currentIndex: 2),
       floatingActionButton: const AddItemFab(
-        label: 'New Task',
+        label: '새 할 일',
         itemType: BoardItemType.task,
       ),
       safeBottom: false,
@@ -66,7 +66,7 @@ class _TasksListScreenState extends State<TasksListScreen> {
                 Row(
                   children: [
                     Expanded(
-                        child: Text('Tasks',
+                        child: Text('할 일',
                             style: Theme.of(context).textTheme.headlineSmall)),
                     IconButton(
                       onPressed: () {
@@ -84,7 +84,7 @@ class _TasksListScreenState extends State<TasksListScreen> {
                   ],
                 ),
                 Text(
-                  'Shared with ${widget.boardName}',
+                  '${widget.boardName}와 공유 중',
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -93,7 +93,7 @@ class _TasksListScreenState extends State<TasksListScreen> {
                 if (isSearching) ...[
                   const SizedBox(height: 14),
                   AppTextField(
-                    hint: 'Search tasks',
+                    hint: '할 일 검색',
                     leadingIcon: Icons.search_rounded,
                     onChanged: (value) => setState(() => searchQuery = value),
                   ),
@@ -101,9 +101,9 @@ class _TasksListScreenState extends State<TasksListScreen> {
                 const SizedBox(height: 18),
                 SegmentedButton<int>(
                   segments: const [
-                    ButtonSegment(value: 0, label: Text('All')),
-                    ButtonSegment(value: 1, label: Text('Open')),
-                    ButtonSegment(value: 2, label: Text('Completed')),
+                    ButtonSegment(value: 0, label: Text('전체')),
+                    ButtonSegment(value: 1, label: Text('진행 중')),
+                    ButtonSegment(value: 2, label: Text('완료')),
                   ],
                   selected: {selectedTab},
                   onSelectionChanged: (value) =>
@@ -117,8 +117,8 @@ class _TasksListScreenState extends State<TasksListScreen> {
             child: visibleTasks.isEmpty
                 ? const EmptyState(
                     icon: Icons.check_circle_outline_rounded,
-                    title: 'No tasks here',
-                    message: 'New shared tasks will appear in this list.',
+                    title: '할 일이 없습니다',
+                    message: '새로 공유된 할 일이 이 목록에 표시됩니다.',
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 108),
@@ -144,7 +144,8 @@ class _TasksListScreenState extends State<TasksListScreen> {
                         onDismissed: (_) {
                           widget.onTaskDeleted(task);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('${task.title} deleted.')),
+                            SnackBar(
+                                content: Text('${task.title} 할 일을 삭제했습니다.')),
                           );
                         },
                         child: TaskCard(

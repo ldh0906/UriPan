@@ -311,7 +311,7 @@ class SectionHeader extends StatelessWidget {
         if (routeName != null)
           TextButton(
             onPressed: () => Navigator.pushNamed(context, routeName!),
-            child: const Text('View all'),
+            child: const Text('전체 보기'),
           ),
       ],
     );
@@ -346,24 +346,24 @@ class AppBottomNav extends StatelessWidget {
         NavigationDestination(
             icon: Icon(Icons.today_outlined),
             selectedIcon: Icon(Icons.today),
-            label: 'Today'),
+            label: '오늘'),
         NavigationDestination(
           icon: Icon(Icons.calendar_month_outlined),
           selectedIcon: Icon(Icons.calendar_month),
-          label: 'Calendar',
+          label: '달력',
         ),
         NavigationDestination(
             icon: Icon(Icons.check_circle_outline),
             selectedIcon: Icon(Icons.check_circle),
-            label: 'Tasks'),
+            label: '할 일'),
         NavigationDestination(
             icon: Icon(Icons.campaign_outlined),
             selectedIcon: Icon(Icons.campaign),
-            label: 'Notices'),
+            label: '공지'),
         NavigationDestination(
             icon: Icon(Icons.group_outlined),
             selectedIcon: Icon(Icons.group),
-            label: 'Members'),
+            label: '멤버'),
       ],
     );
   }
@@ -584,7 +584,7 @@ class NoticeCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${item.confirmedCount}/$memberCount confirmed',
+                  '${item.confirmedCount}/$memberCount명 확인',
                   style: Theme.of(context)
                       .textTheme
                       .labelMedium
@@ -599,7 +599,7 @@ class NoticeCard extends StatelessWidget {
                       : Icons.radio_button_unchecked_rounded,
                   size: 18,
                 ),
-                label: Text(item.confirmedByMe ? 'Confirmed' : 'Confirm'),
+                label: Text(item.confirmedByMe ? '확인됨' : '확인'),
               ),
             ],
           ),

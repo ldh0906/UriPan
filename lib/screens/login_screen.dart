@@ -60,27 +60,27 @@ class _LoginScreenState extends State<LoginScreen> {
               Text('UriPan', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: 8),
               Text(
-                'Welcome back to your shared board',
+                '공유 보드에 다시 오신 것을 환영합니다',
                 style: Theme.of(context)
                     .textTheme
                     .bodyLarge
                     ?.copyWith(color: AppColors.mutedText),
               ),
               const SizedBox(height: 32),
-              const Text('Email Address'),
+              const Text('이메일 주소'),
               const SizedBox(height: 8),
               AppTextField(
-                label: 'Email',
-                hint: 'Enter your email',
+                label: '이메일',
+                hint: '이메일을 입력하세요',
                 leadingIcon: Icons.mail_outline_rounded,
                 controller: emailController,
               ),
               const SizedBox(height: 16),
-              const Text('Password'),
+              const Text('비밀번호'),
               const SizedBox(height: 8),
               AppTextField(
-                label: 'Password',
-                hint: 'Enter your password',
+                label: '비밀번호',
+                hint: '비밀번호를 입력하세요',
                 leadingIcon: Icons.lock_outline_rounded,
                 trailingIcon: Icons.visibility_off_rounded,
                 obscureText: true,
@@ -95,16 +95,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (value) =>
                         setState(() => keepLoggedIn = value ?? false),
                   ),
-                  const Expanded(child: Text('Keep me logged in')),
+                  const Expanded(child: Text('로그인 상태 유지')),
                   TextButton(
                     onPressed: _showPasswordResetDialog,
-                    child: const Text('Forgot Password?'),
+                    child: const Text('비밀번호 찾기'),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               PrimaryButton(
-                label: 'Login',
+                label: '로그인',
                 onPressed: _login,
               ),
               const SizedBox(height: 20),
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
-                    "Don't have an account?",
+                    '아직 계정이 없나요?',
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
@@ -121,13 +121,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   TextButton(
                     onPressed: _showSignUpDialog,
-                    child: const Text('Sign Up'),
+                    child: const Text('회원가입'),
                   ),
                 ],
               ),
               Center(
                 child: Text(
-                  'By logging in, you agree to our Terms of Service',
+                  '로그인하면 이용약관에 동의한 것으로 간주됩니다',
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
@@ -147,13 +147,12 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Reset password'),
-          content:
-              const Text('Password reset email flow is not connected yet.'),
+          title: const Text('비밀번호 재설정'),
+          content: const Text('비밀번호 재설정 이메일 흐름은 아직 연결되지 않았습니다.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Done'),
+              child: const Text('확인'),
             ),
           ],
         );
@@ -168,19 +167,19 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Create account'),
+          title: const Text('계정 만들기'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
                 initialValue: name,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: '이름'),
                 onChanged: (value) => name = value,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 initialValue: email,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: '이메일'),
                 keyboardType: TextInputType.emailAddress,
                 onChanged: (value) => email = value,
               ),
@@ -189,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () {
@@ -198,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pushReplacementNamed(
                     context, GroupSelectionScreen.routeName);
               },
-              child: const Text('Continue'),
+              child: const Text('계속'),
             ),
           ],
         );
@@ -210,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (emailController.text.trim().isEmpty ||
         passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email and password are required.')),
+        const SnackBar(content: Text('이메일과 비밀번호를 입력하세요.')),
       );
       return;
     }

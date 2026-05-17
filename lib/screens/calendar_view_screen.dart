@@ -42,7 +42,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
   Widget build(BuildContext context) {
     final monthCells = _buildMonthCells(focusedMonth);
     final selectedLabel =
-        '${_weekdayName(selectedDate.weekday)}, ${_monthName(selectedDate.month)} ${selectedDate.day}';
+        '${_monthName(selectedDate.month)} ${selectedDate.day}일 ${_weekdayName(selectedDate.weekday)}';
     final selectedDateKey = _formatDate(selectedDate);
     final selectedSchedules = widget.schedules
         .where((schedule) => schedule.date == selectedDateKey)
@@ -51,7 +51,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
     return ScreenShell(
       bottomNavigation: const AppBottomNav(currentIndex: 1),
       floatingActionButton: const AddItemFab(
-        label: 'Add Schedule',
+        label: '일정 추가',
         itemType: BoardItemType.schedule,
       ),
       safeBottom: false,
@@ -72,7 +72,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${_monthName(focusedMonth.month)} ${focusedMonth.year}',
+                          '${focusedMonth.year}년 ${_monthName(focusedMonth.month)}',
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         Text(
@@ -102,7 +102,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+                      children: ['일', '월', '화', '수', '목', '금', '토']
                           .map(
                             (day) => Expanded(
                               child: Center(
@@ -165,7 +165,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      '${selectedSchedules.length} Events',
+                      '일정 ${selectedSchedules.length}개',
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
@@ -178,8 +178,8 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
               if (selectedSchedules.isEmpty)
                 const EmptyState(
                   icon: Icons.event_busy_rounded,
-                  title: 'No schedules',
-                  message: 'Schedules for the selected date will appear here.',
+                  title: '일정이 없습니다',
+                  message: '선택한 날짜의 일정이 여기에 표시됩니다.',
                 )
               else
                 ...selectedSchedules.map(
@@ -203,7 +203,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                       onDismissed: (_) {
                         widget.onScheduleDeleted(item);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${item.title} deleted.')),
+                          SnackBar(content: Text('${item.title} 일정을 삭제했습니다.')),
                         );
                       },
                       child: ScheduleCard(
@@ -263,37 +263,37 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
 
   String _monthName(int month) {
     const names = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월',
     ];
     return names[month - 1];
   }
 
   String _weekdayName(int weekday) {
     const names = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+      '월요일',
+      '화요일',
+      '수요일',
+      '목요일',
+      '금요일',
+      '토요일',
+      '일요일',
     ];
     return names[weekday - 1];
   }
 
   String _formatDate(DateTime date) {
-    return '${_monthName(date.month).substring(0, 3)} ${date.day}, ${date.year}';
+    return '${date.year}년 ${date.month}월 ${date.day}일';
   }
 
   Color? _markerFor(DateTime date) {

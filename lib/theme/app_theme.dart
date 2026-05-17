@@ -39,15 +39,24 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, height: 1.18),
-        headlineMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, height: 1.22),
-        headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, height: 1.25),
-        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.3),
-        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, height: 1.35),
-        titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.35),
-        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
-        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, height: 1.45),
-        bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, height: 1.35),
+        headlineLarge:
+            TextStyle(fontSize: 32, fontWeight: FontWeight.w800, height: 1.18),
+        headlineMedium:
+            TextStyle(fontSize: 26, fontWeight: FontWeight.w700, height: 1.22),
+        headlineSmall:
+            TextStyle(fontSize: 24, fontWeight: FontWeight.w700, height: 1.25),
+        titleLarge:
+            TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.3),
+        titleMedium:
+            TextStyle(fontSize: 16, fontWeight: FontWeight.w700, height: 1.35),
+        titleSmall:
+            TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.35),
+        bodyLarge:
+            TextStyle(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5),
+        bodyMedium:
+            TextStyle(fontSize: 14, fontWeight: FontWeight.w400, height: 1.45),
+        bodySmall:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w400, height: 1.35),
         labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
         labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
@@ -70,7 +79,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.surfaceVariant),
@@ -89,7 +99,8 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(56, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
       ),
@@ -98,7 +109,8 @@ class AppTheme {
           foregroundColor: AppColors.text,
           minimumSize: const Size(56, 52),
           side: const BorderSide(color: AppColors.surfaceVariant),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
       ),
