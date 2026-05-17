@@ -94,7 +94,7 @@ void main() {
     await tester.tap(find.text('Sweet Home'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Tasks'));
+    await tester.tap(find.byIcon(Icons.check_circle_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Wash the dishes'));
     await tester.pumpAndSettle();

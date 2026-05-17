@@ -463,28 +463,16 @@ class _UriPanAppState extends State<UriPanApp> {
       title: 'UriPan',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      initialRoute: _snapshot.isAuthenticated
-          ? GroupSelectionScreen.routeName
-          : WelcomeScreen.routeName,
+      home: _snapshot.isAuthenticated
+          ? _buildGroupSelectionScreen()
+          : const WelcomeScreen(),
       routes: {
-        WelcomeScreen.routeName: (_) => const WelcomeScreen(),
         LoginScreen.routeName: (_) => LoginScreen(
               user: _snapshot.user,
               onLogin: login,
               onSignUp: signUp,
             ),
-        GroupSelectionScreen.routeName: (_) => GroupSelectionScreen(
-              boards: _boardCards,
-              user: _snapshot.user,
-              settings: _activeSettings,
-              onCreateBoard: createBoard,
-              onJoinBoard: joinBoard,
-              onSelectBoard: selectBoard,
-              onUserChanged: updateUserProfile,
-              onSettingsChanged: updateActiveBoardSettings,
-              onLogout: logout,
-              onResetLocalData: resetLocalData,
-            ),
+        GroupSelectionScreen.routeName: (_) => _buildGroupSelectionScreen(),
         TodayBoardScreen.routeName: (_) => TodayBoardScreen(
               boardName: _activeWorkspace?.board.name ?? 'No Board',
               members: _activeMembers,
@@ -540,6 +528,21 @@ class _UriPanAppState extends State<UriPanApp> {
           );
         },
       },
+    );
+  }
+
+  GroupSelectionScreen _buildGroupSelectionScreen() {
+    return GroupSelectionScreen(
+      boards: _boardCards,
+      user: _snapshot.user,
+      settings: _activeSettings,
+      onCreateBoard: createBoard,
+      onJoinBoard: joinBoard,
+      onSelectBoard: selectBoard,
+      onUserChanged: updateUserProfile,
+      onSettingsChanged: updateActiveBoardSettings,
+      onLogout: logout,
+      onResetLocalData: resetLocalData,
     );
   }
 

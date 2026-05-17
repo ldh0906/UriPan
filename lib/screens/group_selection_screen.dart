@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/mock_models.dart';
 import '../screens/today_board_screen.dart';
+import '../screens/welcome_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 
@@ -281,10 +282,11 @@ class GroupSelectionScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(context);
                   onLogout();
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/',
-                    (route) => false,
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const WelcomeScreen(),
+                    ),
+                    (_) => false,
                   );
                 },
               ),
