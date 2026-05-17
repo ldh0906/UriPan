@@ -10,17 +10,22 @@ class MembersInviteScreen extends StatelessWidget {
   const MembersInviteScreen({
     super.key,
     required this.boardName,
+    required this.inviteCode,
     required this.members,
+    required this.settings,
+    required this.onSettingsChanged,
     required this.onMemberRoleChanged,
     required this.onMemberRemoved,
     required this.onLeaveBoard,
   });
 
   static const routeName = '/members';
-  static const inviteCode = 'URIPAN-2024';
 
   final String boardName;
+  final String inviteCode;
   final List<FamilyMember> members;
+  final BoardSettings settings;
+  final ValueChanged<BoardSettings> onSettingsChanged;
   final void Function(FamilyMember member, String role) onMemberRoleChanged;
   final ValueChanged<FamilyMember> onMemberRemoved;
   final VoidCallback onLeaveBoard;
@@ -84,7 +89,7 @@ class MembersInviteScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Share this code with your group members to let them join this board.',
+                      'Share this code with your group members to let them join $boardName.',
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -172,7 +177,7 @@ class MembersInviteScreen extends StatelessWidget {
   }
 
   Future<void> _copyInviteCode(BuildContext context) async {
-    await Clipboard.setData(const ClipboardData(text: inviteCode));
+    await Clipboard.setData(ClipboardData(text: inviteCode));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Invite code copied.')),
@@ -236,6 +241,22 @@ class MembersInviteScreen extends StatelessWidget {
                   Navigator.pop(context);
                   _showRoleSummary(context);
                 },
+              ),
+              SwitchListTile.adaptive(
+                value: settings.requireNoticeConfirmation,
+                onChanged: (value) => onSettingsChanged(
+                  settings.copyWith(requireNoticeConfirmation: value),
+                ),
+                title: const Text('Default notice confirmation'),
+                secondary: const Icon(Icons.fact_check_outlined),
+              ),
+              SwitchListTile.adaptive(
+                value: settings.notificationsEnabled,
+                onChanged: (value) => onSettingsChanged(
+                  settings.copyWith(notificationsEnabled: value),
+                ),
+                title: const Text('Notifications'),
+                secondary: const Icon(Icons.notifications_outlined),
               ),
             ],
           ),

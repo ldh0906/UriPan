@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uripan/data/mock_data.dart';
+import 'package:uripan/models/mock_models.dart';
 import 'package:uripan/screens/add_item_selector_screen.dart';
 import 'package:uripan/screens/calendar_view_screen.dart';
 import 'package:uripan/screens/group_selection_screen.dart';
@@ -53,7 +54,15 @@ void main() {
   }, skip: !shouldCapture);
 
   testWidgets('capture 02 login', (tester) async {
-    await capture(tester, '02_login', const LoginScreen());
+    await capture(
+      tester,
+      '02_login',
+      LoginScreen(
+        user: MockData.user,
+        onLogin: (_, __) {},
+        onSignUp: (_, __, ___) {},
+      ),
+    );
   }, skip: !shouldCapture);
 
   testWidgets('capture 03 boards', (tester) async {
@@ -62,9 +71,15 @@ void main() {
       '03_boards',
       GroupSelectionScreen(
         boards: MockData.boards,
+        user: MockData.user,
+        settings: const BoardSettings(),
         onCreateBoard: (_) {},
         onJoinBoard: (_) {},
         onSelectBoard: (_) {},
+        onUserChanged: (_) {},
+        onSettingsChanged: (_) {},
+        onLogout: () {},
+        onResetLocalData: () async {},
       ),
     );
   }, skip: !shouldCapture);
@@ -135,7 +150,10 @@ void main() {
       '08_members',
       MembersInviteScreen(
         boardName: MockData.boards.first.name,
+        inviteCode: 'URIPAN-2024',
         members: MockData.members,
+        settings: const BoardSettings(),
+        onSettingsChanged: (_) {},
         onMemberRoleChanged: (_, __) {},
         onMemberRemoved: (_) {},
         onLeaveBoard: () {},

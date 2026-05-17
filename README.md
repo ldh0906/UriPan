@@ -68,3 +68,9 @@ UriPan은 그런 작은 편리함을 만드는 앱입니다.
 ## 한 줄 소개
 
 > UriPan is a simple shared board for schedules, tasks, and notices.
+
+## 로컬 설정
+
+API 주소나 키처럼 숨겨야 하는 값은 `.env`에만 두고 커밋하지 않습니다. 저장소에는 필요한 키 이름만 담은 `.env.example`을 포함합니다.
+
+현재 앱은 로컬 저장소 기반으로 동작하며, 실제 서버 연동은 `AppConfig`와 `RemoteUriPanApi` 자리에 연결하면 됩니다.

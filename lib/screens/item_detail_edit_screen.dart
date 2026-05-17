@@ -11,6 +11,7 @@ class ItemDetailEditScreen extends StatefulWidget {
     required this.onSave,
     this.initialType = BoardItemType.schedule,
     this.editingItem,
+    this.defaultRequireConfirmation = true,
   });
 
   static const routeName = '/item-edit';
@@ -19,6 +20,7 @@ class ItemDetailEditScreen extends StatefulWidget {
   final BoardItemType initialType;
   final BoardItemEditArguments? editingItem;
   final ValueChanged<BoardItemDraft> onSave;
+  final bool defaultRequireConfirmation;
 
   @override
   State<ItemDetailEditScreen> createState() => _ItemDetailEditScreenState();
@@ -67,7 +69,8 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     important = editingItem?.isImportant ??
         (widget.initialType == BoardItemType.notice);
     requireConfirmation = editingItem?.requiresConfirmation ??
-        (widget.initialType == BoardItemType.notice);
+        (widget.initialType == BoardItemType.notice &&
+            widget.defaultRequireConfirmation);
     completed = editingItem?.isCompleted ?? false;
   }
 
