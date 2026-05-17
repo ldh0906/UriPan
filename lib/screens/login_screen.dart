@@ -35,7 +35,10 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               Text(
                 'Welcome back to your shared board',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.mutedText),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: AppColors.mutedText),
               ),
               const SizedBox(height: 32),
               const Text('Email Address'),
@@ -61,16 +64,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   Checkbox(
                     value: keepLoggedIn,
                     activeColor: AppColors.primary,
-                    onChanged: (value) => setState(() => keepLoggedIn = value ?? false),
+                    onChanged: (value) =>
+                        setState(() => keepLoggedIn = value ?? false),
                   ),
                   const Expanded(child: Text('Keep me logged in')),
-                  TextButton(onPressed: () {}, child: const Text('Forgot Password?')),
+                  TextButton(
+                    onPressed: _showPasswordResetDialog,
+                    child: const Text('Forgot Password?'),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               PrimaryButton(
                 label: 'Login',
-                onPressed: () => Navigator.pushReplacementNamed(context, GroupSelectionScreen.routeName),
+                onPressed: () => Navigator.pushReplacementNamed(
+                    context, GroupSelectionScreen.routeName),
               ),
               const SizedBox(height: 20),
               Row(
@@ -78,15 +86,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     "Don't have an account?",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AppColors.mutedText),
                   ),
-                  TextButton(onPressed: () {}, child: const Text('Sign Up')),
+                  TextButton(
+                    onPressed: _showSignUpDialog,
+                    child: const Text('Sign Up'),
+                  ),
                 ],
               ),
               Center(
                 child: Text(
                   'By logging in, you agree to our Terms of Service',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.mutedText),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -94,6 +111,52 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showPasswordResetDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reset password'),
+          content:
+              const Text('Password reset email flow is not connected yet.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSignUpDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Create account'),
+          content: const Text(
+              'Account creation will use the same board flow in this prototype.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(
+                    context, GroupSelectionScreen.routeName);
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

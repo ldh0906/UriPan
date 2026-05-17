@@ -5,10 +5,26 @@ import '../theme/app_theme.dart';
 
 class MockData {
   static const members = <FamilyMember>[
-    FamilyMember(name: 'Seoyun Kim', initials: 'SY', role: 'Admin', color: AppColors.primary),
-    FamilyMember(name: 'Junho Lee', initials: 'JH', role: 'Member', color: AppColors.tertiary),
-    FamilyMember(name: 'Minsoo Park', initials: 'MS', role: 'Member', color: AppColors.success),
-    FamilyMember(name: 'Eunji Choi', initials: 'EJ', role: 'Member', color: AppColors.info),
+    FamilyMember(
+        name: 'Seoyun Kim',
+        initials: 'SY',
+        role: 'Admin',
+        color: AppColors.primary),
+    FamilyMember(
+        name: 'Junho Lee',
+        initials: 'JH',
+        role: 'Member',
+        color: AppColors.tertiary),
+    FamilyMember(
+        name: 'Minsoo Park',
+        initials: 'MS',
+        role: 'Member',
+        color: AppColors.success),
+    FamilyMember(
+        name: 'Eunji Choi',
+        initials: 'EJ',
+        role: 'Member',
+        color: AppColors.info),
   ];
 
   static const boards = <BoardData>[
@@ -43,6 +59,7 @@ class MockData {
       id: 'schedule-1',
       title: 'Grocery Shopping',
       initials: 'MK',
+      date: 'Oct 24, 2023',
       start: '10:00 AM',
       end: '11:00 AM',
       color: AppColors.primary,
@@ -51,6 +68,7 @@ class MockData {
       id: 'schedule-2',
       title: 'Study Group Session',
       initials: 'AS',
+      date: 'Oct 24, 2023',
       start: '02:00 PM',
       end: '04:00 PM',
       color: AppColors.tertiary,
@@ -59,6 +77,7 @@ class MockData {
       id: 'schedule-3',
       title: 'Dinner with Grandma',
       initials: 'JD',
+      date: 'Oct 23, 2023',
       start: '06:30 PM',
       end: '08:00 PM',
       color: AppColors.success,
@@ -128,7 +147,8 @@ class MockData {
     NoticeItemData(
       id: 'notice-1',
       title: 'Weekend Trip',
-      preview: "Don't forget to pack your swimsuits for the lake house trip this Saturday!",
+      preview:
+          "Don't forget to pack your swimsuits for the lake house trip this Saturday!",
       date: 'Oct 24, 10:15 AM',
       isImportant: true,
       confirmedByMe: false,
@@ -138,7 +158,8 @@ class MockData {
     NoticeItemData(
       id: 'notice-2',
       title: 'Internet Maintenance',
-      preview: 'Service provider mentioned brief outages between 2 AM and 4 AM on Tuesday.',
+      preview:
+          'Service provider mentioned brief outages between 2 AM and 4 AM on Tuesday.',
       date: 'Oct 22, 02:30 PM',
       isImportant: false,
       confirmedByMe: true,

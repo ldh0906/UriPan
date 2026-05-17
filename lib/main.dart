@@ -26,17 +26,155 @@ class UriPanApp extends StatefulWidget {
 }
 
 class _UriPanAppState extends State<UriPanApp> {
-  late final List<FamilyMember> members = MockData.members;
-  late final List<ScheduleItemData> schedules = MockData.schedules;
-  late final List<TaskItemData> tasks = MockData.tasks;
-  late final List<NoticeItemData> notices = MockData.notices;
+  late final List<BoardData> boards = List.of(MockData.boards);
+  late BoardData? activeBoard = boards.isEmpty ? null : boards.first;
+  late final List<FamilyMember> members = List.of(MockData.members);
+  late final List<ScheduleItemData> schedules = List.of(MockData.schedules);
+  late final List<TaskItemData> tasks = List.of(MockData.tasks);
+  late final List<NoticeItemData> notices = List.of(MockData.notices);
+
+  String _nextId(String prefix) =>
+      '$prefix-${DateTime.now().microsecondsSinceEpoch}';
+
+  void addBoardItem(BoardItemDraft draft) {
+    setState(() {
+      switch (draft.type) {
+        case BoardItemType.schedule:
+          schedules.insert(
+            0,
+            ScheduleItemData(
+              id: _nextId('schedule'),
+              title: draft.title,
+              initials: draft.initials,
+              date: draft.date,
+              start: draft.startTime,
+              end: draft.endTime,
+              color: draft.color,
+            ),
+          );
+        case BoardItemType.task:
+          tasks.insert(
+            0,
+            TaskItemData(
+              id: _nextId('task'),
+              title: draft.title,
+              assignee: draft.assignee,
+              initials: draft.initials,
+              dueDate: draft.date,
+              color: draft.color,
+              isDone: draft.isCompleted,
+              memo: draft.notes,
+            ),
+          );
+        case BoardItemType.notice:
+          notices.insert(
+            0,
+            NoticeItemData(
+              id: _nextId('notice'),
+              title: draft.title,
+              preview: draft.notes ?? draft.title,
+              date: draft.date,
+              isImportant: draft.isImportant,
+              confirmedByMe: !draft.requiresConfirmation,
+              confirmedCount: draft.requiresConfirmation ? 0 : 1,
+              confirmedInitials:
+                  draft.requiresConfirmation ? const [] : const ['ME'],
+            ),
+          );
+      }
+      _syncActiveBoardSummary();
+    });
+  }
+
+  void _syncActiveBoardSummary() {
+    final currentBoard = activeBoard;
+    if (currentBoard == null) return;
+
+    final index = boards.indexWhere((board) => board.name == currentBoard.name);
+    if (index < 0) return;
+
+    final remainingTasks = tasks.where((task) => !task.isDone).length;
+    final unreadNotices =
+        notices.where((notice) => !notice.confirmedByMe).length;
+    final updated = currentBoard.copyWith(
+      members: '${members.length}',
+      schedules: schedules.isEmpty
+          ? 'No schedules yet'
+          : _plural(schedules.length, 'schedule', suffix: ' planned'),
+      tasks: remainingTasks == 0
+          ? 'No tasks remaining'
+          : _plural(remainingTasks, 'task', suffix: ' remaining'),
+      notices: unreadNotices == 0
+          ? 'No new notices'
+          : _plural(unreadNotices, 'New notice'),
+    );
+    boards[index] = updated;
+    activeBoard = updated;
+  }
+
+  String _plural(int count, String word, {String suffix = ''}) {
+    final plural = count == 1 ? word : '${word}s';
+    return '$count $plural$suffix';
+  }
+
+  void createBoard(String name) {
+    setState(() {
+      final board = BoardData(
+        name: name,
+        role: 'Admin',
+        members: '1',
+        schedules: 'No schedules yet',
+        tasks: 'No tasks yet',
+        notices: 'No notices',
+      );
+      boards.insert(0, board);
+      activeBoard = board;
+    });
+  }
+
+  void joinBoard(String inviteCode) {
+    final code = inviteCode.trim().toUpperCase();
+    setState(() {
+      final board = BoardData(
+        name: code == 'URIPAN-2024' ? 'Sweet Home' : 'Joined Board',
+        role: 'Member',
+        members: code == 'URIPAN-2024' ? '4' : '2',
+        schedules: 'Synced after invite',
+        tasks: 'Waiting for tasks',
+        notices: 'No new notices',
+      );
+      boards.insert(0, board);
+      activeBoard = board;
+    });
+  }
+
+  void selectBoard(BoardData board) {
+    setState(() {
+      activeBoard = board;
+    });
+  }
 
   void toggleTask(TaskItemData task, bool? value) {
     setState(() {
       final index = tasks.indexWhere((item) => item.id == task.id);
       if (index >= 0) {
         tasks[index] = tasks[index].copyWith(isDone: value ?? false);
+        _syncActiveBoardSummary();
       }
+    });
+  }
+
+  void deleteTask(TaskItemData task) {
+    setState(() {
+      tasks.removeWhere((item) => item.id == task.id);
+      _syncActiveBoardSummary();
+    });
+  }
+
+  void deleteSchedule(ScheduleItemData schedule) {
+    setState(() {
+      schedules.removeWhere((item) => item.id == schedule.id);
+      _syncActiveBoardSummary();
     });
   }
 
@@ -53,7 +191,40 @@ class _UriPanAppState extends State<UriPanApp> {
           confirmedByMe: nextConfirmed,
           confirmedCount: nextCount,
         );
+        _syncActiveBoardSummary();
       }
+    });
+  }
+
+  void deleteNotice(NoticeItemData notice) {
+    setState(() {
+      notices.removeWhere((item) => item.id == notice.id);
+      _syncActiveBoardSummary();
+    });
+  }
+
+  void updateMemberRole(FamilyMember member, String role) {
+    setState(() {
+      final index = members.indexWhere((item) => item.name == member.name);
+      if (index >= 0) {
+        members[index] = members[index].copyWith(role: role);
+      }
+    });
+  }
+
+  void removeMember(FamilyMember member) {
+    setState(() {
+      members.removeWhere((item) => item.name == member.name);
+      _syncActiveBoardSummary();
+    });
+  }
+
+  void leaveActiveBoard() {
+    setState(() {
+      final currentBoard = activeBoard;
+      if (currentBoard == null) return;
+      boards.removeWhere((board) => board.name == currentBoard.name);
+      activeBoard = boards.isEmpty ? null : boards.first;
     });
   }
 
@@ -67,8 +238,14 @@ class _UriPanAppState extends State<UriPanApp> {
       routes: {
         WelcomeScreen.routeName: (_) => const WelcomeScreen(),
         LoginScreen.routeName: (_) => const LoginScreen(),
-        GroupSelectionScreen.routeName: (_) => const GroupSelectionScreen(),
+        GroupSelectionScreen.routeName: (_) => GroupSelectionScreen(
+              boards: boards,
+              onCreateBoard: createBoard,
+              onJoinBoard: joinBoard,
+              onSelectBoard: selectBoard,
+            ),
         TodayBoardScreen.routeName: (_) => TodayBoardScreen(
+              boardName: activeBoard?.name ?? 'No Board',
               members: members,
               schedules: schedules,
               tasks: tasks,
@@ -77,25 +254,41 @@ class _UriPanAppState extends State<UriPanApp> {
               onNoticeConfirmed: toggleNoticeConfirmation,
             ),
         CalendarViewScreen.routeName: (_) => CalendarViewScreen(
+              boardName: activeBoard?.name ?? 'No Board',
               members: members,
               schedules: schedules,
+              onScheduleDeleted: deleteSchedule,
             ),
         TasksListScreen.routeName: (_) => TasksListScreen(
+              boardName: activeBoard?.name ?? 'No Board',
               tasks: tasks,
               onTaskChanged: toggleTask,
+              onTaskDeleted: deleteTask,
             ),
         NoticesBoardScreen.routeName: (_) => NoticesBoardScreen(
+              boardName: activeBoard?.name ?? 'No Board',
               notices: notices,
               members: members,
               onNoticeConfirmed: toggleNoticeConfirmation,
+              onNoticeDeleted: deleteNotice,
             ),
         MembersInviteScreen.routeName: (_) => MembersInviteScreen(
+              boardName: activeBoard?.name ?? 'No Board',
               members: members,
+              onMemberRoleChanged: updateMemberRole,
+              onMemberRemoved: removeMember,
+              onLeaveBoard: leaveActiveBoard,
             ),
         AddItemSelectorScreen.routeName: (_) => const AddItemSelectorScreen(),
-        ItemDetailEditScreen.routeName: (_) => ItemDetailEditScreen(
-              members: members,
-            ),
+        ItemDetailEditScreen.routeName: (context) {
+          final arguments = ModalRoute.of(context)?.settings.arguments;
+          return ItemDetailEditScreen(
+            members: members,
+            initialType:
+                arguments is BoardItemType ? arguments : BoardItemType.schedule,
+            onSave: addBoardItem,
+          );
+        },
       },
     );
   }

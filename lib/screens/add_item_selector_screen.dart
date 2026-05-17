@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/mock_models.dart';
 import '../screens/item_detail_edit_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
@@ -17,11 +18,15 @@ class AddItemSelectorScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            Text('Add New Item', style: Theme.of(context).textTheme.headlineSmall),
+            Text('Add New Item',
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 6),
             Text(
               'What would you like to share with the group?',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.mutedText),
             ),
             const SizedBox(height: 24),
             ActionItemCard(
@@ -30,7 +35,7 @@ class AddItemSelectorScreen extends StatelessWidget {
               subtitle: 'Events, meetings, or reminders',
               color: AppColors.info,
               background: AppColors.infoSoft,
-              onTap: () => Navigator.pushNamed(context, ItemDetailEditScreen.routeName),
+              onTap: () => _openEditor(context, BoardItemType.schedule),
             ),
             const SizedBox(height: 12),
             ActionItemCard(
@@ -39,7 +44,7 @@ class AddItemSelectorScreen extends StatelessWidget {
               subtitle: 'To-dos and responsibilities',
               color: AppColors.success,
               background: AppColors.successSoft,
-              onTap: () => Navigator.pushNamed(context, ItemDetailEditScreen.routeName),
+              onTap: () => _openEditor(context, BoardItemType.task),
             ),
             const SizedBox(height: 12),
             ActionItemCard(
@@ -48,7 +53,7 @@ class AddItemSelectorScreen extends StatelessWidget {
               subtitle: 'Important announcements',
               color: AppColors.warning,
               background: AppColors.warningSoft,
-              onTap: () => Navigator.pushNamed(context, ItemDetailEditScreen.routeName),
+              onTap: () => _openEditor(context, BoardItemType.notice),
             ),
             const Spacer(),
             PrimaryButton(
@@ -59,6 +64,14 @@ class AddItemSelectorScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _openEditor(BuildContext context, BoardItemType type) {
+    Navigator.pushNamed(
+      context,
+      ItemDetailEditScreen.routeName,
+      arguments: type,
     );
   }
 }
@@ -105,7 +118,10 @@ class ActionItemCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.mutedText),
                 ),
               ],
             ),

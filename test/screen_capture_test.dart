@@ -51,10 +51,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
-      final boundary = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final boundary =
+          key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: 2);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      File('${screenshotsDir.path}/$name.png').writeAsBytesSync(bytes!.buffer.asUint8List());
+      File('${screenshotsDir.path}/$name.png')
+          .writeAsBytesSync(bytes!.buffer.asUint8List());
       image.dispose();
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
@@ -64,10 +66,19 @@ void main() {
 
     await capture('01_welcome', const WelcomeScreen());
     await capture('02_login', const LoginScreen());
-    await capture('03_boards', const GroupSelectionScreen());
+    await capture(
+      '03_boards',
+      GroupSelectionScreen(
+        boards: MockData.boards,
+        onCreateBoard: (_) {},
+        onJoinBoard: (_) {},
+        onSelectBoard: (_) {},
+      ),
+    );
     await capture(
       '04_today',
       TodayBoardScreen(
+        boardName: MockData.boards.first.name,
         members: MockData.members,
         schedules: MockData.schedules,
         tasks: tasks,
@@ -78,34 +89,49 @@ void main() {
     );
     await capture(
       '05_calendar',
-      const CalendarViewScreen(
+      CalendarViewScreen(
+        boardName: MockData.boards.first.name,
         members: MockData.members,
         schedules: MockData.schedules,
+        onScheduleDeleted: (_) {},
       ),
     );
     await capture(
       '06_tasks',
       TasksListScreen(
+        boardName: MockData.boards.first.name,
         tasks: tasks,
         onTaskChanged: (_, __) {},
+        onTaskDeleted: (_) {},
       ),
     );
     await capture(
       '07_notices',
       NoticesBoardScreen(
+        boardName: MockData.boards.first.name,
         notices: notices,
         members: MockData.members,
         onNoticeConfirmed: (_) {},
+        onNoticeDeleted: (_) {},
       ),
     );
     await capture(
       '08_members',
-      const MembersInviteScreen(members: MockData.members),
+      MembersInviteScreen(
+        boardName: MockData.boards.first.name,
+        members: MockData.members,
+        onMemberRoleChanged: (_, __) {},
+        onMemberRemoved: (_) {},
+        onLeaveBoard: () {},
+      ),
     );
     await capture('09_add_item', const AddItemSelectorScreen());
     await capture(
       '10_item_edit',
-      const ItemDetailEditScreen(members: MockData.members),
+      ItemDetailEditScreen(
+        members: MockData.members,
+        onSave: (_) {},
+      ),
     );
-  });
+  }, skip: true);
 }

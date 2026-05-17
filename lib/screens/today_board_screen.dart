@@ -11,6 +11,7 @@ import '../widgets/common_widgets.dart';
 class TodayBoardScreen extends StatelessWidget {
   const TodayBoardScreen({
     super.key,
+    required this.boardName,
     required this.members,
     required this.schedules,
     required this.tasks,
@@ -21,6 +22,7 @@ class TodayBoardScreen extends StatelessWidget {
 
   static const routeName = '/today';
 
+  final String boardName;
   final List<FamilyMember> members;
   final List<ScheduleItemData> schedules;
   final List<TaskItemData> tasks;
@@ -31,6 +33,7 @@ class TodayBoardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remainingTasks = tasks.where((task) => !task.isDone).length;
+    final today = DateTime.now();
 
     return ScreenShell(
       bottomNavigation: const AppBottomNav(currentIndex: 0),
@@ -49,17 +52,23 @@ class TodayBoardScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('The Smith Family', style: Theme.of(context).textTheme.headlineSmall),
+                            Text(boardName,
+                                style:
+                                    Theme.of(context).textTheme.headlineSmall),
                             const SizedBox(height: 3),
                             Text(
-                              'Monday, Oct 23',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+                              _formatToday(today),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: AppColors.mutedText),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        onPressed: () => Navigator.pushNamed(context, MembersInviteScreen.routeName),
+                        onPressed: () => Navigator.pushNamed(
+                            context, MembersInviteScreen.routeName),
                         icon: const Icon(Icons.group_outlined),
                       ),
                     ],
@@ -76,18 +85,24 @@ class TodayBoardScreen extends StatelessWidget {
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(17),
                           ),
-                          child: const Icon(Icons.monitor_heart_rounded, color: Colors.white),
+                          child: const Icon(Icons.monitor_heart_rounded,
+                              color: Colors.white),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Today's Pulse", style: Theme.of(context).textTheme.titleMedium),
+                              Text("Today's Pulse",
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium),
                               const SizedBox(height: 3),
                               Text(
                                 '${schedules.length} schedules, $remainingTasks tasks remaining',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(color: AppColors.mutedText),
                               ),
                             ],
                           ),
@@ -96,7 +111,9 @@ class TodayBoardScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const SectionHeader(title: 'Schedules', routeName: CalendarViewScreen.routeName),
+                  const SectionHeader(
+                      title: 'Schedules',
+                      routeName: CalendarViewScreen.routeName),
                   const SizedBox(height: 10),
                   ...schedules.take(3).map(
                         (item) => Padding(
@@ -105,7 +122,8 @@ class TodayBoardScreen extends StatelessWidget {
                         ),
                       ),
                   const SizedBox(height: 10),
-                  const SectionHeader(title: 'Tasks', routeName: TasksListScreen.routeName),
+                  const SectionHeader(
+                      title: 'Tasks', routeName: TasksListScreen.routeName),
                   const SizedBox(height: 10),
                   ...tasks.take(4).map(
                         (item) => Padding(
@@ -118,7 +136,9 @@ class TodayBoardScreen extends StatelessWidget {
                         ),
                       ),
                   const SizedBox(height: 10),
-                  const SectionHeader(title: 'Notices', routeName: NoticesBoardScreen.routeName),
+                  const SectionHeader(
+                      title: 'Notices',
+                      routeName: NoticesBoardScreen.routeName),
                   const SizedBox(height: 10),
                   ...notices.take(2).map(
                         (item) => Padding(
@@ -139,5 +159,32 @@ class TodayBoardScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatToday(DateTime date) {
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }

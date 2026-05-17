@@ -1,5 +1,37 @@
 import 'package:flutter/material.dart';
 
+enum BoardItemType { schedule, task, notice }
+
+class BoardItemDraft {
+  const BoardItemDraft({
+    required this.type,
+    required this.title,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+    required this.assignee,
+    required this.initials,
+    required this.color,
+    required this.isImportant,
+    required this.requiresConfirmation,
+    required this.isCompleted,
+    this.notes,
+  });
+
+  final BoardItemType type;
+  final String title;
+  final String date;
+  final String startTime;
+  final String endTime;
+  final String assignee;
+  final String initials;
+  final Color color;
+  final bool isImportant;
+  final bool requiresConfirmation;
+  final bool isCompleted;
+  final String? notes;
+}
+
 class FamilyMember {
   const FamilyMember({
     required this.name,
@@ -12,6 +44,15 @@ class FamilyMember {
   final String initials;
   final String role;
   final Color color;
+
+  FamilyMember copyWith({String? role}) {
+    return FamilyMember(
+      name: name,
+      initials: initials,
+      role: role ?? this.role,
+      color: color,
+    );
+  }
 }
 
 class BoardData {
@@ -30,6 +71,24 @@ class BoardData {
   final String schedules;
   final String tasks;
   final String notices;
+
+  BoardData copyWith({
+    String? name,
+    String? role,
+    String? members,
+    String? schedules,
+    String? tasks,
+    String? notices,
+  }) {
+    return BoardData(
+      name: name ?? this.name,
+      role: role ?? this.role,
+      members: members ?? this.members,
+      schedules: schedules ?? this.schedules,
+      tasks: tasks ?? this.tasks,
+      notices: notices ?? this.notices,
+    );
+  }
 }
 
 class ScheduleItemData {
@@ -37,6 +96,7 @@ class ScheduleItemData {
     required this.id,
     required this.title,
     required this.initials,
+    required this.date,
     required this.start,
     required this.end,
     required this.color,
@@ -45,6 +105,7 @@ class ScheduleItemData {
   final String id;
   final String title;
   final String initials;
+  final String date;
   final String start;
   final String end;
   final Color color;

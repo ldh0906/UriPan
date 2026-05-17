@@ -7,16 +7,20 @@ import '../widgets/common_widgets.dart';
 class NoticesBoardScreen extends StatefulWidget {
   const NoticesBoardScreen({
     super.key,
+    required this.boardName,
     required this.notices,
     required this.members,
     required this.onNoticeConfirmed,
+    required this.onNoticeDeleted,
   });
 
   static const routeName = '/notices';
 
+  final String boardName;
   final List<NoticeItemData> notices;
   final List<FamilyMember> members;
   final void Function(NoticeItemData notice) onNoticeConfirmed;
+  final ValueChanged<NoticeItemData> onNoticeDeleted;
 
   @override
   State<NoticesBoardScreen> createState() => _NoticesBoardScreenState();
@@ -24,19 +28,34 @@ class NoticesBoardScreen extends StatefulWidget {
 
 class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
   int selectedTab = 0;
+  bool isSearching = false;
+  String searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
-    final visibleNotices = switch (selectedTab) {
+    final filteredNotices = switch (selectedTab) {
       1 => widget.notices.where((notice) => !notice.confirmedByMe).toList(),
       2 => widget.notices.where((notice) => notice.isImportant).toList(),
       _ => widget.notices,
     };
+    final normalizedQuery = searchQuery.trim().toLowerCase();
+    final visibleNotices = normalizedQuery.isEmpty
+        ? filteredNotices
+        : filteredNotices
+            .where(
+              (notice) =>
+                  notice.title.toLowerCase().contains(normalizedQuery) ||
+                  notice.preview.toLowerCase().contains(normalizedQuery),
+            )
+            .toList();
 
     return ScreenShell(
       bottomNavigation: const AppBottomNav(currentIndex: 3),
       safeBottom: false,
-      floatingActionButton: const AddItemFab(label: 'New Notice'),
+      floatingActionButton: const AddItemFab(
+        label: 'New Notice',
+        itemType: BoardItemType.notice,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -46,14 +65,39 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text('Notices', style: Theme.of(context).textTheme.headlineSmall)),
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
+                    Expanded(
+                        child: Text('Notices',
+                            style: Theme.of(context).textTheme.headlineSmall)),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          isSearching = !isSearching;
+                          if (!isSearching) {
+                            searchQuery = '';
+                          }
+                        });
+                      },
+                      icon: Icon(isSearching
+                          ? Icons.close_rounded
+                          : Icons.search_rounded),
+                    ),
                   ],
                 ),
                 Text(
-                  'Group: Sweet Home',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+                  'Group: ${widget.boardName}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.mutedText),
                 ),
+                if (isSearching) ...[
+                  const SizedBox(height: 14),
+                  AppTextField(
+                    hint: 'Search notices',
+                    leadingIcon: Icons.search_rounded,
+                    onChanged: (value) => setState(() => searchQuery = value),
+                  ),
+                ],
                 const SizedBox(height: 18),
                 SegmentedButton<int>(
                   segments: const [
@@ -62,26 +106,55 @@ class _NoticesBoardScreenState extends State<NoticesBoardScreen> {
                     ButtonSegment(value: 2, label: Text('Pinned')),
                   ],
                   selected: {selectedTab},
-                  onSelectionChanged: (value) => setState(() => selectedTab = value.first),
+                  onSelectionChanged: (value) =>
+                      setState(() => selectedTab = value.first),
                   showSelectedIcon: false,
                 ),
               ],
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 106),
-              itemCount: visibleNotices.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final notice = visibleNotices[index];
-                return NoticeCard(
-                  item: notice,
-                  memberCount: widget.members.length,
-                  onConfirm: () => widget.onNoticeConfirmed(notice),
-                );
-              },
-            ),
+            child: visibleNotices.isEmpty
+                ? const EmptyState(
+                    icon: Icons.campaign_outlined,
+                    title: 'No notices found',
+                    message: 'Try a different filter or search term.',
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 106),
+                    itemCount: visibleNotices.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final notice = visibleNotices[index];
+                      return Dismissible(
+                        key: ValueKey(notice.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Icon(
+                            Icons.delete_outline_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onDismissed: (_) {
+                          widget.onNoticeDeleted(notice);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${notice.title} deleted.')),
+                          );
+                        },
+                        child: NoticeCard(
+                          item: notice,
+                          memberCount: widget.members.length,
+                          onConfirm: () => widget.onNoticeConfirmed(notice),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
