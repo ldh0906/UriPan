@@ -10,12 +10,14 @@ class ItemDetailEditScreen extends StatefulWidget {
     required this.members,
     required this.onSave,
     this.initialType = BoardItemType.schedule,
+    this.editingItem,
   });
 
   static const routeName = '/item-edit';
 
   final List<FamilyMember> members;
   final BoardItemType initialType;
+  final BoardItemEditArguments? editingItem;
   final ValueChanged<BoardItemDraft> onSave;
 
   @override
@@ -41,18 +43,32 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
   @override
   void initState() {
     super.initState();
-    titleController =
-        TextEditingController(text: _defaultTitle(widget.initialType));
+    final editingItem = widget.editingItem;
+    titleController = TextEditingController(
+      text: editingItem?.title ?? _defaultTitle(widget.initialType),
+    );
     selectedDate = DateTime.now();
-    dateController = TextEditingController(text: _formatDate(selectedDate));
-    startTimeController =
-        TextEditingController(text: _formatTime(selectedStartTime));
-    endTimeController =
-        TextEditingController(text: _formatTime(selectedEndTime));
-    notesController =
-        TextEditingController(text: _defaultNotes(widget.initialType));
-    important = widget.initialType == BoardItemType.notice;
-    requireConfirmation = widget.initialType == BoardItemType.notice;
+    dateController = TextEditingController(
+      text: editingItem?.date ?? _formatDate(selectedDate),
+    );
+    startTimeController = TextEditingController(
+      text: editingItem?.startTime.isNotEmpty == true
+          ? editingItem!.startTime
+          : _formatTime(selectedStartTime),
+    );
+    endTimeController = TextEditingController(
+      text: editingItem?.endTime.isNotEmpty == true
+          ? editingItem!.endTime
+          : _formatTime(selectedEndTime),
+    );
+    notesController = TextEditingController(
+      text: editingItem?.notes ?? _defaultNotes(widget.initialType),
+    );
+    important = editingItem?.isImportant ??
+        (widget.initialType == BoardItemType.notice);
+    requireConfirmation = editingItem?.requiresConfirmation ??
+        (widget.initialType == BoardItemType.notice);
+    completed = editingItem?.isCompleted ?? false;
   }
 
   @override
@@ -80,7 +96,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    'New ${_typeLabel(itemType)}',
+                    '${widget.editingItem == null ? 'New' : 'Edit'} ${_typeLabel(itemType)}',
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),
@@ -110,14 +126,18 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
                     ],
                     selected: {itemType},
                     showSelectedIcon: false,
-                    onSelectionChanged: (value) {
-                      setState(() {
-                        itemType = value.first;
-                        important =
-                            itemType == BoardItemType.notice ? true : important;
-                        requireConfirmation = itemType == BoardItemType.notice;
-                      });
-                    },
+                    onSelectionChanged: widget.editingItem == null
+                        ? (value) {
+                            setState(() {
+                              itemType = value.first;
+                              important = itemType == BoardItemType.notice
+                                  ? true
+                                  : important;
+                              requireConfirmation =
+                                  itemType == BoardItemType.notice;
+                            });
+                          }
+                        : null,
                   ),
                   const SizedBox(height: 18),
                   Text('Title', style: Theme.of(context).textTheme.titleMedium),
@@ -310,6 +330,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     final member = _selectedMember();
     widget.onSave(
       BoardItemDraft(
+        id: widget.editingItem?.id,
         type: itemType,
         title: title,
         date: _fallback(dateController.text, 'Today'),
@@ -328,7 +349,11 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_typeLabel(itemType)} saved.')),
+      SnackBar(
+        content: Text(
+          '${_typeLabel(itemType)} ${widget.editingItem == null ? 'saved' : 'updated'}.',
+        ),
+      ),
     );
     Navigator.pushNamedAndRemoveUntil(
       context,

@@ -4,6 +4,7 @@ enum BoardItemType { schedule, task, notice }
 
 class BoardItemDraft {
   const BoardItemDraft({
+    this.id,
     required this.type,
     required this.title,
     required this.date,
@@ -18,6 +19,92 @@ class BoardItemDraft {
     this.notes,
   });
 
+  final String? id;
+  final BoardItemType type;
+  final String title;
+  final String date;
+  final String startTime;
+  final String endTime;
+  final String assignee;
+  final String initials;
+  final Color color;
+  final bool isImportant;
+  final bool requiresConfirmation;
+  final bool isCompleted;
+  final String? notes;
+}
+
+class BoardItemEditArguments {
+  const BoardItemEditArguments({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+    required this.assignee,
+    required this.initials,
+    required this.color,
+    required this.isImportant,
+    required this.requiresConfirmation,
+    required this.isCompleted,
+    this.notes,
+  });
+
+  factory BoardItemEditArguments.fromSchedule(ScheduleItemData item) {
+    return BoardItemEditArguments(
+      id: item.id,
+      type: BoardItemType.schedule,
+      title: item.title,
+      date: item.date,
+      startTime: item.start,
+      endTime: item.end,
+      assignee: item.initials,
+      initials: item.initials,
+      color: item.color,
+      isImportant: false,
+      requiresConfirmation: false,
+      isCompleted: false,
+    );
+  }
+
+  factory BoardItemEditArguments.fromTask(TaskItemData item) {
+    return BoardItemEditArguments(
+      id: item.id,
+      type: BoardItemType.task,
+      title: item.title,
+      date: item.dueDate,
+      startTime: '',
+      endTime: '',
+      assignee: item.assignee,
+      initials: item.initials,
+      color: item.color,
+      isImportant: false,
+      requiresConfirmation: false,
+      isCompleted: item.isDone,
+      notes: item.memo,
+    );
+  }
+
+  factory BoardItemEditArguments.fromNotice(NoticeItemData item) {
+    return BoardItemEditArguments(
+      id: item.id,
+      type: BoardItemType.notice,
+      title: item.title,
+      date: item.date,
+      startTime: '',
+      endTime: '',
+      assignee: 'Everyone',
+      initials: 'ALL',
+      color: Colors.transparent,
+      isImportant: item.isImportant,
+      requiresConfirmation: !item.confirmedByMe,
+      isCompleted: false,
+      notes: item.preview,
+    );
+  }
+
+  final String id;
   final BoardItemType type;
   final String title;
   final String date;
@@ -111,6 +198,25 @@ class ScheduleItemData {
   final Color color;
 
   String get timeRange => '$start - $end';
+
+  ScheduleItemData copyWith({
+    String? title,
+    String? initials,
+    String? date,
+    String? start,
+    String? end,
+    Color? color,
+  }) {
+    return ScheduleItemData(
+      id: id,
+      title: title ?? this.title,
+      initials: initials ?? this.initials,
+      date: date ?? this.date,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      color: color ?? this.color,
+    );
+  }
 }
 
 class TaskItemData {
@@ -134,16 +240,24 @@ class TaskItemData {
   final bool isDone;
   final String? memo;
 
-  TaskItemData copyWith({bool? isDone}) {
+  TaskItemData copyWith({
+    String? title,
+    String? assignee,
+    String? initials,
+    String? dueDate,
+    Color? color,
+    bool? isDone,
+    String? memo,
+  }) {
     return TaskItemData(
       id: id,
-      title: title,
-      assignee: assignee,
-      initials: initials,
-      dueDate: dueDate,
-      color: color,
+      title: title ?? this.title,
+      assignee: assignee ?? this.assignee,
+      initials: initials ?? this.initials,
+      dueDate: dueDate ?? this.dueDate,
+      color: color ?? this.color,
       isDone: isDone ?? this.isDone,
-      memo: memo,
+      memo: memo ?? this.memo,
     );
   }
 }
@@ -170,18 +284,23 @@ class NoticeItemData {
   final List<String> confirmedInitials;
 
   NoticeItemData copyWith({
+    String? title,
+    String? preview,
+    String? date,
+    bool? isImportant,
     bool? confirmedByMe,
     int? confirmedCount,
+    List<String>? confirmedInitials,
   }) {
     return NoticeItemData(
       id: id,
-      title: title,
-      preview: preview,
-      date: date,
-      isImportant: isImportant,
+      title: title ?? this.title,
+      preview: preview ?? this.preview,
+      date: date ?? this.date,
+      isImportant: isImportant ?? this.isImportant,
       confirmedByMe: confirmedByMe ?? this.confirmedByMe,
       confirmedCount: confirmedCount ?? this.confirmedCount,
-      confirmedInitials: confirmedInitials,
+      confirmedInitials: confirmedInitials ?? this.confirmedInitials,
     );
   }
 }

@@ -370,15 +370,22 @@ class AppBottomNav extends StatelessWidget {
 }
 
 class ScheduleCard extends StatelessWidget {
-  const ScheduleCard({super.key, required this.item, this.compact = false});
+  const ScheduleCard({
+    super.key,
+    required this.item,
+    this.compact = false,
+    this.onTap,
+  });
 
   final ScheduleItemData item;
   final bool compact;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return SoftCard(
       padding: EdgeInsets.all(compact ? 14 : 16),
+      onTap: onTap,
       child: Row(
         children: [
           MemberAvatar(initials: item.initials, color: item.color),
@@ -399,8 +406,11 @@ class ScheduleCard extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded,
-              color: AppColors.mutedText.withValues(alpha: 0.8)),
+          Icon(
+            onTap == null ? Icons.chevron_right_rounded : Icons.edit_rounded,
+            color: AppColors.mutedText.withValues(alpha: 0.8),
+            size: onTap == null ? null : 18,
+          ),
         ],
       ),
     );
@@ -413,16 +423,19 @@ class TaskCard extends StatelessWidget {
     required this.item,
     required this.onChanged,
     this.compact = false,
+    this.onTap,
   });
 
   final TaskItemData item;
   final ValueChanged<bool?> onChanged;
   final bool compact;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return SoftCard(
       padding: EdgeInsets.all(compact ? 14 : 16),
+      onTap: onTap,
       color: item.isDone
           ? AppColors.surface.withValues(alpha: 0.72)
           : AppColors.surface,
@@ -474,6 +487,11 @@ class TaskCard extends StatelessWidget {
               ],
             ),
           ),
+          if (onTap != null) ...[
+            const SizedBox(width: 8),
+            Icon(Icons.edit_rounded,
+                color: AppColors.mutedText.withValues(alpha: 0.8), size: 18),
+          ],
         ],
       ),
     );
@@ -487,17 +505,20 @@ class NoticeCard extends StatelessWidget {
     required this.memberCount,
     required this.onConfirm,
     this.compact = false,
+    this.onTap,
   });
 
   final NoticeItemData item;
   final int memberCount;
   final VoidCallback onConfirm;
   final bool compact;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return SoftCard(
       padding: const EdgeInsets.all(16),
+      onTap: onTap,
       borderColor:
           item.isImportant ? AppColors.warning.withValues(alpha: 0.32) : null,
       child: Column(
@@ -540,7 +561,10 @@ class NoticeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (item.isImportant)
+              if (onTap != null)
+                Icon(Icons.edit_rounded,
+                    color: AppColors.mutedText.withValues(alpha: 0.8), size: 18)
+              else if (item.isImportant)
                 const Icon(Icons.push_pin_rounded,
                     color: AppColors.warning, size: 18),
             ],
