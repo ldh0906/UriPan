@@ -87,6 +87,45 @@
   - `URIPAN_API_KEY`
   - `URIPAN_ENABLE_REMOTE_SYNC`
 
+## 다음 작업 요청
+
+사용자가 다음 UI/기능 개선을 요청했다. 다음 세션에서 우선순위 높게 이어서 구현한다.
+
+1. Today 화면 보드 변경 버튼 개선
+   - Today 화면 오른쪽 위에 있던 보드 변경 버튼의 모양을 바꾼다.
+   - 현재 버튼이 어떤 위젯/아이콘으로 구현되어 있는지 먼저 확인하고, 화면 맥락상 더 자연스러운 형태로 조정한다.
+   - 목적은 "보드 변경" 동작이 더 명확하고 보기 좋게 보이도록 하는 것이다.
+
+2. Tasks/Notices 화면에서 Today로 돌아가는 진입점 추가
+   - Calendar와 Members 화면에는 오른쪽 화살표 기반 이동 UI가 있다.
+   - 같은 패턴의 오른쪽 화살표를 Tasks와 Notices 화면에도 추가한다.
+   - Tasks/Notices에서도 해당 화살표로 Today 화면(`/today`)에 돌아올 수 있어야 한다.
+   - 기존 하단 탭 이동과 충돌하지 않게, 현재 화면의 헤더/상단 액션 패턴을 먼저 확인한 뒤 맞춰 구현한다.
+
+3. 여러 날 이어지는 일정 생성 지원
+   - 현재 Calendar/Item Edit 흐름은 하루짜리 일정만 만들 수 있는 구조다.
+   - 2일 이상 이어지는 일정을 만들 수 있도록 일정 모델과 편집 UI를 확장한다.
+   - 시작 날짜와 종료 날짜를 입력/선택할 수 있어야 한다.
+   - 종료 날짜가 시작 날짜보다 앞서지 않도록 검증한다.
+   - 기존 단일 날짜 일정은 계속 정상 동작해야 한다.
+
+4. Calendar에서 여러 날 일정 시각화
+   - 2일 이상 이어지는 일정은 Calendar 월 그리드에서 이어지는 직선/막대 형태로 보이게 한다.
+   - 하루짜리 일정 마커와 구분되되, 기존 디자인 톤을 해치지 않게 구현한다.
+   - 한 주를 넘어가는 일정은 주 단위로 자연스럽게 끊겨 보이거나 이어져 보이도록 처리한다.
+   - 선택한 날짜의 일정 목록에는 해당 날짜가 일정 기간 안에 포함되면 표시되도록 한다.
+
+관련해서 손댈 가능성이 큰 파일:
+
+- `lib/models/mock_models.dart`
+- `lib/data/mock_data.dart`
+- `lib/main.dart`
+- `lib/screens/item_detail_edit_screen.dart`
+- `lib/screens/calendar_view_screen.dart`
+- `lib/screens/tasks_list_screen.dart`
+- `lib/screens/notices_board_screen.dart`
+- 필요 시 `lib/widgets/common_widgets.dart`
+
 ## 아직 미구현
 
 - 실제 백엔드 API 연동
@@ -133,6 +172,7 @@
 
 ## 작업 시 주의
 
+- 다른 컴퓨터에서도 이 저장소 작업이 진행 중일 수 있다. 작업 전 `git status`, 필요하면 `git log`/`git pull` 상태를 확인하고, 내가 만들지 않은 변경은 되돌리지 않는다.
 - 사용자는 Android/빌드 다운로드 용량에 민감하다. 큰 다운로드나 Android 빌드를 시작하기 전에는 용량 영향을 짧게 알리는 편이 좋다.
 - 완료된 SDK/Gradle/Flutter 캐시 삭제는 명시 요청이 있을 때만 한다.
 - 화면 확인은 Android 빌드보다 Flutter web 실행이 가볍다. 단, 현재 PowerShell PATH에는 Flutter가 없다.
