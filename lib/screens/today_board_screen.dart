@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/mock_models.dart';
 import '../screens/calendar_view_screen.dart';
+import '../screens/group_selection_screen.dart';
 import '../screens/item_detail_edit_screen.dart';
-import '../screens/members_invite_screen.dart';
 import '../screens/notices_board_screen.dart';
 import '../screens/tasks_list_screen.dart';
 import '../theme/app_theme.dart';
@@ -68,9 +68,12 @@ class TodayBoardScreen extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        onPressed: () => Navigator.pushNamed(
-                            context, MembersInviteScreen.routeName),
-                        icon: const Icon(Icons.group_outlined),
+                        tooltip: '보드 변경',
+                        onPressed: () => Navigator.pushReplacementNamed(
+                          context,
+                          GroupSelectionScreen.routeName,
+                        ),
+                        icon: const Icon(Icons.dashboard_customize_outlined),
                       ),
                     ],
                   ),

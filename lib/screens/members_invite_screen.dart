@@ -50,7 +50,16 @@ class MembersInviteScreen extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      final boardNavigation =
+                          BoardNavigationScope.maybeOf(context);
+                      if (boardNavigation != null) {
+                        boardNavigation.selectTab(0);
+                        return;
+                      }
+
+                      Navigator.pop(context);
+                    },
                     icon: const Icon(Icons.arrow_back_rounded),
                   ),
                   Expanded(
@@ -284,7 +293,7 @@ class MembersInviteScreen extends StatelessWidget {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   GroupSelectionScreen.routeName,
-                  (route) => route.isFirst,
+                  (_) => false,
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('$boardName 보드에서 나갔습니다.')),

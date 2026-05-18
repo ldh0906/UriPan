@@ -63,7 +63,16 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      final boardNavigation =
+                          BoardNavigationScope.maybeOf(context);
+                      if (boardNavigation != null) {
+                        boardNavigation.selectTab(0);
+                        return;
+                      }
+
+                      Navigator.pop(context);
+                    },
                     icon: const Icon(Icons.arrow_back_rounded),
                   ),
                   const SizedBox(width: 6),

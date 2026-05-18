@@ -357,7 +357,7 @@ class _ItemDetailEditScreenState extends State<ItemDetailEditScreen> {
     Navigator.pushNamedAndRemoveUntil(
       context,
       _destinationRoute(itemType),
-      (route) => route.isFirst,
+      (_) => false,
     );
   }
 

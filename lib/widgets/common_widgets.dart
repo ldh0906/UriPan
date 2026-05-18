@@ -296,6 +296,17 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void openRoute() {
+      final tabIndex = AppBottomNav.tabIndexForRoute(routeName);
+      final boardNavigation = BoardNavigationScope.maybeOf(context);
+      if (tabIndex != null && boardNavigation != null) {
+        boardNavigation.selectTab(tabIndex);
+        return;
+      }
+
+      Navigator.pushNamed(context, routeName!);
+    }
+
     return Row(
       children: [
         if (icon != null) ...[
@@ -310,11 +321,33 @@ class SectionHeader extends StatelessWidget {
         ),
         if (routeName != null)
           TextButton(
-            onPressed: () => Navigator.pushNamed(context, routeName!),
+            onPressed: openRoute,
             child: const Text('전체 보기'),
           ),
       ],
     );
+  }
+}
+
+class BoardNavigationScope extends InheritedWidget {
+  const BoardNavigationScope({
+    super.key,
+    required this.currentIndex,
+    required this.selectTab,
+    required super.child,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> selectTab;
+
+  static BoardNavigationScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<BoardNavigationScope>();
+  }
+
+  @override
+  bool updateShouldNotify(BoardNavigationScope oldWidget) {
+    return currentIndex != oldWidget.currentIndex ||
+        selectTab != oldWidget.selectTab;
   }
 }
 
@@ -331,40 +364,73 @@ class AppBottomNav extends StatelessWidget {
     MembersInviteScreen.routeName,
   ];
 
+  static int? tabIndexForRoute(String? routeName) {
+    if (routeName == null) return null;
+    final index = _routes.indexOf(routeName);
+    return index < 0 ? null : index;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: currentIndex,
-      backgroundColor: AppColors.surface,
-      indicatorColor: AppColors.primarySoft,
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      onDestinationSelected: (index) {
-        if (index == currentIndex) return;
-        Navigator.pushReplacementNamed(context, _routes[index]);
-      },
-      destinations: const [
-        NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: '오늘'),
-        NavigationDestination(
-          icon: Icon(Icons.calendar_month_outlined),
-          selectedIcon: Icon(Icons.calendar_month),
-          label: '달력',
+    final boardNavigation = BoardNavigationScope.maybeOf(context);
+    final selectedIndex = boardNavigation?.currentIndex ?? currentIndex;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border(
+          top: BorderSide(
+              color: AppColors.surfaceVariant.withValues(alpha: 0.8)),
         ),
-        NavigationDestination(
-            icon: Icon(Icons.check_circle_outline),
-            selectedIcon: Icon(Icons.check_circle),
-            label: '할 일'),
-        NavigationDestination(
-            icon: Icon(Icons.campaign_outlined),
-            selectedIcon: Icon(Icons.campaign),
-            label: '공지'),
-        NavigationDestination(
-            icon: Icon(Icons.group_outlined),
-            selectedIcon: Icon(Icons.group),
-            label: '멤버'),
-      ],
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.text.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
+      child: NavigationBar(
+        height: 72,
+        elevation: 0,
+        selectedIndex: selectedIndex,
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primarySoft,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        onDestinationSelected: (index) {
+          if (index == selectedIndex) return;
+          final selectTab = boardNavigation?.selectTab;
+          if (selectTab != null) {
+            selectTab(index);
+            return;
+          }
+
+          Navigator.pushReplacementNamed(context, _routes[index]);
+        },
+        destinations: const [
+          NavigationDestination(
+              icon: Icon(Icons.today_outlined),
+              selectedIcon: Icon(Icons.today),
+              label: '오늘'),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: '달력',
+          ),
+          NavigationDestination(
+              icon: Icon(Icons.check_circle_outline),
+              selectedIcon: Icon(Icons.check_circle),
+              label: '할 일'),
+          NavigationDestination(
+              icon: Icon(Icons.campaign_outlined),
+              selectedIcon: Icon(Icons.campaign),
+              label: '공지'),
+          NavigationDestination(
+              icon: Icon(Icons.group_outlined),
+              selectedIcon: Icon(Icons.group),
+              label: '멤버'),
+        ],
+      ),
     );
   }
 }

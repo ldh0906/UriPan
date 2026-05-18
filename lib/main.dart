@@ -16,6 +16,7 @@ import 'screens/today_board_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/app_repository.dart';
 import 'theme/app_theme.dart';
+import 'widgets/common_widgets.dart';
 
 void main() {
   runApp(const UriPanApp());
@@ -480,44 +481,11 @@ class _UriPanAppState extends State<UriPanApp> {
               onSignUp: signUp,
             ),
         GroupSelectionScreen.routeName: (_) => _buildGroupSelectionScreen(),
-        TodayBoardScreen.routeName: (_) => TodayBoardScreen(
-              boardName: _activeWorkspace?.board.name ?? '보드 없음',
-              members: _activeMembers,
-              schedules: _activeSchedules,
-              tasks: _activeTasks,
-              notices: _activeNotices,
-              onTaskChanged: toggleTask,
-              onNoticeConfirmed: toggleNoticeConfirmation,
-            ),
-        CalendarViewScreen.routeName: (_) => CalendarViewScreen(
-              boardName: _activeWorkspace?.board.name ?? '보드 없음',
-              members: _activeMembers,
-              schedules: _activeSchedules,
-              onScheduleDeleted: deleteSchedule,
-            ),
-        TasksListScreen.routeName: (_) => TasksListScreen(
-              boardName: _activeWorkspace?.board.name ?? '보드 없음',
-              tasks: _activeTasks,
-              onTaskChanged: toggleTask,
-              onTaskDeleted: deleteTask,
-            ),
-        NoticesBoardScreen.routeName: (_) => NoticesBoardScreen(
-              boardName: _activeWorkspace?.board.name ?? '보드 없음',
-              notices: _activeNotices,
-              members: _activeMembers,
-              onNoticeConfirmed: toggleNoticeConfirmation,
-              onNoticeDeleted: deleteNotice,
-            ),
-        MembersInviteScreen.routeName: (_) => MembersInviteScreen(
-              boardName: _activeWorkspace?.board.name ?? '보드 없음',
-              inviteCode: _activeWorkspace?.inviteCode ?? 'NO-BOARD',
-              members: _activeMembers,
-              settings: _activeSettings,
-              onSettingsChanged: updateActiveBoardSettings,
-              onMemberRoleChanged: updateMemberRole,
-              onMemberRemoved: removeMember,
-              onLeaveBoard: leaveActiveBoard,
-            ),
+        TodayBoardScreen.routeName: (_) => _buildBoardTabsScreen(0),
+        CalendarViewScreen.routeName: (_) => _buildBoardTabsScreen(1),
+        TasksListScreen.routeName: (_) => _buildBoardTabsScreen(2),
+        NoticesBoardScreen.routeName: (_) => _buildBoardTabsScreen(3),
+        MembersInviteScreen.routeName: (_) => _buildBoardTabsScreen(4),
         AddItemSelectorScreen.routeName: (_) => const AddItemSelectorScreen(),
         ItemDetailEditScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)?.settings.arguments;
@@ -553,6 +521,28 @@ class _UriPanAppState extends State<UriPanApp> {
     );
   }
 
+  _BoardTabsScreen _buildBoardTabsScreen(int initialIndex) {
+    return _BoardTabsScreen(
+      initialIndex: initialIndex,
+      boardName: _activeWorkspace?.board.name ?? '보드 없음',
+      inviteCode: _activeWorkspace?.inviteCode ?? 'NO-BOARD',
+      members: _activeMembers,
+      schedules: _activeSchedules,
+      tasks: _activeTasks,
+      notices: _activeNotices,
+      settings: _activeSettings,
+      onTaskChanged: toggleTask,
+      onTaskDeleted: deleteTask,
+      onScheduleDeleted: deleteSchedule,
+      onNoticeConfirmed: toggleNoticeConfirmation,
+      onNoticeDeleted: deleteNotice,
+      onSettingsChanged: updateActiveBoardSettings,
+      onMemberRoleChanged: updateMemberRole,
+      onMemberRemoved: removeMember,
+      onLeaveBoard: leaveActiveBoard,
+    );
+  }
+
   String _titleCase(String value) {
     return value
         .split(RegExp(r'\s+'))
@@ -572,5 +562,134 @@ class _UriPanAppState extends State<UriPanApp> {
       return parts.first.substring(0, 1).toUpperCase();
     }
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+}
+
+class _BoardTabsScreen extends StatefulWidget {
+  const _BoardTabsScreen({
+    required this.initialIndex,
+    required this.boardName,
+    required this.inviteCode,
+    required this.members,
+    required this.schedules,
+    required this.tasks,
+    required this.notices,
+    required this.settings,
+    required this.onTaskChanged,
+    required this.onTaskDeleted,
+    required this.onScheduleDeleted,
+    required this.onNoticeConfirmed,
+    required this.onNoticeDeleted,
+    required this.onSettingsChanged,
+    required this.onMemberRoleChanged,
+    required this.onMemberRemoved,
+    required this.onLeaveBoard,
+  });
+
+  final int initialIndex;
+  final String boardName;
+  final String inviteCode;
+  final List<FamilyMember> members;
+  final List<ScheduleItemData> schedules;
+  final List<TaskItemData> tasks;
+  final List<NoticeItemData> notices;
+  final BoardSettings settings;
+  final void Function(TaskItemData task, bool? value) onTaskChanged;
+  final ValueChanged<TaskItemData> onTaskDeleted;
+  final ValueChanged<ScheduleItemData> onScheduleDeleted;
+  final void Function(NoticeItemData notice) onNoticeConfirmed;
+  final ValueChanged<NoticeItemData> onNoticeDeleted;
+  final ValueChanged<BoardSettings> onSettingsChanged;
+  final void Function(FamilyMember member, String role) onMemberRoleChanged;
+  final ValueChanged<FamilyMember> onMemberRemoved;
+  final VoidCallback onLeaveBoard;
+
+  @override
+  State<_BoardTabsScreen> createState() => _BoardTabsScreenState();
+}
+
+class _BoardTabsScreenState extends State<_BoardTabsScreen> {
+  late int _selectedIndex = widget.initialIndex;
+
+  void _selectTab(int index) {
+    if (index == _selectedIndex) return;
+    setState(() => _selectedIndex = index);
+  }
+
+  void _handleBack() {
+    if (_selectedIndex != 0) {
+      _selectTab(0);
+      return;
+    }
+
+    Navigator.pushReplacementNamed(context, GroupSelectionScreen.routeName);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tabs = [
+      TodayBoardScreen(
+        boardName: widget.boardName,
+        members: widget.members,
+        schedules: widget.schedules,
+        tasks: widget.tasks,
+        notices: widget.notices,
+        onTaskChanged: widget.onTaskChanged,
+        onNoticeConfirmed: widget.onNoticeConfirmed,
+      ),
+      CalendarViewScreen(
+        boardName: widget.boardName,
+        members: widget.members,
+        schedules: widget.schedules,
+        onScheduleDeleted: widget.onScheduleDeleted,
+      ),
+      TasksListScreen(
+        boardName: widget.boardName,
+        tasks: widget.tasks,
+        onTaskChanged: widget.onTaskChanged,
+        onTaskDeleted: widget.onTaskDeleted,
+      ),
+      NoticesBoardScreen(
+        boardName: widget.boardName,
+        notices: widget.notices,
+        members: widget.members,
+        onNoticeConfirmed: widget.onNoticeConfirmed,
+        onNoticeDeleted: widget.onNoticeDeleted,
+      ),
+      MembersInviteScreen(
+        boardName: widget.boardName,
+        inviteCode: widget.inviteCode,
+        members: widget.members,
+        settings: widget.settings,
+        onSettingsChanged: widget.onSettingsChanged,
+        onMemberRoleChanged: widget.onMemberRoleChanged,
+        onMemberRemoved: widget.onMemberRemoved,
+        onLeaveBoard: widget.onLeaveBoard,
+      ),
+    ];
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _handleBack();
+      },
+      child: BoardNavigationScope(
+        currentIndex: _selectedIndex,
+        selectTab: _selectTab,
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            for (var index = 0; index < tabs.length; index++)
+              TickerMode(
+                enabled: index == _selectedIndex,
+                child: HeroMode(
+                  enabled: index == _selectedIndex,
+                  child: tabs[index],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
