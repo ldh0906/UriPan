@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'data/seed_data.dart';
 import 'models/board_item.dart';
 import 'screens/today_board_screen.dart';
+import 'services/auth_error_messages.dart';
 import 'services/auth_input_validator.dart';
 import 'services/board_repository.dart';
 import 'theme/app_theme.dart';
@@ -112,55 +113,47 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _userIdController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _message;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _userIdController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _signIn() async {
-    if (!_validateEmailPassword()) return;
+    if (!_validateUserIdPassword()) return;
 
     await _runAuthAction(() async {
       await widget.client.auth.signInWithPassword(
-        email: _emailController.text.trim(),
+        email: AuthInputValidator.syntheticEmailForUserId(
+          _userIdController.text,
+        ),
         password: _passwordController.text,
       );
     }, successMessage: null);
   }
 
   Future<void> _signUp() async {
-    if (!_validateEmailPassword()) return;
+    if (!_validateUserIdPassword()) return;
 
     await _runAuthAction(
       () async {
+        final userId = AuthInputValidator.normalizeUserId(
+          _userIdController.text,
+        );
         await widget.client.auth.signUp(
-          email: _emailController.text.trim(),
+          email: AuthInputValidator.syntheticEmailForUserId(userId),
           password: _passwordController.text,
+          data: {'display_name': userId},
         );
       },
       successMessage:
-          '\uD68C\uC6D0\uAC00\uC785\uC744 \uD655\uC778\uD574\uC8FC\uC138\uC694. \uBA54\uC77C \uD655\uC778\uC774 \uD544\uC694\uD560 \uC218 \uC788\uC5B4\uC694.',
-    );
-  }
-
-  Future<void> _sendMagicLink() async {
-    if (!_validateEmail()) return;
-
-    await _runAuthAction(
-      () async {
-        await widget.client.auth.signInWithOtp(
-          email: _emailController.text.trim(),
-        );
-      },
-      successMessage:
-          '\uB85C\uADF8\uC778 \uB9C1\uD06C\uB97C \uBA54\uC77C\uB85C \uBCF4\uB0C8\uC5B4\uC694.',
+          '\uCC98\uC74C \uC0AC\uC6A9 \uC900\uBE44\uAC00 \uB05D\uB0AC\uC5B4\uC694. \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.',
     );
   }
 
@@ -193,37 +186,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String _friendlyAuthError(AuthException error) {
-    final message = error.message.toLowerCase();
-
-    if (message.contains('anonymous') || message.contains('provider')) {
-      return '\uC774\uBA54\uC77C\uACFC \uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD55C \uB4A4 \uB2E4\uC2DC \uD68C\uC6D0\uAC00\uC785\uD574\uC8FC\uC138\uC694.';
-    }
-    if (message.contains('invalid login credentials')) {
-      return '\uC774\uBA54\uC77C \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
-    }
-    if (message.contains('email') && message.contains('confirm')) {
-      return '\uBA54\uC77C \uD655\uC778 \uD6C4 \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.';
-    }
-    if (message.contains('rate') || message.contains('too many')) {
-      return '\uC694\uCCAD\uC774 \uB9CE\uC544\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.';
-    }
-    if (message.contains('password')) {
-      return '\uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
-    }
-
-    return '\uB85C\uADF8\uC778 \uCC98\uB9AC \uC911 \uBB38\uC81C\uAC00 \uC0DD\uACBC\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.';
+    return AuthErrorMessages.fromAuthMessage(error.message);
   }
 
-  bool _validateEmail() {
-    final message = AuthInputValidator.validateEmail(_emailController.text);
-    if (message == null) return true;
-    setState(() => _message = message);
-    return false;
-  }
-
-  bool _validateEmailPassword() {
-    final message = AuthInputValidator.validateEmailPassword(
-      _emailController.text,
+  bool _validateUserIdPassword() {
+    final message = AuthInputValidator.validateUserIdPassword(
+      _userIdController.text,
       _passwordController.text,
     );
     if (message == null) return true;
@@ -248,10 +216,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 28),
               TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
+                controller: _userIdController,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                autocorrect: false,
+                enableSuggestions: false,
                 decoration: const InputDecoration(
-                  labelText: '\uC774\uBA54\uC77C',
+                  labelText: '\uC544\uC774\uB514',
+                  helperText:
+                      '\uC601\uBB38, \uC22B\uC790, -, _ 3\uC790 \uC774\uC0C1',
                 ),
               ),
               const SizedBox(height: 12),
@@ -268,22 +241,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text('\uB85C\uADF8\uC778'),
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isLoading ? null : _signUp,
-                      child: const Text('\uD68C\uC6D0\uAC00\uC785'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isLoading ? null : _sendMagicLink,
-                      child: const Text('\uB9E4\uC9C1\uB9C1\uD06C'),
-                    ),
-                  ),
-                ],
+              OutlinedButton(
+                onPressed: _isLoading ? null : _signUp,
+                child: const Text('\uCC98\uC74C \uC0AC\uC6A9\uD558\uAE30'),
               ),
               if (_message != null) ...[
                 const SizedBox(height: 16),

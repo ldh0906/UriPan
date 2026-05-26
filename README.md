@@ -1,40 +1,60 @@
 # UriPan
 
-**UriPan**은 가까운 사람들과 일정, 할 일, 공지를 함께 정리하는 공유 보드입니다.
+UriPan은 가족이 오늘의 일정, 할 일, 공지를 함께 보는 모바일 우선 공유 보드입니다.
 
-가족, 친구, 룸메이트, 스터디, 팀플처럼 매일 크고 작은 약속을 나누는 사람들을 위한 작은 상황판을 목표로 합니다.
+## 현재 상태
 
-> 흘러가는 채팅방 대신, 우리끼리 확인할 수 있는 한 장의 보드.
+- Flutter 앱
+- Supabase Auth, Database, Realtime 기반
+- 아이디/비밀번호 로그인
+- 가족 보드 생성
+- 관리자 초대 코드 생성
+- 초대 코드로 보드 참여
+- 일정/할 일/공지 생성
+- 할 일 완료
+- 보드 데이터 Realtime 동기화
 
-## 왜 만들었나요?
+## 인증 방식
 
-우리는 대부분의 약속과 할 일을 채팅방에서 정합니다.
+앱 화면에서는 이메일을 받지 않고 `아이디 + 비밀번호`만 받습니다.
 
-하지만 채팅방은 빠르게 흘러갑니다. 중요한 일정은 대화 사이에 묻히고, 누가 확인했는지 알기 어렵고, 누가 무엇을 해야 하는지도 시간이 지나면 흐릿해집니다.
+Supabase Auth는 내부적으로 이메일 형식 식별자가 필요하므로, 앱은 사용자 아이디를 다음처럼 변환합니다.
 
-UriPan은 그런 순간을 줄이고 싶어서 시작한 프로젝트입니다.
+```text
+family01 -> family01@auth.uripan.app
+```
 
-## v1 목표
+운영 전제:
 
-- 오늘 보드
-- 일정 목록
-- 할 일 목록
-- 공지 목록
-- 가족 멤버와 초대 흐름
-- Supabase Free 기반 공유 데이터
-- 따뜻한 생활 보드 스타일의 Flutter UI
+- Supabase Email provider를 사용합니다.
+- Supabase Auth의 email confirmation은 꺼야 합니다.
+- `auth.uripan.app` 주소는 실제 메일 수신용이 아니라 앱 내부 로그인 식별자입니다.
 
 ## 로컬 실행
 
+Flutter가 PATH에 있으면:
+
 ```powershell
-C:\Users\a3030\flutter\bin\flutter.bat pub get
-C:\Users\a3030\flutter\bin\flutter.bat run
+flutter pub get
+flutter run
 ```
+
+Supabase 연결은 dart define으로 주입합니다.
+
+```powershell
+flutter run `
+  --dart-define=SUPABASE_URL=<PROJECT_URL> `
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=<PUBLISHABLE_KEY>
+```
+
+Supabase 설정이 없으면 인메모리 샘플 데이터로 실행됩니다.
 
 ## 검증
 
 ```powershell
-C:\Users\a3030\flutter\bin\dart.bat format lib test
-C:\Users\a3030\flutter\bin\flutter.bat analyze
-C:\Users\a3030\flutter\bin\flutter.bat test
+dart format lib test
+flutter analyze
+flutter test
 ```
+
+수동 DB 검증은 [RLS checks](docs/supabase/rls-checks.sql)를 사용합니다.
