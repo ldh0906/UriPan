@@ -542,6 +542,10 @@ alter table public.board_invites enable row level security;
 alter table public.board_items enable row level security;
 alter table public.item_confirmations enable row level security;
 
+alter publication supabase_realtime add table public.board_members;
+alter publication supabase_realtime add table public.board_items;
+alter publication supabase_realtime add table public.item_confirmations;
+
 create policy "profiles_select_shared_board_members"
 on public.profiles
 for select
@@ -696,6 +700,8 @@ revoke all on function public.enforce_board_update_rules() from public, anon, au
 revoke all on function public.enforce_board_member_admin_rules() from public, anon, authenticated;
 revoke all on function public.enforce_board_item_update_rules() from public, anon, authenticated;
 revoke all on function public.enforce_notice_confirmation_item() from public, anon, authenticated;
+revoke all on function public.handle_new_user_profile() from public, anon, authenticated;
+revoke all on function public.handle_new_board_admin() from public, anon, authenticated;
 revoke all on function public.create_family_board(text, integer) from public, anon, authenticated;
 revoke all on function public.create_board_invite(uuid, interval) from public, anon, authenticated;
 revoke all on function public.revoke_board_invite(uuid) from public, anon, authenticated;
@@ -711,6 +717,12 @@ grant execute on function public.join_board_with_invite(text) to authenticated;
 grant execute on function public.complete_task(uuid, boolean) to authenticated;
 
 grant usage on schema public to authenticated;
+revoke all on public.profiles from anon;
+revoke all on public.boards from anon;
+revoke all on public.board_members from anon;
+revoke all on public.board_invites from anon;
+revoke all on public.board_items from anon;
+revoke all on public.item_confirmations from anon;
 grant select, insert, update, delete on public.profiles to authenticated;
 grant select, insert, update, delete on public.boards to authenticated;
 grant select, insert, update, delete on public.board_members to authenticated;

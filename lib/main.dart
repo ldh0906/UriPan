@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'data/seed_data.dart';
 import 'models/board_item.dart';
 import 'screens/today_board_screen.dart';
+import 'services/auth_input_validator.dart';
 import 'services/board_repository.dart';
 import 'theme/app_theme.dart';
 
@@ -67,6 +68,8 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
+  bool _isClearingAnonymousSession = false;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthState>(
@@ -75,6 +78,19 @@ class _AuthGateState extends State<AuthGate> {
         final session = widget.client.auth.currentSession;
         if (session == null) {
           return LoginScreen(client: widget.client);
+        }
+
+        if (widget.client.auth.currentUser?.isAnonymous == true) {
+          if (!_isClearingAnonymousSession) {
+            _isClearingAnonymousSession = true;
+            widget.client.auth.signOut().whenComplete(() {
+              if (mounted) setState(() => _isClearingAnonymousSession = false);
+            });
+          }
+
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         return BoardHomeScreen(
@@ -109,6 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signIn() async {
+    if (!_validateEmailPassword()) return;
+
     await _runAuthAction(() async {
       await widget.client.auth.signInWithPassword(
         email: _emailController.text.trim(),
@@ -118,6 +136,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signUp() async {
+    if (!_validateEmailPassword()) return;
+
     await _runAuthAction(
       () async {
         await widget.client.auth.signUp(
@@ -131,6 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _sendMagicLink() async {
+    if (!_validateEmail()) return;
+
     await _runAuthAction(
       () async {
         await widget.client.auth.signInWithOtp(
@@ -159,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on AuthException catch (error) {
       if (!mounted) return;
-      setState(() => _message = error.message);
+      setState(() => _message = _friendlyAuthError(error));
     } catch (error) {
       if (!mounted) return;
       setState(() => _message = error.toString());
@@ -168,6 +190,45 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  String _friendlyAuthError(AuthException error) {
+    final message = error.message.toLowerCase();
+
+    if (message.contains('anonymous') || message.contains('provider')) {
+      return '\uC774\uBA54\uC77C\uACFC \uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD55C \uB4A4 \uB2E4\uC2DC \uD68C\uC6D0\uAC00\uC785\uD574\uC8FC\uC138\uC694.';
+    }
+    if (message.contains('invalid login credentials')) {
+      return '\uC774\uBA54\uC77C \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
+    }
+    if (message.contains('email') && message.contains('confirm')) {
+      return '\uBA54\uC77C \uD655\uC778 \uD6C4 \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.';
+    }
+    if (message.contains('rate') || message.contains('too many')) {
+      return '\uC694\uCCAD\uC774 \uB9CE\uC544\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.';
+    }
+    if (message.contains('password')) {
+      return '\uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
+    }
+
+    return '\uB85C\uADF8\uC778 \uCC98\uB9AC \uC911 \uBB38\uC81C\uAC00 \uC0DD\uACBC\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.';
+  }
+
+  bool _validateEmail() {
+    final message = AuthInputValidator.validateEmail(_emailController.text);
+    if (message == null) return true;
+    setState(() => _message = message);
+    return false;
+  }
+
+  bool _validateEmailPassword() {
+    final message = AuthInputValidator.validateEmailPassword(
+      _emailController.text,
+      _passwordController.text,
+    );
+    if (message == null) return true;
+    setState(() => _message = message);
+    return false;
   }
 
   @override
@@ -254,17 +315,89 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   late Future<void> _loadFuture = _loadBoards();
   BoardSummary? _activeBoard;
   String? _message;
+  RealtimeChannel? _boardChannel;
+  String? _subscribedBoardId;
 
-  Future<void> _loadBoards() async {
-    final boards = await widget.repository.loadBoards();
-    _activeBoard = boards.isEmpty ? null : boards.first;
+  @override
+  void dispose() {
+    final channel = _boardChannel;
+    if (channel != null) {
+      widget.client.removeChannel(channel);
+    }
+    super.dispose();
   }
 
-  Future<void> _refresh() async {
+  Future<void> _loadBoards({String? preferredBoardId}) async {
+    final boards = await widget.repository.loadBoards();
+    final targetBoardId = preferredBoardId ?? _activeBoard?.id;
+    if (boards.isEmpty) {
+      _activeBoard = null;
+    } else {
+      _activeBoard = boards.firstWhere(
+        (board) => board.id == targetBoardId,
+        orElse: () => boards.first,
+      );
+    }
+    _syncRealtimeSubscription(_activeBoard);
+  }
+
+  Future<void> _refresh({String? preferredBoardId}) async {
     setState(() {
-      _loadFuture = _loadBoards();
+      _loadFuture = _loadBoards(preferredBoardId: preferredBoardId);
     });
     await _loadFuture;
+  }
+
+  void _syncRealtimeSubscription(BoardSummary? board) {
+    if (board == null || _subscribedBoardId == board.id) return;
+
+    final previous = _boardChannel;
+    if (previous != null) {
+      widget.client.removeChannel(previous);
+    }
+
+    _subscribedBoardId = board.id;
+    _boardChannel = widget.client
+        .channel('board:${board.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'board_items',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'board_id',
+            value: board.id,
+          ),
+          callback: (_) {
+            if (mounted) setState(() {});
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'item_confirmations',
+          callback: (_) {
+            if (mounted) setState(() {});
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'board_members',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'board_id',
+            value: board.id,
+          ),
+          callback: (_) {
+            if (mounted) {
+              setState(() {
+                _loadFuture = _loadBoards();
+              });
+            }
+          },
+        )
+        .subscribe();
   }
 
   Future<void> _createBoard() async {
@@ -275,11 +408,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (result == null) return;
 
     await _runAction(() async {
-      _activeBoard = await widget.repository.createBoard(
+      final created = await widget.repository.createBoard(
         result.name,
         result.maxMembers,
       );
-      await _refresh();
+      await _refresh(preferredBoardId: created.id);
     });
   }
 
@@ -291,8 +424,8 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (code == null || code.trim().isEmpty) return;
 
     await _runAction(() async {
-      _activeBoard = await widget.repository.joinBoardWithInvite(code.trim());
-      await _refresh();
+      final joined = await widget.repository.joinBoardWithInvite(code.trim());
+      await _refresh(preferredBoardId: joined.id);
     });
   }
 
@@ -415,6 +548,13 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
+        if (snapshot.hasError) {
+          return _BoardLoadErrorScreen(
+            message: _friendlyDatabaseError(snapshot.error.toString()),
+            onRetry: () => _refresh(),
+            onSignOut: () => widget.client.auth.signOut(),
+          );
+        }
 
         final board = _activeBoard;
         if (board == null) {
@@ -508,6 +648,50 @@ class _NoBoardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(message!),
               ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BoardLoadErrorScreen extends StatelessWidget {
+  const _BoardLoadErrorScreen({
+    required this.message,
+    required this.onRetry,
+    required this.onSignOut,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+  final VoidCallback onSignOut;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '\uBCF4\uB4DC\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(message),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: onRetry,
+                child: const Text('\uB2E4\uC2DC \uC2DC\uB3C4'),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: onSignOut,
+                child: const Text('\uB85C\uADF8\uC544\uC6C3'),
+              ),
             ],
           ),
         ),
