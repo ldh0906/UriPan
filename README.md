@@ -29,6 +29,7 @@ family01 -> family01@auth.uripan.app
 - Supabase Email provider를 사용합니다.
 - Supabase Auth의 email confirmation은 꺼야 합니다.
 - `auth.uripan.app` 주소는 실제 메일 수신용이 아니라 앱 내부 로그인 식별자입니다.
+- 다른 도메인을 쓰려면 `AUTH_EMAIL_DOMAIN` dart define으로 바꿀 수 있습니다.
 
 ## 로컬 실행
 
@@ -44,7 +45,8 @@ Supabase 연결은 dart define으로 주입합니다.
 ```powershell
 flutter run `
   --dart-define=SUPABASE_URL=<PROJECT_URL> `
-  --dart-define=SUPABASE_PUBLISHABLE_KEY=<PUBLISHABLE_KEY>
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=<PUBLISHABLE_KEY> `
+  --dart-define=AUTH_EMAIL_DOMAIN=auth.uripan.app
 ```
 
 Supabase 설정이 없으면 인메모리 샘플 데이터로 실행됩니다.

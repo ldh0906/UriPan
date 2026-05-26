@@ -1,7 +1,10 @@
 class AuthInputValidator {
   const AuthInputValidator._();
 
-  static const _syntheticEmailDomain = 'auth.uripan.app';
+  static const _syntheticEmailDomain = String.fromEnvironment(
+    'AUTH_EMAIL_DOMAIN',
+    defaultValue: 'auth.uripan.app',
+  );
 
   static String normalizeUserId(String userId) {
     return userId.trim().toLowerCase();
