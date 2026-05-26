@@ -1,9 +1,0 @@
-key: Container_sizedbox10_698
-type: Container
-props:
-  container:
-    dimensions:
-      height:
-        pixelsValue:
-          inputValue: 24
-name: SizedBox

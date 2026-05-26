@@ -1,6 +1,0 @@
-rootAction:
-  key: nav_AddItemSelector_fab1
-  action:
-    key: vj4v1whh
-trigger:
-  triggerType: ON_TAP

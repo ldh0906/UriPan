@@ -1,7 +1,0 @@
-key: Spacer_spacer1_106
-type: Spacer
-props:
-  spacer:
-    flexValue:
-      inputValue: 1
-name: Spacer

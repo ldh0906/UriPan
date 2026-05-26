@@ -1,6 +1,0 @@
-rootAction:
-  key: nav_TodayBoard_container56
-  action:
-    key: hwnt8dwp
-trigger:
-  triggerType: ON_TAP
