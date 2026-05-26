@@ -1,212 +1,203 @@
 import 'package:flutter/material.dart';
 
-import '../models/mock_models.dart';
-import '../screens/calendar_view_screen.dart';
-import '../screens/group_selection_screen.dart';
-import '../screens/item_detail_edit_screen.dart';
-import '../screens/notices_board_screen.dart';
-import '../screens/tasks_list_screen.dart';
-import '../theme/app_theme.dart';
-import '../widgets/common_widgets.dart';
+import '../models/board_item.dart';
+import '../services/board_repository.dart';
+import '../widgets/section_panel.dart';
 
 class TodayBoardScreen extends StatelessWidget {
-  const TodayBoardScreen({
-    super.key,
-    required this.boardName,
-    required this.members,
-    required this.schedules,
-    required this.tasks,
-    required this.notices,
-    required this.onTaskChanged,
-    required this.onNoticeConfirmed,
-  });
+  const TodayBoardScreen({super.key, required this.repository});
 
-  static const routeName = '/today';
-
-  final String boardName;
-  final List<FamilyMember> members;
-  final List<ScheduleItemData> schedules;
-  final List<TaskItemData> tasks;
-  final List<NoticeItemData> notices;
-  final void Function(TaskItemData task, bool? value) onTaskChanged;
-  final void Function(NoticeItemData notice) onNoticeConfirmed;
+  final BoardRepository repository;
 
   @override
   Widget build(BuildContext context) {
-    final remainingTasks = tasks.where((task) => !task.isDone).length;
-    final today = DateTime.now();
+    return FutureBuilder<List<BoardItem>>(
+      future: repository.loadTodayItems(),
+      builder: (context, snapshot) {
+        final items = snapshot.data ?? const <BoardItem>[];
+        final schedules = _itemsOfType(items, BoardItemType.schedule);
+        final tasks = _itemsOfType(items, BoardItemType.task);
+        final notices = _itemsOfType(items, BoardItemType.notice);
 
-    return ScreenShell(
-      bottomNavigation: const AppBottomNav(currentIndex: 0),
-      floatingActionButton: const AddItemFab(label: '항목 추가'),
-      safeBottom: false,
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: PagePadding(
+        return Scaffold(
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(boardName,
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall),
-                            const SizedBox(height: 3),
-                            Text(
-                              _formatToday(today),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(color: AppColors.mutedText),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: '보드 변경',
-                        onPressed: () => Navigator.pushReplacementNamed(
-                          context,
-                          GroupSelectionScreen.routeName,
-                        ),
-                        icon: const Icon(Icons.dashboard_customize_outlined),
-                      ),
-                    ],
+                  _Header(
+                    openTasks: tasks.where((item) => !item.isDone).length,
+                    notices: notices.length,
                   ),
-                  const SizedBox(height: 20),
-                  SoftCard(
-                    color: AppColors.primarySoft,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(17),
-                          ),
-                          child: const Icon(Icons.monitor_heart_rounded,
-                              color: Colors.white),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('오늘의 현황',
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium),
-                              const SizedBox(height: 3),
-                              Text(
-                                '일정 ${schedules.length}개, 남은 할 일 $remainingTasks개',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(color: AppColors.mutedText),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 12),
+                  SectionPanel(
+                    title: '일정',
+                    count: schedules.length,
+                    icon: Icons.event_available,
+                    children: schedules.map(_BoardTile.new).toList(),
                   ),
-                  const SizedBox(height: 22),
-                  const SectionHeader(
-                      title: '일정', routeName: CalendarViewScreen.routeName),
-                  const SizedBox(height: 10),
-                  ...schedules.take(3).map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: ScheduleCard(
-                            item: item,
-                            compact: true,
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              ItemDetailEditScreen.routeName,
-                              arguments:
-                                  BoardItemEditArguments.fromSchedule(item),
-                            ),
-                          ),
-                        ),
-                      ),
-                  const SizedBox(height: 10),
-                  const SectionHeader(
-                      title: '할 일', routeName: TasksListScreen.routeName),
-                  const SizedBox(height: 10),
-                  ...tasks.take(4).map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: TaskCard(
-                            item: item,
-                            compact: true,
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              ItemDetailEditScreen.routeName,
-                              arguments: BoardItemEditArguments.fromTask(item),
-                            ),
-                            onChanged: (value) => onTaskChanged(item, value),
-                          ),
-                        ),
-                      ),
-                  const SizedBox(height: 10),
-                  const SectionHeader(
-                      title: '공지', routeName: NoticesBoardScreen.routeName),
-                  const SizedBox(height: 10),
-                  ...notices.take(2).map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: NoticeCard(
-                            item: item,
-                            memberCount: members.length,
-                            compact: true,
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              ItemDetailEditScreen.routeName,
-                              arguments:
-                                  BoardItemEditArguments.fromNotice(item),
-                            ),
-                            onConfirm: () => onNoticeConfirmed(item),
-                          ),
-                        ),
-                      ),
-                  const SizedBox(height: 96),
+                  const SizedBox(height: 12),
+                  SectionPanel(
+                    title: '할 일',
+                    count: tasks.length,
+                    icon: Icons.check_circle_outline,
+                    children: tasks.map(_BoardTile.new).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  SectionPanel(
+                    title: '공지',
+                    count: notices.length,
+                    icon: Icons.campaign_outlined,
+                    children: notices.map(_BoardTile.new).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  const _ActionRow(),
                 ],
               ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static List<BoardItem> _itemsOfType(
+    List<BoardItem> items,
+    BoardItemType type,
+  ) {
+    return items.where((item) => item.type == type).toList(growable: false);
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({required this.openTasks, required this.notices});
+
+  final int openTasks;
+  final int notices;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('UriPan', style: textTheme.headlineMedium),
+        const SizedBox(height: 6),
+        Text(
+          '오늘 보드',
+          style: textTheme.titleLarge?.copyWith(color: colorScheme.primary),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '열린 할 일 $openTasks개, 확인할 공지 $notices개가 있습니다.',
+            style: TextStyle(
+              color: colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BoardTile extends StatelessWidget {
+  const _BoardTile(this.item);
+
+  final BoardItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 58,
+            child: Text(
+              item.timeLabel,
+              style: TextStyle(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    if (item.isPinned)
+                      Icon(
+                        Icons.push_pin,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(item.detail),
+                const SizedBox(height: 3),
+                Text(
+                  item.owner,
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  String _formatToday(DateTime date) {
-    const weekdays = [
-      '월요일',
-      '화요일',
-      '수요일',
-      '목요일',
-      '금요일',
-      '토요일',
-      '일요일',
-    ];
-    const months = [
-      '1월',
-      '2월',
-      '3월',
-      '4월',
-      '5월',
-      '6월',
-      '7월',
-      '8월',
-      '9월',
-      '10월',
-      '11월',
-      '12월',
-    ];
-    return '${months[date.month - 1]} ${date.day}일 ${weekdays[date.weekday - 1]}';
+class _ActionRow extends StatelessWidget {
+  const _ActionRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.add),
+            label: const Text('추가'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        IconButton.filledTonal(
+          onPressed: () {},
+          tooltip: '멤버',
+          icon: const Icon(Icons.group_outlined),
+        ),
+        const SizedBox(width: 8),
+        IconButton.filledTonal(
+          onPressed: () {},
+          tooltip: '설정',
+          icon: const Icon(Icons.settings_outlined),
+        ),
+      ],
+    );
   }
 }

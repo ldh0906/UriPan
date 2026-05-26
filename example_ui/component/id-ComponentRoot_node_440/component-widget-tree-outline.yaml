@@ -1,8 +1,0 @@
-node:
-  key: ComponentRoot_node_440
-  children:
-    - key: Container_root_443
-      children:
-        - key: Container_root_442
-          children:
-            - key: Text_label_text_441

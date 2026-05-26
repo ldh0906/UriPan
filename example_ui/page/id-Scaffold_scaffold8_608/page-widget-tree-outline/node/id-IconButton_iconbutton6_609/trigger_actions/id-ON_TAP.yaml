@@ -1,6 +1,0 @@
-rootAction:
-  key: nav_TodayBoard_iconbutton6
-  action:
-    key: 0y4h8qwq
-trigger:
-  triggerType: ON_TAP

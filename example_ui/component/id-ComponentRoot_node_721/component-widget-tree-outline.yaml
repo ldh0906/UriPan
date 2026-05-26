@@ -1,9 +1,0 @@
-node:
-  key: ComponentRoot_node_721
-  children:
-    - key: Container_row2_726
-      children:
-        - key: Row_row2_725
-          children:
-            - key: Icon_icon1_722
-            - key: Text_text2_723
