@@ -6,10 +6,12 @@ void main() {
     await tester.pumpWidget(const UriPanApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('UriPan'), findsOneWidget);
-    expect(find.text('오늘 보드'), findsOneWidget);
-    expect(find.text('일정'), findsOneWidget);
-    expect(find.text('할 일'), findsOneWidget);
-    expect(find.text('공지'), findsOneWidget);
+    expect(find.text('\uC6B0\uB9AC\uC9D1'), findsOneWidget);
+    expect(find.text('\uC624\uB298 \uBCF4\uB4DC'), findsOneWidget);
+    expect(find.text('\uC624\uB298\uC758 \uC0C1\uD669'), findsOneWidget);
+    expect(find.text('\uC624\uB298 \uC77C\uC815'), findsOneWidget);
+    expect(find.text('\uD560 \uC77C'), findsWidgets);
+    expect(find.text('\uACF5\uC9C0'), findsWidgets);
+    expect(find.text('\uCD94\uAC00'), findsOneWidget);
   });
 }
