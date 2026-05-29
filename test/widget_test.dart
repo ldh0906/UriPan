@@ -1,7 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uripan/main.dart';
+import 'package:uripan/models/board_item.dart';
+import 'package:uripan/screens/today_board_screen.dart';
 import 'package:uripan/services/auth_error_messages.dart';
 import 'package:uripan/services/auth_input_validator.dart';
+import 'package:uripan/widgets/board_action_sheets.dart';
 
 void main() {
   testWidgets('UriPan shows the Today board sections', (tester) async {
@@ -64,5 +68,171 @@ void main() {
       AuthErrorMessages.fromAuthMessage('422: Anonymous sign-ins are disabled'),
       '\uC544\uC774\uB514\uC640 \uBE44\uBC00\uBC88\uD638\uB85C \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.',
     );
+  });
+
+  testWidgets('Today tab hides future dated schedules and tasks', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final tomorrow = now.add(const Duration(days: 1));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'today-schedule',
+              type: BoardItemType.schedule,
+              title: 'Today schedule',
+              detail: '',
+              owner: 'Us',
+              timeLabel: '09:00',
+              startsAt: DateTime(now.year, now.month, now.day, 9),
+            ),
+            BoardItem(
+              id: 'future-schedule',
+              type: BoardItemType.schedule,
+              title: 'Future schedule',
+              detail: '',
+              owner: 'Us',
+              timeLabel: '09:00',
+              startsAt: DateTime(
+                tomorrow.year,
+                tomorrow.month,
+                tomorrow.day,
+                9,
+              ),
+            ),
+            BoardItem(
+              id: 'today-task',
+              type: BoardItemType.task,
+              title: 'Today task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(now.year, now.month, now.day, 18),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Today schedule'), findsOneWidget);
+    expect(find.text('Today task'), findsOneWidget);
+    expect(find.text('Future schedule'), findsNothing);
+  });
+
+  testWidgets(
+    'Calendar tab shows all schedules and excludes other item types',
+    (tester) async {
+      final now = DateTime.now();
+      final tomorrow = now.add(const Duration(days: 1));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TodayBoardScreen(
+            items: [
+              BoardItem(
+                id: 'today-schedule',
+                type: BoardItemType.schedule,
+                title: 'Today schedule',
+                detail: '',
+                owner: 'Us',
+                timeLabel: '09:00',
+                startsAt: DateTime(now.year, now.month, now.day, 9),
+              ),
+              BoardItem(
+                id: 'future-schedule',
+                type: BoardItemType.schedule,
+                title: 'Future schedule',
+                detail: '',
+                owner: 'Us',
+                timeLabel: '09:00',
+                startsAt: DateTime(
+                  tomorrow.year,
+                  tomorrow.month,
+                  tomorrow.day,
+                  9,
+                ),
+              ),
+              BoardItem(
+                id: 'today-task',
+                type: BoardItemType.task,
+                title: 'Today task',
+                detail: '',
+                owner: 'Us',
+                timeLabel: 'Today',
+                dueAt: DateTime(now.year, now.month, now.day, 18),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('\uC77C\uC815').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Today schedule'), findsOneWidget);
+      expect(find.text('Future schedule'), findsOneWidget);
+      expect(find.text('Today task'), findsNothing);
+    },
+  );
+
+  testWidgets('Add item sheet exposes date and time controls for schedules', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: AddItemSheet(initialType: BoardItemType.schedule)),
+      ),
+    );
+
+    expect(find.text('\uC77C\uC815 \uB0A0\uC9DC'), findsOneWidget);
+    expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+  });
+
+  testWidgets('Add item sheet exposes due date controls for tasks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: AddItemSheet(initialType: BoardItemType.task)),
+      ),
+    );
+
+    expect(find.text('\uB9C8\uAC10 \uB0A0\uC9DC'), findsOneWidget);
+    expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+  });
+
+  testWidgets('Tapping a task opens detail sheet with completion action', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'task-detail',
+              type: BoardItemType.task,
+              title: 'Detailed task',
+              detail: 'Bring the full memo',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(now.year, now.month, now.day, 18),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Detailed task'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bring the full memo'), findsWidgets);
+    expect(find.text('\uC644\uB8CC\uD558\uAE30'), findsOneWidget);
   });
 }

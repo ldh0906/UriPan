@@ -45,6 +45,8 @@ class BoardItem {
     required this.detail,
     required this.owner,
     required this.timeLabel,
+    this.startsAt,
+    this.dueAt,
     this.isDone = false,
     this.isPinned = false,
   });
@@ -55,8 +57,18 @@ class BoardItem {
   final String detail;
   final String owner;
   final String timeLabel;
+  final DateTime? startsAt;
+  final DateTime? dueAt;
   final bool isDone;
   final bool isPinned;
+
+  bool isForDate(DateTime date) {
+    final target = DateTime(date.year, date.month, date.day);
+    final value = type == BoardItemType.schedule ? startsAt : dueAt;
+    if (value == null) return type == BoardItemType.notice;
+    final local = value.toLocal();
+    return DateTime(local.year, local.month, local.day) == target;
+  }
 }
 
 class BoardSummary {

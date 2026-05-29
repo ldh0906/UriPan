@@ -75,15 +75,22 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<BoardItem> createItem(String boardId, BoardItemDraft draft) async {
+    final now = DateTime.now();
+    final startsAt = draft.type == BoardItemType.schedule
+        ? draft.startsAt ?? now
+        : draft.startsAt;
+    final dueAt = draft.type == BoardItemType.task
+        ? draft.dueAt ?? now
+        : draft.dueAt;
     final item = BoardItem(
       id: 'memory-item-${_items.length + 1}',
       type: draft.type,
       title: draft.title,
       detail: draft.detail,
       owner: '\uC6B0\uB9AC',
-      timeLabel: draft.type == BoardItemType.schedule
-          ? '09:00'
-          : '\uC624\uB298',
+      timeLabel: _timeLabel(draft.type, startsAt, dueAt),
+      startsAt: startsAt,
+      dueAt: dueAt,
       isPinned: draft.isPinned,
     );
     _items.add(item);
@@ -102,12 +109,30 @@ class MemoryBoardRepository implements BoardRepository {
       detail: old.detail,
       owner: old.owner,
       timeLabel: old.timeLabel,
+      startsAt: old.startsAt,
+      dueAt: old.dueAt,
       isDone: isDone,
       isPinned: old.isPinned,
     );
     _items[index] = updated;
     return updated;
   }
+
+  String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
+    final value = type == BoardItemType.schedule ? startsAt : dueAt;
+    if (value == null) {
+      return type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298';
+    }
+
+    final local = value.toLocal();
+    if (type == BoardItemType.schedule) {
+      return '${_two(local.hour)}:${_two(local.minute)}';
+    }
+
+    return '${local.month}/${local.day}';
+  }
+
+  String _two(int value) => value.toString().padLeft(2, '0');
 }
 
 class SupabaseBoardRepository implements BoardRepository {
@@ -261,6 +286,8 @@ class SupabaseBoardRepository implements BoardRepository {
       detail: (row['detail'] as String?) ?? '',
       owner: '\uC6B0\uB9AC',
       timeLabel: _timeLabel(type, startsAt, dueAt),
+      startsAt: startsAt,
+      dueAt: dueAt,
       isDone: (row['is_done'] as bool?) ?? false,
       isPinned: (row['is_pinned'] as bool?) ?? false,
     );

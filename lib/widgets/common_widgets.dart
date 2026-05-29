@@ -1,6 +1,60 @@
 import 'package:flutter/material.dart';
 
+import '../models/board_item.dart';
 import '../theme/app_theme.dart';
+
+enum BoardTab {
+  today,
+  calendar,
+  tasks,
+  notices,
+  members;
+
+  String get label {
+    switch (this) {
+      case BoardTab.today:
+        return '\uC624\uB298';
+      case BoardTab.calendar:
+        return '\uC77C\uC815';
+      case BoardTab.tasks:
+        return '\uD560 \uC77C';
+      case BoardTab.notices:
+        return '\uACF5\uC9C0';
+      case BoardTab.members:
+        return '\uAC00\uC871';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case BoardTab.today:
+        return Icons.dashboard_customize_outlined;
+      case BoardTab.calendar:
+        return Icons.calendar_month_outlined;
+      case BoardTab.tasks:
+        return Icons.check_box_outlined;
+      case BoardTab.notices:
+        return Icons.campaign_outlined;
+      case BoardTab.members:
+        return Icons.group_outlined;
+    }
+  }
+
+  BoardItemType? get defaultItemType {
+    switch (this) {
+      case BoardTab.today:
+        return null;
+      case BoardTab.calendar:
+        return BoardItemType.schedule;
+      case BoardTab.tasks:
+        return BoardItemType.task;
+      case BoardTab.notices:
+        return BoardItemType.notice;
+      case BoardTab.members:
+        return null;
+    }
+  }
+}
 
 class SoftCard extends StatelessWidget {
   const SoftCard({
@@ -94,13 +148,15 @@ class AddItemFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
+    return FilledButton.icon(
       onPressed: onPressed,
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.text, width: 3),
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.text, width: 2),
+        ),
       ),
       icon: const Icon(Icons.add_rounded),
       label: const Text('\uCD94\uAC00'),
@@ -109,18 +165,17 @@ class AddItemFab extends StatelessWidget {
 }
 
 class AppBottomNav extends StatelessWidget {
-  const AppBottomNav({super.key});
+  const AppBottomNav({
+    super.key,
+    required this.selectedTab,
+    required this.onSelected,
+  });
+
+  final BoardTab selectedTab;
+  final ValueChanged<BoardTab> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      (Icons.dashboard_customize_outlined, '\uC624\uB298', true),
-      (Icons.calendar_month_outlined, '\uC77C\uC815', false),
-      (Icons.check_box_outlined, '\uD560 \uC77C', false),
-      (Icons.campaign_outlined, '\uACF5\uC9C0', false),
-      (Icons.group_outlined, '\uAC00\uC871', false),
-    ];
-
     return SafeArea(
       top: false,
       child: Container(
@@ -133,35 +188,46 @@ class AppBottomNav extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: items.map((item) {
-            final color = item.$3 ? AppColors.primary : AppColors.mutedText;
+          children: BoardTab.values.map((tab) {
+            final isSelected = tab == selectedTab;
+            final color = isSelected ? AppColors.primary : AppColors.mutedText;
             return SizedBox(
               width: 58,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: item.$3
-                          ? AppColors.primarySoft
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Icon(item.$1, size: 20, color: color),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => onSelected(tab),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primarySoft
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Icon(tab.icon, size: 20, color: color),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        tab.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: color,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                            ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.$2,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: color,
-                      fontWeight: item.$3 ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                  ),
-                ],
+                ),
               ),
             );
           }).toList(),

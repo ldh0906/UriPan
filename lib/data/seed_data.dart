@@ -1,6 +1,12 @@
 import '../models/board_item.dart';
 
-const seedBoardItems = <BoardItem>[
+final _today = DateTime.now();
+DateTime _todayAt(int hour, int minute) =>
+    DateTime(_today.year, _today.month, _today.day, hour, minute);
+DateTime _tomorrowAt(int hour, int minute) =>
+    DateTime(_today.year, _today.month, _today.day + 1, hour, minute);
+
+final seedBoardItems = <BoardItem>[
   BoardItem(
     id: 'schedule-breakfast',
     type: BoardItemType.schedule,
@@ -9,6 +15,7 @@ const seedBoardItems = <BoardItem>[
         '\uC811\uC218 10\uBD84 \uC804 \uB3C4\uCC29, \uBCF4\uD5D8\uC99D \uCC59\uAE30\uAE30',
     owner: '\uC5C4\uB9C8',
     timeLabel: '09:30',
+    startsAt: _todayAt(9, 30),
   ),
   BoardItem(
     id: 'schedule-dinner',
@@ -18,6 +25,7 @@ const seedBoardItems = <BoardItem>[
         '\uB0C9\uC7A5\uACE0 \uBC18\uCC2C \uD655\uC778 \uD6C4 \uC7A5\uBCF4\uAE30',
     owner: '\uC544\uBE60',
     timeLabel: '18:00',
+    startsAt: _tomorrowAt(18, 0),
   ),
   BoardItem(
     id: 'task-trash',
@@ -27,6 +35,7 @@ const seedBoardItems = <BoardItem>[
         '\uD50C\uB77C\uC2A4\uD2F1\uACFC \uC885\uC774 \uB530\uB85C \uBB36\uAE30',
     owner: '\uBBFC\uC218',
     timeLabel: '\uC624\uB298',
+    dueAt: _todayAt(21, 0),
   ),
   BoardItem(
     id: 'task-form',
@@ -35,6 +44,7 @@ const seedBoardItems = <BoardItem>[
     detail: '\uC0AC\uC9C4 \uCD2C\uC601 \uB3D9\uC758 \uD56D\uBAA9 \uCCB4\uD06C',
     owner: '\uC9C0\uC6B0',
     timeLabel: '\uB9C8\uAC10 D-1',
+    dueAt: _tomorrowAt(18, 0),
   ),
   BoardItem(
     id: 'notice-visit',

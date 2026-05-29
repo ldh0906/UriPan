@@ -26,13 +26,14 @@ void main() {
         ],
         itemsByBoard: {
           'second': [
-            const BoardItem(
+            BoardItem(
               id: 'task-1',
               type: BoardItemType.task,
               title: 'Buy milk',
               detail: '',
               owner: 'Us',
               timeLabel: 'Today',
+              startsAt: DateTime(2026, 5, 29, 9),
             ),
           ],
         },
@@ -177,6 +178,8 @@ class _FakeBoardRepository implements BoardRepository {
       detail: draft.detail,
       owner: 'Us',
       timeLabel: 'Today',
+      startsAt: draft.startsAt,
+      dueAt: draft.dueAt,
     );
     itemsByBoard[boardId] = [...itemsByBoard[boardId] ?? const [], item];
     return item;
@@ -195,6 +198,8 @@ class _FakeBoardRepository implements BoardRepository {
           detail: old.detail,
           owner: old.owner,
           timeLabel: old.timeLabel,
+          startsAt: old.startsAt,
+          dueAt: old.dueAt,
           isDone: isDone,
           isPinned: old.isPinned,
         );
