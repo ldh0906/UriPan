@@ -14,6 +14,16 @@ Updated: 2026-05-30
 - `BoardItem` preserves `startsAt` and `dueAt`; Today filters schedules/tasks by date.
 - Item cards open a detail sheet. Tasks support complete/undo with pending UI and completed styling.
 - Fallback/mock mode preserves dates and uses the resolved board id consistently.
+- Repository item loading is now named `loadBoardItems` instead of `loadTodayItems`.
+- `BoardSessionController` ignores stale load/refresh results when newer board or Realtime requests have started.
+- Header refresh UI is visible and wired to board reload.
+- Board creation and item creation show client-side errors for empty names/titles.
+- Item detail supports delete with confirmation, repository deletion, controller reload, and tests.
+- Items now support user-entered manual tags:
+  - `BoardItem.tags` and `BoardItemDraft.tags`
+  - tag input/preview chips in `AddItemSheet`
+  - tag chips on cards and detail sheets
+  - Supabase `board_items.tags text[]` migration
 
 ## Latest Verification
 
@@ -58,12 +68,9 @@ Flutter/Dart commands may need sandbox escalation because SDK/cache files live u
    - display names,
    - confirmation count,
    - current-user confirmation state.
-4. Rename or split `loadTodayItems`; it currently returns the board item list used by all tabs.
-5. Add stale-result protection to `BoardSessionController` for overlapping loads and Realtime refreshes.
-6. Add visible refresh UI.
-7. Add stronger form validation for board names, item titles, and date/time policy.
-8. Add item edit/delete from detail.
-9. QA live timezone/date persistence for schedules and tasks.
+4. Add stronger date/time policy validation for schedules and tasks.
+5. Add item edit from detail.
+6. QA live timezone/date persistence plus Supabase delete/tag behavior.
 
 ## Project Notes
 

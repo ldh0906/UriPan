@@ -206,6 +206,57 @@ void main() {
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
   });
 
+  testWidgets('Add item sheet shows an error for an empty title', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: AddItemSheet())),
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uC81C\uBAA9\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Add item sheet parses and previews manual tags', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: AddItemSheet())),
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '\uD0DC\uADF8'),
+      'school, #Family school  verylongtagname',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('#school'), findsOneWidget);
+    expect(find.text('#Family'), findsOneWidget);
+    expect(find.text('#verylongtagn'), findsOneWidget);
+  });
+
+  testWidgets('Create board dialog shows an error for an empty name', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: CreateBoardDialog())),
+    );
+
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.tap(find.widgetWithText(FilledButton, '\uB9CC\uB4E4\uAE30'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        '\uBCF4\uB4DC \uC774\uB984\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Tapping a task opens detail sheet with completion action', (
     tester,
   ) async {
@@ -223,6 +274,7 @@ void main() {
               owner: 'Us',
               timeLabel: 'Today',
               dueAt: DateTime(now.year, now.month, now.day, 18),
+              tags: ['School', 'Family'],
             ),
           ],
         ),
@@ -233,6 +285,63 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bring the full memo'), findsWidgets);
+    expect(find.text('#School'), findsWidgets);
+    expect(find.text('#Family'), findsWidgets);
     expect(find.text('\uC644\uB8CC\uD558\uAE30'), findsOneWidget);
+  });
+
+  testWidgets('Detail sheet confirms and deletes an item', (tester) async {
+    var deletedItemId = '';
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [
+            BoardItem(
+              id: 'delete-me',
+              type: BoardItemType.notice,
+              title: 'Delete this notice',
+              detail: 'Old note',
+              owner: 'Us',
+              timeLabel: 'Read',
+            ),
+          ],
+          onDeleteItem: (item) async {
+            deletedItemId = item.id;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Delete this notice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, '\uC0AD\uC81C'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, '\uC0AD\uC81C'));
+    await tester.pumpAndSettle();
+
+    expect(deletedItemId, 'delete-me');
+  });
+
+  testWidgets('Refresh button calls the board refresh callback', (
+    tester,
+  ) async {
+    var refreshCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          onRefresh: () async {
+            refreshCount += 1;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('\uC0C8\uB85C\uACE0\uCE68'));
+    await tester.pumpAndSettle();
+
+    expect(refreshCount, 1);
   });
 }

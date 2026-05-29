@@ -13,6 +13,7 @@ class BoardSessionController extends ChangeNotifier {
   BoardSummary? _activeBoard;
   bool _isLoading = false;
   String? _errorMessage;
+  int _stateRequestId = 0;
 
   List<BoardSummary> get boards => _boards;
   List<BoardItem> get items => _items;
@@ -22,14 +23,32 @@ class BoardSessionController extends ChangeNotifier {
   bool get hasNoBoard => !_isLoading && _activeBoard == null;
 
   Future<void> load({String? preferredBoardId}) async {
-    await _runLoadingAction(() async {
+    final requestId = _nextStateRequest();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
       final loadedBoards = await _repository.loadBoards();
+      final activeBoard = _selectBoard(loadedBoards, preferredBoardId);
+      final loadedItems = activeBoard == null
+          ? const <BoardItem>[]
+          : await _repository.loadBoardItems(boardId: activeBoard.id);
+      if (!_isCurrentStateRequest(requestId)) return;
+
       _boards = loadedBoards;
-      _activeBoard = _selectBoard(loadedBoards, preferredBoardId);
-      _items = _activeBoard == null
-          ? const []
-          : await _repository.loadTodayItems(boardId: _activeBoard!.id);
-    });
+      _activeBoard = activeBoard;
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> refreshItems() async {
@@ -40,9 +59,23 @@ class BoardSessionController extends ChangeNotifier {
       return;
     }
 
-    await _runAction(() async {
-      _items = await _repository.loadTodayItems(boardId: board.id);
-    });
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
   }
 
   Future<BoardSummary> createBoard(String name, int maxMembers) async {
@@ -74,18 +107,68 @@ class BoardSessionController extends ChangeNotifier {
 
   Future<void> createItem(BoardItemDraft draft) async {
     final board = _requireActiveBoard();
-    await _runAction(() async {
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
       await _repository.createItem(board.id, draft);
-      _items = await _repository.loadTodayItems(boardId: board.id);
-    });
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
   }
 
   Future<void> completeTask(String itemId, bool isDone) async {
     final board = _requireActiveBoard();
-    await _runAction(() async {
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
       await _repository.completeTask(itemId, isDone);
-      _items = await _repository.loadTodayItems(boardId: board.id);
-    });
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
+  }
+
+  Future<void> deleteItem(String itemId) async {
+    final board = _requireActiveBoard();
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteItem(itemId);
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
   }
 
   Future<void> handleBoardMembershipChanged() async {
@@ -117,21 +200,9 @@ class BoardSessionController extends ChangeNotifier {
     return board;
   }
 
-  Future<void> _runLoadingAction(Future<void> Function() action) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  int _nextStateRequest() => ++_stateRequestId;
 
-    try {
-      await action();
-    } catch (error) {
-      _errorMessage = error.toString();
-      rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
+  bool _isCurrentStateRequest(int requestId) => requestId == _stateRequestId;
 
   Future<void> _runAction(Future<void> Function() action) async {
     _errorMessage = null;

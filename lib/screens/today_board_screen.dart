@@ -18,6 +18,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.onAddItem,
     this.onCreateInvite,
     this.onCompleteTask,
+    this.onDeleteItem,
   }) : assert(
          items != null || repository != null,
          'Provide items for controlled rendering or repository for fallback loading.',
@@ -28,10 +29,11 @@ class TodayBoardScreen extends StatefulWidget {
   final BoardSummary? board;
   final BoardTab selectedTab;
   final ValueChanged<BoardTab>? onTabSelected;
-  final VoidCallback? onRefresh;
+  final Future<void> Function()? onRefresh;
   final ValueChanged<BoardItemType?>? onAddItem;
   final VoidCallback? onCreateInvite;
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
+  final Future<void> Function(BoardItem item)? onDeleteItem;
 
   @override
   State<TodayBoardScreen> createState() => _TodayBoardScreenState();
@@ -41,6 +43,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   late Future<List<BoardItem>>? _itemsFuture = _loadItems();
   List<BoardItem>? _fallbackItems;
   final Set<String> _pendingTaskIds = {};
+  bool _isRefreshing = false;
 
   @override
   void didUpdateWidget(TodayBoardScreen oldWidget) {
@@ -56,7 +59,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   Future<List<BoardItem>>? _loadItems() {
     if (widget.items != null) return null;
-    return widget.repository!.loadTodayItems(boardId: widget.board?.id);
+    return widget.repository!.loadBoardItems(boardId: widget.board?.id);
   }
 
   @override
@@ -103,6 +106,8 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                     _Header(
                       board: widget.board,
                       onCreateInvite: widget.onCreateInvite,
+                      onRefresh: widget.onRefresh == null ? null : _refresh,
+                      isRefreshing: _isRefreshing,
                       onAddItem: selectedTab == BoardTab.members
                           ? null
                           : () => _addItem(selectedTab.defaultItemType),
@@ -212,7 +217,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
     final boardId = widget.board?.id ?? 'memory-board';
     await repository.createItem(boardId, draft);
-    final items = await repository.loadTodayItems(boardId: boardId);
+    final items = await repository.loadBoardItems(boardId: boardId);
     if (!mounted) return;
     setState(() => _fallbackItems = items);
   }
@@ -239,6 +244,18 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     await _addFallbackItem(initialType);
   }
 
+  Future<void> _refresh() async {
+    final onRefresh = widget.onRefresh;
+    if (onRefresh == null || _isRefreshing) return;
+
+    setState(() => _isRefreshing = true);
+    try {
+      await onRefresh();
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
+
   Future<void> _toggleTask(BoardItem item, bool isDone) async {
     if (_pendingTaskIds.contains(item.id)) return;
 
@@ -251,7 +268,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
         final repository = widget.repository;
         if (repository != null) {
           await repository.completeTask(item.id, isDone);
-          final items = await repository.loadTodayItems(
+          final items = await repository.loadBoardItems(
             boardId: widget.board?.id,
           );
           if (mounted) setState(() => _fallbackItems = items);
@@ -260,6 +277,41 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     } finally {
       if (mounted) setState(() => _pendingTaskIds.remove(item.id));
     }
+  }
+
+  Future<void> _deleteItem(BoardItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('\uD56D\uBAA9 \uC0AD\uC81C'),
+        content: Text(
+          '\'${item.title}\'\uC744(\uB97C) \uC0AD\uC81C\uD560\uAE4C\uC694?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('\uCDE8\uC18C'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('\uC0AD\uC81C'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final onDeleteItem = widget.onDeleteItem;
+    if (onDeleteItem != null) {
+      await onDeleteItem(item);
+      return;
+    }
+
+    final repository = widget.repository;
+    if (repository == null) return;
+    await repository.deleteItem(item.id);
+    final items = await repository.loadBoardItems(boardId: widget.board?.id);
+    if (mounted) setState(() => _fallbackItems = items);
   }
 
   Future<void> _showItemDetail(BoardItem item) async {
@@ -275,6 +327,10 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                 await _toggleTask(item, isDone);
               }
             : null,
+        onDelete: () async {
+          Navigator.pop(context);
+          await _deleteItem(item);
+        },
       ),
     );
   }
@@ -285,11 +341,13 @@ class _ItemDetailSheet extends StatelessWidget {
     required this.item,
     required this.isPending,
     this.onToggle,
+    this.onDelete,
   });
 
   final BoardItem item;
   final bool isPending;
   final Future<void> Function(bool isDone)? onToggle;
+  final Future<void> Function()? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -300,67 +358,89 @@ class _ItemDetailSheet extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    item.title,
-                    style: Theme.of(context).textTheme.titleLarge,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.title,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                  tooltip: '\uB2EB\uAE30',
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _InfoChip(label: typeLabel),
-                _InfoChip(label: item.owner),
-                _InfoChip(label: dateLabel ?? item.timeLabel),
-                if (item.isPinned) const _InfoChip(label: '\uACE0\uC815'),
-                if (item.type == BoardItemType.task)
-                  _InfoChip(
-                    label: item.isDone
-                        ? '\uC644\uB8CC\uB428'
-                        : '\uBBF8\uC644\uB8CC',
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: '\uB2EB\uAE30',
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              detail.isEmpty
-                  ? '\uBA54\uBAA8\uAC00 \uC5C6\uC5B4\uC694.'
-                  : detail,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: detail.isEmpty ? AppColors.mutedText : null,
+                ],
               ),
-            ),
-            if (item.type == BoardItemType.task && onToggle != null) ...[
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: isPending ? null : () => onToggle!(!item.isDone),
-                icon: Icon(
-                  item.isDone ? Icons.undo_rounded : Icons.check_circle_rounded,
-                ),
-                label: Text(
-                  item.isDone
-                      ? '\uC644\uB8CC \uCDE8\uC18C'
-                      : '\uC644\uB8CC\uD558\uAE30',
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _InfoChip(label: typeLabel),
+                  _InfoChip(label: item.owner),
+                  _InfoChip(label: dateLabel ?? item.timeLabel),
+                  if (item.isPinned) const _InfoChip(label: '\uACE0\uC815'),
+                  if (item.type == BoardItemType.task)
+                    _InfoChip(
+                      label: item.isDone
+                          ? '\uC644\uB8CC\uB428'
+                          : '\uBBF8\uC644\uB8CC',
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                detail.isEmpty
+                    ? '\uBA54\uBAA8\uAC00 \uC5C6\uC5B4\uC694.'
+                    : detail,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: detail.isEmpty ? AppColors.mutedText : null,
                 ),
               ),
+              if (item.tags.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: item.tags
+                      .map((tag) => _TagChip(label: tag))
+                      .toList(growable: false),
+                ),
+              ],
+              if (item.type == BoardItemType.task && onToggle != null) ...[
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: isPending ? null : () => onToggle!(!item.isDone),
+                  icon: Icon(
+                    item.isDone
+                        ? Icons.undo_rounded
+                        : Icons.check_circle_rounded,
+                  ),
+                  label: Text(
+                    item.isDone
+                        ? '\uC644\uB8CC \uCDE8\uC18C'
+                        : '\uC644\uB8CC\uD558\uAE30',
+                  ),
+                ),
+              ],
+              if (onDelete != null) ...[
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  label: const Text('\uC0AD\uC81C'),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -377,10 +457,18 @@ class _ItemDetailSheet extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.board, this.onCreateInvite, this.onAddItem});
+  const _Header({
+    required this.board,
+    required this.isRefreshing,
+    this.onCreateInvite,
+    this.onRefresh,
+    this.onAddItem,
+  });
 
   final BoardSummary? board;
+  final bool isRefreshing;
   final VoidCallback? onCreateInvite;
+  final VoidCallback? onRefresh;
   final VoidCallback? onAddItem;
 
   @override
@@ -406,6 +494,17 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
+        IconButton.filledTonal(
+          onPressed: isRefreshing ? null : onRefresh,
+          tooltip: '\uC0C8\uB85C\uACE0\uCE68',
+          icon: isRefreshing
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.refresh_rounded),
+        ),
+        const SizedBox(width: 8),
         IconButton.filledTonal(
           onPressed: onCreateInvite,
           tooltip: board?.isAdmin == true
@@ -699,12 +798,44 @@ class _ItemCard extends StatelessWidget {
                     children: [
                       _InfoChip(label: item.timeLabel),
                       _InfoChip(label: item.owner),
+                      ...item.tags
+                          .take(3)
+                          .map((tag) => _TagChip(label: tag, compact: true)),
                     ],
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  const _TagChip({required this.label, this.compact = false});
+
+  final String label;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 8 : 10,
+        vertical: compact ? 4 : 5,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
+      ),
+      child: Text(
+        '#$label',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

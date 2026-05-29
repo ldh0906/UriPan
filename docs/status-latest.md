@@ -13,6 +13,13 @@ Updated: 2026-05-30
 - Schedule/task add flows include date/time controls.
 - Item cards open detail sheets; task details and cards support complete/undo with pending UI.
 - The add button was moved out of the bottom-nav overlap area.
+- Repository item loading is now named `loadBoardItems` instead of the misleading `loadTodayItems`.
+- `BoardSessionController` ignores stale load/refresh results when newer board or Realtime requests have started.
+- Header refresh UI is visible and wired.
+- Empty board names and empty item titles show client-side validation errors.
+- Item detail supports delete with confirmation, repository deletion, controller reload, and tests.
+- Manual item tags are implemented with add-sheet input chips, card/detail display, model/repository persistence, and a Supabase `text[]` migration.
+- Added `docs/DESIGN.md` using the `@google/design.md` structure: token front matter plus UI/UX rationale for UriPan's warm family-board design system.
 
 ## Latest verification
 
@@ -33,15 +40,13 @@ The latest full local verification passed after the current refactor and UI/data
 
 - Notice confirmation is not yet complete in the UI or model/repository read path.
 - `BoardItem` still needs server metadata for board id, assignee, creator, display names, confirmation count, and current-user confirmation state.
-- `loadTodayItems` should be renamed or split because all tabs currently depend on it for the full board item list.
-- Manual refresh exists as a callback but has no visible UI.
-- Async and Realtime refreshes need stale-result protection.
-- Item detail still lacks edit/delete.
-- Form validation and live timezone/date persistence QA need more work.
+- Item detail still lacks edit.
+- Date/time policy validation and live timezone/date/tag persistence QA need more work.
 
 ## Next recommended work
 
-1. Clean the item-loading repository contract and controller stale-result handling.
-2. Implement notice confirmation end to end.
-3. Add refresh UI, stronger form validation, and edit/delete item actions.
-4. Run two-session Supabase browser QA for Realtime sync and date/time behavior.
+1. Implement notice confirmation end to end.
+2. Add item edit actions.
+3. Tighten schedule/task date-time policy validation.
+4. Keep new UI work aligned with `docs/DESIGN.md`.
+5. Run two-session Supabase browser QA for Realtime sync, delete, tags, and date/time behavior.

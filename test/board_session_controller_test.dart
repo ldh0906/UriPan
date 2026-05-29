@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uripan/models/board_item.dart';
 import 'package:uripan/services/board_repository.dart';
@@ -49,7 +51,7 @@ void main() {
   );
 
   test(
-    'reloads items from the repository after creating and completing items',
+    'reloads items from the repository after creating, completing, and deleting items',
     () async {
       final repository = _FakeBoardRepository(
         boards: [_adminBoard],
@@ -63,13 +65,23 @@ void main() {
           type: BoardItemType.task,
           title: 'Pack bag',
           detail: '',
+          tags: ['School', 'School', '  #Bag  '],
         ),
       );
       await controller.completeTask('created-1', true);
 
       expect(controller.items.single.id, 'created-1');
       expect(controller.items.single.isDone, isTrue);
-      expect(repository.loadedItemBoardIds, ['board-1', 'board-1', 'board-1']);
+      expect(controller.items.single.tags, ['School', 'Bag']);
+      await controller.deleteItem('created-1');
+
+      expect(controller.items, isEmpty);
+      expect(repository.loadedItemBoardIds, [
+        'board-1',
+        'board-1',
+        'board-1',
+        'board-1',
+      ]);
     },
   );
 
@@ -114,6 +126,64 @@ void main() {
     expect(controller.items.single.id, 'notice-1');
     expect(repository.loadedItemBoardIds, ['board-1', 'board-1']);
   });
+
+  test('ignores stale item refreshes after active board changes', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      itemsByBoard: {
+        'board-1': [
+          const BoardItem(
+            id: 'initial',
+            type: BoardItemType.task,
+            title: 'Initial task',
+            detail: '',
+            owner: 'Us',
+            timeLabel: 'Today',
+          ),
+        ],
+      },
+    );
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    final staleRefresh = Completer<List<BoardItem>>();
+    final freshLoad = Completer<List<BoardItem>>();
+    repository.queuedItemLoads.add(staleRefresh);
+    final staleFuture = controller.refreshItems();
+
+    repository
+      ..boards = [_secondBoard]
+      ..queuedItemLoads.add(freshLoad);
+    final freshFuture = controller.handleBoardMembershipChanged();
+
+    freshLoad.complete([
+      const BoardItem(
+        id: 'fresh',
+        type: BoardItemType.notice,
+        title: 'Fresh board item',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Read',
+      ),
+    ]);
+    await freshFuture;
+
+    staleRefresh.complete([
+      const BoardItem(
+        id: 'stale',
+        type: BoardItemType.notice,
+        title: 'Stale item',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Read',
+      ),
+    ]);
+    await staleFuture;
+
+    expect(controller.activeBoard?.id, 'board-2');
+    expect(controller.items.single.id, 'fresh');
+    expect(repository.loadedItemBoardIds, ['board-1', 'board-1', 'board-2']);
+  });
 }
 
 const _adminBoard = BoardSummary(
@@ -124,6 +194,14 @@ const _adminBoard = BoardSummary(
   memberCount: 1,
 );
 
+const _secondBoard = BoardSummary(
+  id: 'board-2',
+  name: 'Second home',
+  role: 'admin',
+  maxMembers: 5,
+  memberCount: 2,
+);
+
 class _FakeBoardRepository implements BoardRepository {
   _FakeBoardRepository({
     required List<BoardSummary> boards,
@@ -132,6 +210,7 @@ class _FakeBoardRepository implements BoardRepository {
 
   List<BoardSummary> boards;
   Map<String, List<BoardItem>> itemsByBoard;
+  final queuedItemLoads = <Completer<List<BoardItem>>>[];
   final loadedItemBoardIds = <String?>[];
 
   @override
@@ -164,8 +243,11 @@ class _FakeBoardRepository implements BoardRepository {
   Future<BoardSummary> joinBoardWithInvite(String code) async => boards.first;
 
   @override
-  Future<List<BoardItem>> loadTodayItems({String? boardId}) async {
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     loadedItemBoardIds.add(boardId);
+    if (queuedItemLoads.isNotEmpty) {
+      return queuedItemLoads.removeAt(0).future;
+    }
     return List.unmodifiable(itemsByBoard[boardId] ?? const []);
   }
 
@@ -180,6 +262,7 @@ class _FakeBoardRepository implements BoardRepository {
       timeLabel: 'Today',
       startsAt: draft.startsAt,
       dueAt: draft.dueAt,
+      tags: normalizeBoardItemTags(draft.tags),
     );
     itemsByBoard[boardId] = [...itemsByBoard[boardId] ?? const [], item];
     return item;
@@ -202,10 +285,21 @@ class _FakeBoardRepository implements BoardRepository {
           dueAt: old.dueAt,
           isDone: isDone,
           isPinned: old.isPinned,
+          tags: old.tags,
         );
         entry.value[index] = updated;
         return updated;
       }
+    }
+    throw StateError('Item not found');
+  }
+
+  @override
+  Future<void> deleteItem(String itemId) async {
+    for (final entry in itemsByBoard.entries) {
+      final before = entry.value.length;
+      entry.value.removeWhere((item) => item.id == itemId);
+      if (entry.value.length != before) return;
     }
     throw StateError('Item not found');
   }

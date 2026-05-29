@@ -16,12 +16,16 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
-  Future<List<BoardItem>> loadTodayItems({String? boardId});
+  Future<List<BoardItem>> loadBoardItems({String? boardId});
   Future<BoardItem> createItem(String boardId, BoardItemDraft draft) {
     throw UnimplementedError();
   }
 
   Future<BoardItem> completeTask(String itemId, bool isDone) {
+    throw UnimplementedError();
+  }
+
+  Future<void> deleteItem(String itemId) {
     throw UnimplementedError();
   }
 }
@@ -69,7 +73,7 @@ class MemoryBoardRepository implements BoardRepository {
   Future<BoardSummary> joinBoardWithInvite(String code) async => _boards.first;
 
   @override
-  Future<List<BoardItem>> loadTodayItems({String? boardId}) async {
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     return List.unmodifiable(_items);
   }
 
@@ -92,6 +96,7 @@ class MemoryBoardRepository implements BoardRepository {
       startsAt: startsAt,
       dueAt: dueAt,
       isPinned: draft.isPinned,
+      tags: normalizeBoardItemTags(draft.tags),
     );
     _items.add(item);
     return item;
@@ -113,9 +118,17 @@ class MemoryBoardRepository implements BoardRepository {
       dueAt: old.dueAt,
       isDone: isDone,
       isPinned: old.isPinned,
+      tags: old.tags,
     );
     _items[index] = updated;
     return updated;
+  }
+
+  @override
+  Future<void> deleteItem(String itemId) async {
+    final before = _items.length;
+    _items.removeWhere((item) => item.id == itemId);
+    if (_items.length == before) throw StateError('Item not found');
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
@@ -216,13 +229,13 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
-  Future<List<BoardItem>> loadTodayItems({String? boardId}) async {
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     if (boardId == null) return const [];
 
     final rows = await _client
         .from('board_items')
         .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned',
+          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, tags',
         )
         .eq('board_id', boardId)
         .order('is_pinned', ascending: false)
@@ -255,9 +268,10 @@ class SupabaseBoardRepository implements BoardRepository {
           'created_by': userId,
           'requires_confirmation': draft.requiresConfirmation,
           'is_pinned': draft.isPinned,
+          'tags': normalizeBoardItemTags(draft.tags),
         })
         .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned',
+          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, tags',
         )
         .single();
 
@@ -272,6 +286,11 @@ class SupabaseBoardRepository implements BoardRepository {
     );
 
     return _itemFromRow(row);
+  }
+
+  @override
+  Future<void> deleteItem(String itemId) async {
+    await _client.from('board_items').delete().eq('id', itemId);
   }
 
   BoardItem _itemFromRow(Map<String, dynamic> row) {
@@ -290,7 +309,15 @@ class SupabaseBoardRepository implements BoardRepository {
       dueAt: dueAt,
       isDone: (row['is_done'] as bool?) ?? false,
       isPinned: (row['is_pinned'] as bool?) ?? false,
+      tags: _tagsFromRow(row['tags']),
     );
+  }
+
+  List<String> _tagsFromRow(Object? value) {
+    if (value is List) {
+      return normalizeBoardItemTags(value.whereType<String>());
+    }
+    return const [];
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {

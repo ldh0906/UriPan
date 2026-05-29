@@ -135,6 +135,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _deleteItem(BoardItem item) async {
+    await _runAction(() async {
+      await _controller.deleteItem(item.id);
+    });
+  }
+
   Future<void> _runAction(Future<void> Function() action) async {
     try {
       setState(() => _message = null);
@@ -238,6 +244,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onAddItem: _addItem,
               onCreateInvite: _createInvite,
               onCompleteTask: _completeTask,
+              onDeleteItem: _deleteItem,
             ),
             if (_message != null)
               Positioned(

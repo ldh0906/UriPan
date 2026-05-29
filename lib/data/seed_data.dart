@@ -16,6 +16,7 @@ final seedBoardItems = <BoardItem>[
     owner: '\uC5C4\uB9C8',
     timeLabel: '09:30',
     startsAt: _todayAt(9, 30),
+    tags: ['\uBCD1\uC6D0', '\uC900\uBE44\uBB3C'],
   ),
   BoardItem(
     id: 'schedule-dinner',
@@ -36,6 +37,7 @@ final seedBoardItems = <BoardItem>[
     owner: '\uBBFC\uC218',
     timeLabel: '\uC624\uB298',
     dueAt: _todayAt(21, 0),
+    tags: ['\uC9D1\uC548\uC77C'],
   ),
   BoardItem(
     id: 'task-form',
@@ -55,6 +57,7 @@ final seedBoardItems = <BoardItem>[
     owner: '\uC5C4\uB9C8',
     timeLabel: '\uACE0\uC815',
     isPinned: true,
+    tags: ['\uC8FC\uB9D0', '\uAC00\uC871'],
   ),
   BoardItem(
     id: 'notice-parking',

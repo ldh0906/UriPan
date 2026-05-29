@@ -57,6 +57,18 @@ Return to the pre-refactor style:
 
 The design should feel like a family situation board, not a generic productivity dashboard.
 
+`docs/DESIGN.md` is now the source of truth for UriPan UI/UX decisions. Agents should read it before changing visual style, interaction layout, or component behavior. Its YAML front matter carries normative tokens; its prose explains how those tokens should be applied.
+
+Current design rules from `docs/DESIGN.md`:
+
+- Keep the emotional target "softly organized": warm and family-friendly, but still dense enough for repeated operational use.
+- Preserve the warm yellow background, olive primary actions, white soft cards, and restrained pastel state colors.
+- Use compact hierarchy: page headings at 24-32px, section titles at 16px, item titles at 14px, labels/chips at 12-14px.
+- Keep bottom navigation persistent and keep add actions out of the bottom-nav overlap area.
+- Make add/detail sheets scrollable because date, tag, and action controls can grow beyond small mobile heights.
+- Treat user-entered tags as separate content from system state chips. Cards may show only a few tags; detail sheets show the full tag list.
+- Avoid tag color pickers, automatic tag suggestions, and tag management screens until search/filtering is deliberately designed.
+
 ### QA
 
 The core acceptance test is two accounts sharing one board:

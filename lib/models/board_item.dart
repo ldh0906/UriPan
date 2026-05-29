@@ -49,6 +49,7 @@ class BoardItem {
     this.dueAt,
     this.isDone = false,
     this.isPinned = false,
+    this.tags = const [],
   });
 
   final String id;
@@ -61,6 +62,7 @@ class BoardItem {
   final DateTime? dueAt;
   final bool isDone;
   final bool isPinned;
+  final List<String> tags;
 
   bool isForDate(DateTime date) {
     final target = DateTime(date.year, date.month, date.day);
@@ -69,6 +71,20 @@ class BoardItem {
     final local = value.toLocal();
     return DateTime(local.year, local.month, local.day) == target;
   }
+}
+
+List<String> normalizeBoardItemTags(Iterable<String> rawTags) {
+  final tags = <String>[];
+  final seen = <String>{};
+  for (final rawTag in rawTags) {
+    final tag = rawTag.trim().replaceFirst(RegExp(r'^#+'), '');
+    if (tag.isEmpty) continue;
+    final normalized = tag.length > 12 ? tag.substring(0, 12) : tag;
+    final key = normalized.toLowerCase();
+    if (seen.add(key)) tags.add(normalized);
+    if (tags.length == 5) break;
+  }
+  return List.unmodifiable(tags);
 }
 
 class BoardSummary {
@@ -111,6 +127,7 @@ class BoardItemDraft {
     this.dueAt,
     this.requiresConfirmation = false,
     this.isPinned = false,
+    this.tags = const [],
   });
 
   final BoardItemType type;
@@ -121,4 +138,5 @@ class BoardItemDraft {
   final DateTime? dueAt;
   final bool requiresConfirmation;
   final bool isPinned;
+  final List<String> tags;
 }

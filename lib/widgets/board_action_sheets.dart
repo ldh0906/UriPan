@@ -30,6 +30,7 @@ class CreateBoardDialog extends StatefulWidget {
 class _CreateBoardDialogState extends State<CreateBoardDialog> {
   final _nameController = TextEditingController(text: '\uC6B0\uB9AC\uC9D1');
   double _maxMembers = 4;
+  String? _nameError;
 
   @override
   void dispose() {
@@ -46,8 +47,9 @@ class _CreateBoardDialogState extends State<CreateBoardDialog> {
         children: [
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: '\uBCF4\uB4DC \uC774\uB984',
+              errorText: _nameError,
             ),
           ),
           const SizedBox(height: 16),
@@ -68,14 +70,24 @@ class _CreateBoardDialogState extends State<CreateBoardDialog> {
           child: const Text('\uCDE8\uC18C'),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(
-            context,
-            CreateBoardResult(_nameController.text.trim(), _maxMembers.round()),
-          ),
+          onPressed: _submit,
           child: const Text('\uB9CC\uB4E4\uAE30'),
         ),
       ],
     );
+  }
+
+  void _submit() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(
+        () => _nameError =
+            '\uBCF4\uB4DC \uC774\uB984\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+      );
+      return;
+    }
+
+    Navigator.pop(context, CreateBoardResult(name, _maxMembers.round()));
   }
 }
 
@@ -92,15 +104,18 @@ class _AddItemSheetState extends State<AddItemSheet> {
   late BoardItemType _type = widget.initialType ?? BoardItemType.task;
   final _titleController = TextEditingController();
   final _detailController = TextEditingController();
+  final _tagController = TextEditingController();
   late DateTime _selectedDate = DateTime.now();
   late TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isPinned = false;
   bool _requiresConfirmation = true;
+  String? _titleError;
 
   @override
   void dispose() {
     _titleController.dispose();
     _detailController.dispose();
+    _tagController.dispose();
     super.dispose();
   }
 
@@ -113,105 +128,156 @@ class _AddItemSheetState extends State<AddItemSheet> {
           right: 20,
           bottom: 20 + MediaQuery.viewInsetsOf(context).bottom,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '\uAC00\uC871 \uD56D\uBAA9 \uCD94\uAC00',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            SegmentedButton<BoardItemType>(
-              segments: BoardItemType.values
-                  .map(
-                    (type) =>
-                        ButtonSegment(value: type, label: Text(type.label)),
-                  )
-                  .toList(),
-              selected: {_type},
-              onSelectionChanged: (values) {
-                setState(() => _type = values.single);
-              },
-            ),
-            const SizedBox(height: 12),
-            if (_type == BoardItemType.schedule ||
-                _type == BoardItemType.task) ...[
-              _DateTimePickerRow(
-                label: _type == BoardItemType.schedule
-                    ? '\uC77C\uC815 \uB0A0\uC9DC'
-                    : '\uB9C8\uAC10 \uB0A0\uC9DC',
-                date: _selectedDate,
-                time: _selectedTime,
-                onPickDate: _pickDate,
-                onPickTime: _pickTime,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '\uAC00\uC871 \uD56D\uBAA9 \uCD94\uAC00',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
-            ],
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: '\uC81C\uBAA9'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _detailController,
-              decoration: const InputDecoration(labelText: '\uBA54\uBAA8'),
-            ),
-            if (_type == BoardItemType.notice) ...[
+              SegmentedButton<BoardItemType>(
+                segments: BoardItemType.values
+                    .map(
+                      (type) =>
+                          ButtonSegment(value: type, label: Text(type.label)),
+                    )
+                    .toList(),
+                selected: {_type},
+                onSelectionChanged: (values) {
+                  setState(() => _type = values.single);
+                },
+              ),
+              const SizedBox(height: 12),
+              if (_type == BoardItemType.schedule ||
+                  _type == BoardItemType.task) ...[
+                _DateTimePickerRow(
+                  label: _type == BoardItemType.schedule
+                      ? '\uC77C\uC815 \uB0A0\uC9DC'
+                      : '\uB9C8\uAC10 \uB0A0\uC9DC',
+                  date: _selectedDate,
+                  time: _selectedTime,
+                  onPickDate: _pickDate,
+                  onPickTime: _pickTime,
+                ),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: '\uC81C\uBAA9',
+                  errorText: _titleError,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _detailController,
+                decoration: const InputDecoration(labelText: '\uBA54\uBAA8'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _tagController,
+                decoration: const InputDecoration(
+                  labelText: '\uD0DC\uADF8',
+                  hintText:
+                      '\uC608: \uBCD1\uC6D0, \uC900\uBE44\uBB3C, \uC5C4\uB9C8',
+                  helperText:
+                      '\uC27C\uD45C\uB098 \uACF5\uBC31\uC73C\uB85C \uCD5C\uB300 5\uAC1C',
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              if (_parsedTags.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _parsedTags
+                      .map(
+                        (tag) => InputChip(
+                          label: Text('#$tag'),
+                          onDeleted: () => _removeTag(tag),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+              if (_type == BoardItemType.notice) ...[
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _requiresConfirmation,
+                  onChanged: (value) =>
+                      setState(() => _requiresConfirmation = value),
+                  title: const Text(
+                    '\uD655\uC778\uC774 \uD544\uC694\uD55C \uACF5\uC9C0',
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                value: _requiresConfirmation,
-                onChanged: (value) =>
-                    setState(() => _requiresConfirmation = value),
-                title: const Text(
-                  '\uD655\uC778\uC774 \uD544\uC694\uD55C \uACF5\uC9C0',
-                ),
+                value: _isPinned,
+                onChanged: (value) => setState(() => _isPinned = value),
+                title: const Text('\uC704\uC5D0 \uACE0\uC815'),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _submit,
+                child: const Text('\uCD94\uAC00'),
               ),
             ],
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _isPinned,
-              onChanged: (value) => setState(() => _isPinned = value),
-              title: const Text('\uC704\uC5D0 \uACE0\uC815'),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                final title = _titleController.text.trim();
-                if (title.isEmpty) return;
-                final selectedDateTime = DateTime(
-                  _selectedDate.year,
-                  _selectedDate.month,
-                  _selectedDate.day,
-                  _selectedTime.hour,
-                  _selectedTime.minute,
-                );
-                Navigator.pop(
-                  context,
-                  BoardItemDraft(
-                    type: _type,
-                    title: title,
-                    detail: _detailController.text.trim(),
-                    startsAt: _type == BoardItemType.schedule
-                        ? selectedDateTime
-                        : null,
-                    dueAt: _type == BoardItemType.task
-                        ? selectedDateTime
-                        : null,
-                    requiresConfirmation:
-                        _type == BoardItemType.notice && _requiresConfirmation,
-                    isPinned: _isPinned,
-                  ),
-                );
-              },
-              child: const Text('\uCD94\uAC00'),
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  void _submit() {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      setState(
+        () => _titleError =
+            '\uC81C\uBAA9\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.',
+      );
+      return;
+    }
+
+    final selectedDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+    Navigator.pop(
+      context,
+      BoardItemDraft(
+        type: _type,
+        title: title,
+        detail: _detailController.text.trim(),
+        startsAt: _type == BoardItemType.schedule ? selectedDateTime : null,
+        dueAt: _type == BoardItemType.task ? selectedDateTime : null,
+        requiresConfirmation:
+            _type == BoardItemType.notice && _requiresConfirmation,
+        isPinned: _isPinned,
+        tags: _parsedTags,
+      ),
+    );
+  }
+
+  List<String> get _parsedTags {
+    return normalizeBoardItemTags(_tagController.text.split(RegExp(r'[,\s]+')));
+  }
+
+  void _removeTag(String tag) {
+    final tags = _parsedTags.where((value) => value != tag).toList();
+    _tagController.text = tags.join(', ');
+    _tagController.selection = TextSelection.collapsed(
+      offset: _tagController.text.length,
+    );
+    setState(() {});
   }
 
   Future<void> _pickDate() async {
