@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,6 +9,7 @@ import 'screens/today_board_screen.dart';
 import 'services/auth_error_messages.dart';
 import 'services/auth_input_validator.dart';
 import 'services/board_repository.dart';
+import 'services/board_session_controller.dart';
 import 'theme/app_theme.dart';
 
 const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
@@ -272,14 +275,24 @@ class BoardHomeScreen extends StatefulWidget {
 }
 
 class _BoardHomeScreenState extends State<BoardHomeScreen> {
-  late Future<void> _loadFuture = _loadBoards();
-  BoardSummary? _activeBoard;
+  late final BoardSessionController _controller;
+  late Future<void> _initialLoad;
   String? _message;
   RealtimeChannel? _boardChannel;
   String? _subscribedBoardId;
 
   @override
+  void initState() {
+    super.initState();
+    _controller = BoardSessionController(widget.repository)
+      ..addListener(_handleControllerChanged);
+    _initialLoad = _controller.load();
+  }
+
+  @override
   void dispose() {
+    _controller.removeListener(_handleControllerChanged);
+    _controller.dispose();
     final channel = _boardChannel;
     if (channel != null) {
       widget.client.removeChannel(channel);
@@ -287,29 +300,27 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadBoards({String? preferredBoardId}) async {
-    final boards = await widget.repository.loadBoards();
-    final targetBoardId = preferredBoardId ?? _activeBoard?.id;
-    if (boards.isEmpty) {
-      _activeBoard = null;
-    } else {
-      _activeBoard = boards.firstWhere(
-        (board) => board.id == targetBoardId,
-        orElse: () => boards.first,
-      );
-    }
-    _syncRealtimeSubscription(_activeBoard);
+  void _handleControllerChanged() {
+    _syncRealtimeSubscription(_controller.activeBoard);
+    if (mounted) setState(() {});
   }
 
-  Future<void> _refresh({String? preferredBoardId}) async {
-    setState(() {
-      _loadFuture = _loadBoards(preferredBoardId: preferredBoardId);
-    });
-    await _loadFuture;
+  Future<void> _refresh() async {
+    await _controller.load();
   }
 
   void _syncRealtimeSubscription(BoardSummary? board) {
-    if (board == null || _subscribedBoardId == board.id) return;
+    if (board == null) {
+      final previous = _boardChannel;
+      if (previous != null) {
+        widget.client.removeChannel(previous);
+      }
+      _boardChannel = null;
+      _subscribedBoardId = null;
+      return;
+    }
+
+    if (_subscribedBoardId == board.id) return;
 
     final previous = _boardChannel;
     if (previous != null) {
@@ -329,7 +340,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
             value: board.id,
           ),
           callback: (_) {
-            if (mounted) setState(() {});
+            if (mounted) unawaited(_controller.handleBoardItemsChanged());
           },
         )
         .onPostgresChanges(
@@ -337,7 +348,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
           schema: 'public',
           table: 'item_confirmations',
           callback: (_) {
-            if (mounted) setState(() {});
+            if (mounted) unawaited(_controller.handleBoardItemsChanged());
           },
         )
         .onPostgresChanges(
@@ -351,9 +362,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
           ),
           callback: (_) {
             if (mounted) {
-              setState(() {
-                _loadFuture = _loadBoards();
-              });
+              unawaited(_controller.handleBoardMembershipChanged());
             }
           },
         )
@@ -368,11 +377,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (result == null) return;
 
     await _runAction(() async {
-      final created = await widget.repository.createBoard(
-        result.name,
-        result.maxMembers,
-      );
-      await _refresh(preferredBoardId: created.id);
+      await _controller.createBoard(result.name, result.maxMembers);
     });
   }
 
@@ -384,17 +389,16 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (code == null || code.trim().isEmpty) return;
 
     await _runAction(() async {
-      final joined = await widget.repository.joinBoardWithInvite(code.trim());
-      await _refresh(preferredBoardId: joined.id);
+      await _controller.joinBoardWithInvite(code.trim());
     });
   }
 
   Future<void> _createInvite() async {
-    final board = _activeBoard;
+    final board = _controller.activeBoard;
     if (board == null || !board.isAdmin) return;
 
     await _runAction(() async {
-      final invite = await widget.repository.createInvite(board.id);
+      final invite = await _controller.createInvite();
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -415,7 +419,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   }
 
   Future<void> _addItem() async {
-    final board = _activeBoard;
+    final board = _controller.activeBoard;
     if (board == null) return;
 
     final draft = await showModalBottomSheet<BoardItemDraft>(
@@ -426,15 +430,13 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (draft == null) return;
 
     await _runAction(() async {
-      await widget.repository.createItem(board.id, draft);
-      setState(() {});
+      await _controller.createItem(draft);
     });
   }
 
   Future<void> _completeTask(BoardItem item, bool isDone) async {
     await _runAction(() async {
-      await widget.repository.completeTask(item.id, isDone);
-      setState(() {});
+      await _controller.completeTask(item.id, isDone);
     });
   }
 
@@ -501,7 +503,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
-      future: _loadFuture,
+      future: _initialLoad,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Scaffold(
@@ -511,12 +513,16 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
         if (snapshot.hasError) {
           return _BoardLoadErrorScreen(
             message: _friendlyDatabaseError(snapshot.error.toString()),
-            onRetry: () => _refresh(),
+            onRetry: () {
+              setState(() {
+                _initialLoad = _controller.load();
+              });
+            },
             onSignOut: () => widget.client.auth.signOut(),
           );
         }
 
-        final board = _activeBoard;
+        final board = _controller.activeBoard;
         if (board == null) {
           return _NoBoardScreen(
             message: _message,
@@ -529,7 +535,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
         return Stack(
           children: [
             TodayBoardScreen(
-              repository: widget.repository,
+              items: _controller.items,
               board: board,
               onRefresh: _refresh,
               onAddItem: _addItem,

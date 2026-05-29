@@ -5,18 +5,23 @@ import '../services/board_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 
-class TodayBoardScreen extends StatelessWidget {
+class TodayBoardScreen extends StatefulWidget {
   const TodayBoardScreen({
     super.key,
-    required this.repository,
+    this.repository,
+    this.items,
     this.board,
     this.onRefresh,
     this.onAddItem,
     this.onCreateInvite,
     this.onCompleteTask,
-  });
+  }) : assert(
+         items != null || repository != null,
+         'Provide items for controlled rendering or repository for fallback loading.',
+       );
 
-  final BoardRepository repository;
+  final BoardRepository? repository;
+  final List<BoardItem>? items;
   final BoardSummary? board;
   final VoidCallback? onRefresh;
   final VoidCallback? onAddItem;
@@ -24,98 +29,119 @@ class TodayBoardScreen extends StatelessWidget {
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<BoardItem>>(
-      future: repository.loadTodayItems(boardId: board?.id),
-      builder: (context, snapshot) {
-        final items = snapshot.data ?? const <BoardItem>[];
-        final schedules = _itemsOfType(items, BoardItemType.schedule);
-        final tasks = _itemsOfType(items, BoardItemType.task);
-        final notices = _itemsOfType(items, BoardItemType.notice);
-        final openTasks = tasks.where((item) => !item.isDone).length;
+  State<TodayBoardScreen> createState() => _TodayBoardScreenState();
+}
 
-        return Scaffold(
-          floatingActionButton: AddItemFab(onPressed: onAddItem),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: const AppBottomNav(),
-          body: SafeArea(
-            bottom: false,
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _Header(board: board, onCreateInvite: onCreateInvite),
-                        const SizedBox(height: 20),
-                        _PulseCard(
-                          schedules: schedules.length,
-                          openTasks: openTasks,
-                          notices: notices.length,
-                        ),
-                        const SizedBox(height: 24),
-                        SectionHeader(
-                          title: '\uC624\uB298 \uC77C\uC815',
-                          count: schedules.length,
-                        ),
-                        const SizedBox(height: 10),
-                        ...schedules.map(
-                          (item) => _ItemCard(
-                            item: item,
-                            accentColor: AppColors.primary,
-                            accentSoftColor: AppColors.primarySoft,
-                            icon: Icons.calendar_month_rounded,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SectionHeader(
-                          title: '\uD560 \uC77C',
-                          count: tasks.length,
-                        ),
-                        const SizedBox(height: 10),
-                        ...tasks.map(
-                          (item) => _ItemCard(
-                            item: item,
-                            accentColor: AppColors.tertiary,
-                            accentSoftColor: AppColors.warningSoft,
-                            icon: Icons.check_rounded,
-                            showCheckbox: true,
-                            onToggle: onCompleteTask,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SectionHeader(
-                          title: '\uACF5\uC9C0',
-                          count: notices.length,
-                        ),
-                        const SizedBox(height: 10),
-                        ...notices.map(
-                          (item) => _ItemCard(
-                            item: item,
-                            accentColor: AppColors.success,
-                            accentSoftColor: AppColors.successSoft,
-                            icon: Icons.campaign_rounded,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+class _TodayBoardScreenState extends State<TodayBoardScreen> {
+  late Future<List<BoardItem>>? _itemsFuture = _loadItems();
+
+  @override
+  void didUpdateWidget(TodayBoardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.items != null) {
+      _itemsFuture = null;
+      return;
+    }
+
+    _itemsFuture = _loadItems();
+  }
+
+  Future<List<BoardItem>>? _loadItems() {
+    if (widget.items != null) return null;
+    return widget.repository!.loadTodayItems(boardId: widget.board?.id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = widget.items;
+    if (items != null) return _buildBoard(context, items);
+
+    return FutureBuilder<List<BoardItem>>(
+      future: _itemsFuture,
+      builder: (context, snapshot) =>
+          _buildBoard(context, snapshot.data ?? const <BoardItem>[]),
     );
   }
 
-  static List<BoardItem> _itemsOfType(
-    List<BoardItem> items,
-    BoardItemType type,
-  ) {
+  Widget _buildBoard(BuildContext context, List<BoardItem> items) {
+    final schedules = _itemsOfType(items, BoardItemType.schedule);
+    final tasks = _itemsOfType(items, BoardItemType.task);
+    final notices = _itemsOfType(items, BoardItemType.notice);
+    final openTasks = tasks.where((item) => !item.isDone).length;
+
+    return Scaffold(
+      floatingActionButton: AddItemFab(onPressed: widget.onAddItem),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: const AppBottomNav(),
+      body: SafeArea(
+        bottom: false,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Header(
+                      board: widget.board,
+                      onCreateInvite: widget.onCreateInvite,
+                    ),
+                    const SizedBox(height: 20),
+                    _PulseCard(
+                      schedules: schedules.length,
+                      openTasks: openTasks,
+                      notices: notices.length,
+                    ),
+                    const SizedBox(height: 24),
+                    SectionHeader(
+                      title: '\uC624\uB298 \uC77C\uC815',
+                      count: schedules.length,
+                    ),
+                    const SizedBox(height: 10),
+                    ...schedules.map(
+                      (item) => _ItemCard(
+                        item: item,
+                        accentColor: AppColors.primary,
+                        accentSoftColor: AppColors.primarySoft,
+                        icon: Icons.calendar_month_rounded,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SectionHeader(title: '\uD560 \uC77C', count: tasks.length),
+                    const SizedBox(height: 10),
+                    ...tasks.map(
+                      (item) => _ItemCard(
+                        item: item,
+                        accentColor: AppColors.tertiary,
+                        accentSoftColor: AppColors.warningSoft,
+                        icon: Icons.check_rounded,
+                        showCheckbox: true,
+                        onToggle: widget.onCompleteTask,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SectionHeader(title: '\uACF5\uC9C0', count: notices.length),
+                    const SizedBox(height: 10),
+                    ...notices.map(
+                      (item) => _ItemCard(
+                        item: item,
+                        accentColor: AppColors.success,
+                        accentSoftColor: AppColors.successSoft,
+                        icon: Icons.campaign_rounded,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<BoardItem> _itemsOfType(List<BoardItem> items, BoardItemType type) {
     return items.where((item) => item.type == type).toList(growable: false);
   }
 }
