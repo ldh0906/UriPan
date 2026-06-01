@@ -8,7 +8,7 @@ Do them **in numeric order** — later tasks assume earlier ones landed.
 From PowerShell in `C:\UriPan`:
 
 ```powershell
-Get-Content docs\codex-tasks\01-item-author-display-names.md -Raw |
+Get-Content docs\codex-tasks\04-invite-management.md -Raw |
   codex exec --dangerously-bypass-approvals-and-sandbox -o .codex_last.txt -
 ```
 
@@ -34,11 +34,10 @@ Then delete the temp file: `Remove-Item .codex_last.txt`.
 
 ## The queue
 
+Tasks 01–03 are done and their prompt files were removed. Remaining:
+
 | # | File | What it adds |
 |---|------|--------------|
-| 1 | 01-item-author-display-names.md | Real author/assignee names on items (no more hardcoded '우리') |
-| 2 | 02-members-tab-real-list.md | Members tab shows the real member list, roles, capacity |
-| 3 | 03-assignee-picker.md | Pick an assignee when adding/editing a task |
 | 4 | 04-invite-management.md | Copy / regenerate / revoke invite codes + expiry/full states |
 | 5 | 05-leave-board.md | A member can leave the board |
 | 6 | 06-datetime-validation.md | Date/time input validation for schedules and tasks |
