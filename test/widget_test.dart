@@ -238,6 +238,36 @@ void main() {
     expect(find.text('#verylongtagn'), findsOneWidget);
   });
 
+  testWidgets('Add item sheet edit mode prefills task fields', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AddItemSheet(
+            initialItem: BoardItem(
+              id: 'edit-task',
+              type: BoardItemType.task,
+              title: 'Update lunch order',
+              detail: 'No onions',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(2026, 6, 1, 17, 30),
+              tags: const ['Kitchen', 'Family'],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final segmentedButton = tester.widget<SegmentedButton<BoardItemType>>(
+      find.byType(SegmentedButton<BoardItemType>),
+    );
+
+    expect(find.text('\uD56D\uBAA9 \uC218\uC815'), findsOneWidget);
+    expect(find.text('Update lunch order'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '\uC800\uC7A5'), findsOneWidget);
+    expect(segmentedButton.onSelectionChanged, isNull);
+  });
+
   testWidgets('Create board dialog shows an error for an empty name', (
     tester,
   ) async {
@@ -361,6 +391,43 @@ void main() {
 
     expect(confirmedItem?.id, 'confirm-me');
     expect(confirmedValue, isTrue);
+  });
+
+  testWidgets('Tapping edit in a task detail sheet opens edit sheet', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final navigatorKey = GlobalKey<NavigatorState>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'edit-me',
+              type: BoardItemType.task,
+              title: 'Edit this task',
+              detail: 'Existing memo',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(now.year, now.month, now.day, 18),
+            ),
+          ],
+          onEditItem: (item) {
+            showEditItemSheet(navigatorKey.currentContext!, item);
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Edit this task'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, '\uC218\uC815'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(FilledButton, '\uC800\uC7A5'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Edit this task'), findsOneWidget);
   });
 
   testWidgets('Refresh button calls the board refresh callback', (

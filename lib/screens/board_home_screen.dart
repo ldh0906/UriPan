@@ -129,6 +129,15 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _editItem(BoardItem item) async {
+    final draft = await showEditItemSheet(context, item);
+    if (draft == null) return;
+
+    await _runAction(() async {
+      await _controller.updateItem(item.id, draft);
+    });
+  }
+
   Future<void> _completeTask(BoardItem item, bool isDone) async {
     await _runAction(() async {
       await _controller.completeTask(item.id, isDone);
@@ -251,6 +260,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onCreateInvite: _createInvite,
               onCompleteTask: _completeTask,
               onConfirmNotice: _confirmNotice,
+              onEditItem: _editItem,
               onDeleteItem: _deleteItem,
             ),
             if (_message != null)

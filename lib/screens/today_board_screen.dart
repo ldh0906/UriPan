@@ -22,6 +22,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.onCreateInvite,
     this.onCompleteTask,
     this.onConfirmNotice,
+    this.onEditItem,
     this.onDeleteItem,
   }) : assert(
          items != null || repository != null,
@@ -38,6 +39,7 @@ class TodayBoardScreen extends StatefulWidget {
   final VoidCallback? onCreateInvite;
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
   final Future<void> Function(BoardItem item, bool confirmed)? onConfirmNotice;
+  final void Function(BoardItem item)? onEditItem;
   final Future<void> Function(BoardItem item)? onDeleteItem;
 
   @override
@@ -333,6 +335,23 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     if (mounted) setState(() => _fallbackItems = items);
   }
 
+  Future<void> _editItem(BoardItem item) async {
+    final onEditItem = widget.onEditItem;
+    if (onEditItem != null) {
+      onEditItem(item);
+      return;
+    }
+
+    final repository = widget.repository;
+    if (repository == null) return;
+    final draft = await showEditItemSheet(context, item);
+    if (draft == null) return;
+
+    await repository.updateItem(item.id, draft);
+    final items = await repository.loadBoardItems(boardId: widget.board?.id);
+    if (mounted) setState(() => _fallbackItems = items);
+  }
+
   Future<void> _showItemDetail(BoardItem item) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -352,6 +371,10 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                 await _confirmNotice(item, confirmed);
               }
             : null,
+        onEdit: () async {
+          Navigator.pop(context);
+          await _editItem(item);
+        },
         onDelete: () async {
           Navigator.pop(context);
           await _deleteItem(item);

@@ -13,6 +13,17 @@ Future<BoardItemDraft?> showAddItemSheet(
   );
 }
 
+Future<BoardItemDraft?> showEditItemSheet(
+  BuildContext context,
+  BoardItem item,
+) {
+  return showModalBottomSheet<BoardItemDraft>(
+    context: context,
+    showDragHandle: true,
+    builder: (context) => AddItemSheet(initialItem: item),
+  );
+}
+
 class CreateBoardResult {
   const CreateBoardResult(this.name, this.maxMembers);
 
@@ -92,24 +103,46 @@ class _CreateBoardDialogState extends State<CreateBoardDialog> {
 }
 
 class AddItemSheet extends StatefulWidget {
-  const AddItemSheet({super.key, this.initialType});
+  const AddItemSheet({super.key, this.initialType, this.initialItem});
 
   final BoardItemType? initialType;
+  final BoardItem? initialItem;
 
   @override
   State<AddItemSheet> createState() => _AddItemSheetState();
 }
 
 class _AddItemSheetState extends State<AddItemSheet> {
-  late BoardItemType _type = widget.initialType ?? BoardItemType.task;
+  late BoardItemType _type;
   final _titleController = TextEditingController();
   final _detailController = TextEditingController();
   final _tagController = TextEditingController();
-  late DateTime _selectedDate = DateTime.now();
-  late TimeOfDay _selectedTime = TimeOfDay.now();
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
   bool _isPinned = false;
   bool _requiresConfirmation = true;
   String? _titleError;
+
+  bool get _isEditing => widget.initialItem != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialItem = widget.initialItem;
+    _type = initialItem?.type ?? widget.initialType ?? BoardItemType.task;
+    final dateTime =
+        initialItem?.startsAt ?? initialItem?.dueAt ?? DateTime.now();
+    _selectedDate = dateTime;
+    _selectedTime = TimeOfDay.fromDateTime(dateTime);
+
+    if (initialItem != null) {
+      _titleController.text = initialItem.title;
+      _detailController.text = initialItem.detail;
+      _tagController.text = initialItem.tags.join(', ');
+      _isPinned = initialItem.isPinned;
+      _requiresConfirmation = initialItem.requiresConfirmation;
+    }
+  }
 
   @override
   void dispose() {
@@ -134,7 +167,9 @@ class _AddItemSheetState extends State<AddItemSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '\uAC00\uC871 \uD56D\uBAA9 \uCD94\uAC00',
+                _isEditing
+                    ? '\uD56D\uBAA9 \uC218\uC815'
+                    : '\uAC00\uC871 \uD56D\uBAA9 \uCD94\uAC00',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
@@ -146,9 +181,11 @@ class _AddItemSheetState extends State<AddItemSheet> {
                     )
                     .toList(),
                 selected: {_type},
-                onSelectionChanged: (values) {
-                  setState(() => _type = values.single);
-                },
+                onSelectionChanged: _isEditing
+                    ? null
+                    : (values) {
+                        setState(() => _type = values.single);
+                      },
               ),
               const SizedBox(height: 12),
               if (_type == BoardItemType.schedule ||
@@ -225,7 +262,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _submit,
-                child: const Text('\uCD94\uAC00'),
+                child: Text(_isEditing ? '\uC800\uC7A5' : '\uCD94\uAC00'),
               ),
             ],
           ),

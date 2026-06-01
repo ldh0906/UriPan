@@ -11,6 +11,7 @@ class ItemDetailSheet extends StatelessWidget {
     required this.isPending,
     this.onToggle,
     this.onConfirm,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -18,6 +19,7 @@ class ItemDetailSheet extends StatelessWidget {
   final bool isPending;
   final Future<void> Function(bool isDone)? onToggle;
   final Future<void> Function(bool confirmed)? onConfirm;
+  final Future<void> Function()? onEdit;
   final Future<void> Function()? onDelete;
 
   @override
@@ -125,6 +127,14 @@ class ItemDetailSheet extends StatelessWidget {
                     ),
                   ),
                 ],
+              ],
+              if (onEdit != null) ...[
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('\uC218\uC815'),
+                ),
               ],
               if (onDelete != null) ...[
                 const SizedBox(height: 10),

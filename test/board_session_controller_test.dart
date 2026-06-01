@@ -86,6 +86,49 @@ void main() {
   );
 
   test(
+    'updateItem changes a memory item and reloads controller items',
+    () async {
+      final repository = MemoryBoardRepository([
+        BoardItem(
+          id: 'task-1',
+          type: BoardItemType.task,
+          title: 'Old title',
+          detail: 'Old detail',
+          owner: 'Us',
+          timeLabel: 'Today',
+          dueAt: DateTime(2026, 6, 1, 9),
+          isDone: true,
+          tags: const ['Old'],
+        ),
+      ]);
+      final controller = BoardSessionController(repository);
+      await controller.load();
+
+      await controller.updateItem(
+        'task-1',
+        BoardItemDraft(
+          type: BoardItemType.task,
+          title: 'New title',
+          detail: 'New detail',
+          dueAt: DateTime(2026, 6, 2, 18),
+          isPinned: true,
+          tags: const ['Home', 'Home', '#Errand'],
+        ),
+      );
+
+      final item = controller.items.single;
+      expect(item.id, 'task-1');
+      expect(item.type, BoardItemType.task);
+      expect(item.title, 'New title');
+      expect(item.detail, 'New detail');
+      expect(item.isDone, isTrue);
+      expect(item.isPinned, isTrue);
+      expect(item.tags, ['Home', 'Errand']);
+      expect(item.dueAt, DateTime(2026, 6, 2, 18));
+    },
+  );
+
+  test(
     'reconciles boards and items when membership changes through realtime',
     () async {
       final repository = _FakeBoardRepository(
@@ -294,6 +337,28 @@ class _FakeBoardRepository implements BoardRepository {
     );
     itemsByBoard[boardId] = [...itemsByBoard[boardId] ?? const [], item];
     return item;
+  }
+
+  @override
+  Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) async {
+    for (final entry in itemsByBoard.entries) {
+      final index = entry.value.indexWhere((item) => item.id == itemId);
+      if (index >= 0) {
+        final old = entry.value[index];
+        final updated = old.copyWith(
+          title: draft.title,
+          detail: draft.detail,
+          startsAt: draft.startsAt,
+          dueAt: draft.dueAt,
+          isPinned: draft.isPinned,
+          requiresConfirmation: draft.requiresConfirmation,
+          tags: normalizeBoardItemTags(draft.tags),
+        );
+        entry.value[index] = updated;
+        return updated;
+      }
+    }
+    throw StateError('Item not found');
   }
 
   @override

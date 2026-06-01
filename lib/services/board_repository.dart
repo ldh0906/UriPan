@@ -21,6 +21,10 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) {
+    throw UnimplementedError();
+  }
+
   Future<BoardItem> completeTask(String itemId, bool isDone) {
     throw UnimplementedError();
   }
@@ -105,6 +109,32 @@ class MemoryBoardRepository implements BoardRepository {
     );
     _items.add(item);
     return item;
+  }
+
+  @override
+  Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) async {
+    final index = _items.indexWhere((item) => item.id == itemId);
+    if (index < 0) throw StateError('Item not found');
+
+    final old = _items[index];
+    final startsAt = draft.type == BoardItemType.schedule
+        ? draft.startsAt ?? DateTime.now()
+        : draft.startsAt;
+    final dueAt = draft.type == BoardItemType.task
+        ? draft.dueAt ?? DateTime.now()
+        : draft.dueAt;
+    final updated = old.copyWith(
+      title: draft.title,
+      detail: draft.detail,
+      timeLabel: _timeLabel(old.type, startsAt, dueAt),
+      startsAt: startsAt,
+      dueAt: dueAt,
+      isPinned: draft.isPinned,
+      requiresConfirmation: draft.requiresConfirmation,
+      tags: normalizeBoardItemTags(draft.tags),
+    );
+    _items[index] = updated;
+    return updated;
   }
 
   @override
@@ -284,6 +314,36 @@ class SupabaseBoardRepository implements BoardRepository {
           'is_pinned': draft.isPinned,
           'tags': normalizeBoardItemTags(draft.tags),
         })
+        .select(
+          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
+        )
+        .single();
+
+    return _itemFromRow(row);
+  }
+
+  @override
+  Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) async {
+    final now = DateTime.now();
+    final startsAt = draft.type == BoardItemType.schedule
+        ? draft.startsAt ?? now
+        : draft.startsAt;
+    final dueAt = draft.type == BoardItemType.task
+        ? draft.dueAt ?? now
+        : draft.dueAt;
+
+    final row = await _client
+        .from('board_items')
+        .update({
+          'title': draft.title,
+          'detail': draft.detail,
+          'starts_at': startsAt?.toIso8601String(),
+          'due_at': dueAt?.toIso8601String(),
+          'requires_confirmation': draft.requiresConfirmation,
+          'is_pinned': draft.isPinned,
+          'tags': normalizeBoardItemTags(draft.tags),
+        })
+        .eq('id', itemId)
         .select(
           'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
         )
