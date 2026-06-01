@@ -302,6 +302,7 @@ void main() {
               title: 'Detailed task',
               detail: 'Bring the full memo',
               owner: 'Us',
+              assigneeName: 'Mina',
               timeLabel: 'Today',
               dueAt: DateTime(now.year, now.month, now.day, 18),
               tags: ['School', 'Family'],
@@ -315,6 +316,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bring the full memo'), findsWidgets);
+    expect(find.text('\uB2F4\uB2F9: Mina'), findsOneWidget);
     expect(find.text('#School'), findsWidgets);
     expect(find.text('#Family'), findsWidgets);
     expect(find.text('\uC644\uB8CC\uD558\uAE30'), findsOneWidget);

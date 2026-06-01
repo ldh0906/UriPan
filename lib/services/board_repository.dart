@@ -100,6 +100,7 @@ class MemoryBoardRepository implements BoardRepository {
       title: draft.title,
       detail: draft.detail,
       owner: '\uC6B0\uB9AC',
+      assignedToId: draft.assignedTo,
       timeLabel: _timeLabel(draft.type, startsAt, dueAt),
       startsAt: startsAt,
       dueAt: dueAt,
@@ -195,6 +196,9 @@ class MemoryBoardRepository implements BoardRepository {
 class SupabaseBoardRepository implements BoardRepository {
   const SupabaseBoardRepository(this._client);
 
+  static const _itemSelectColumns =
+      'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, created_by, assigned_to, item_confirmations(user_id)';
+
   final SupabaseClient _client;
 
   @override
@@ -278,14 +282,15 @@ class SupabaseBoardRepository implements BoardRepository {
 
     final rows = await _client
         .from('board_items')
-        .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
-        )
+        .select(_itemSelectColumns)
         .eq('board_id', boardId)
         .order('is_pinned', ascending: false)
         .order('created_at', ascending: false);
 
-    return rows.map<BoardItem>(_itemFromRow).toList(growable: false);
+    final names = await _displayNames(_userIdsFromRows(rows));
+    return rows
+        .map<BoardItem>((row) => _itemFromRow(row, names))
+        .toList(growable: false);
   }
 
   @override
@@ -314,12 +319,11 @@ class SupabaseBoardRepository implements BoardRepository {
           'is_pinned': draft.isPinned,
           'tags': normalizeBoardItemTags(draft.tags),
         })
-        .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
-        )
+        .select(_itemSelectColumns)
         .single();
 
-    return _itemFromRow(row);
+    final names = await _displayNames(_userIdsFromRow(row));
+    return _itemFromRow(row, names);
   }
 
   @override
@@ -344,12 +348,11 @@ class SupabaseBoardRepository implements BoardRepository {
           'tags': normalizeBoardItemTags(draft.tags),
         })
         .eq('id', itemId)
-        .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
-        )
+        .select(_itemSelectColumns)
         .single();
 
-    return _itemFromRow(row);
+    final names = await _displayNames(_userIdsFromRow(row));
+    return _itemFromRow(row, names);
   }
 
   @override
@@ -359,7 +362,8 @@ class SupabaseBoardRepository implements BoardRepository {
       params: {'target_item_id': itemId, 'completed': isDone},
     );
 
-    return _itemFromRow(row);
+    final names = await _displayNames(_userIdsFromRow(row));
+    return _itemFromRow(row, names);
   }
 
   @override
@@ -385,19 +389,50 @@ class SupabaseBoardRepository implements BoardRepository {
     await _client.from('board_items').delete().eq('id', itemId);
   }
 
-  BoardItem _itemFromRow(Map<String, dynamic> row) {
+  Future<Map<String, String>> _displayNames(Set<String> userIds) async {
+    if (userIds.isEmpty) return const {};
+
+    final rows = await _client
+        .from('profiles')
+        .select('id, display_name')
+        .inFilter('id', userIds.toList());
+
+    return {
+      for (final row in rows)
+        if (row['id'] is String && row['display_name'] is String)
+          row['id'] as String: row['display_name'] as String,
+    };
+  }
+
+  Set<String> _userIdsFromRows(Iterable<Map<String, dynamic>> rows) {
+    return rows.expand(_userIdsFromRow).toSet();
+  }
+
+  Set<String> _userIdsFromRow(Map<String, dynamic> row) {
+    return {
+      if (row['created_by'] case final String createdBy) createdBy,
+      if (row['assigned_to'] case final String assignedTo) assignedTo,
+    };
+  }
+
+  BoardItem _itemFromRow(Map<String, dynamic> row, Map<String, String> names) {
     final type = BoardItemTypeWire.fromWireName(row['type'] as String);
     final startsAt = DateTime.tryParse((row['starts_at'] as String?) ?? '');
     final dueAt = DateTime.tryParse((row['due_at'] as String?) ?? '');
     final confirmations = (row['item_confirmations'] as List?) ?? const [];
     final currentUserId = _client.auth.currentUser?.id;
+    final createdById = row['created_by'] as String?;
+    final assignedToId = row['assigned_to'] as String?;
 
     return BoardItem(
       id: row['id'] as String,
       type: type,
       title: row['title'] as String,
       detail: (row['detail'] as String?) ?? '',
-      owner: '\uC6B0\uB9AC',
+      owner: names[createdById] ?? '???',
+      createdById: createdById,
+      assignedToId: assignedToId,
+      assigneeName: assignedToId == null ? null : names[assignedToId],
       timeLabel: _timeLabel(type, startsAt, dueAt),
       startsAt: startsAt,
       dueAt: dueAt,

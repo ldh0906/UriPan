@@ -45,6 +45,9 @@ class BoardItem {
     required this.detail,
     required this.owner,
     required this.timeLabel,
+    this.createdById,
+    this.assignedToId,
+    this.assigneeName,
     this.startsAt,
     this.dueAt,
     this.isDone = false,
@@ -62,6 +65,9 @@ class BoardItem {
   final String title;
   final String detail;
   final String owner;
+  final String? createdById;
+  final String? assignedToId;
+  final String? assigneeName;
   final String timeLabel;
   final DateTime? startsAt;
   final DateTime? dueAt;
@@ -78,6 +84,9 @@ class BoardItem {
     String? title,
     String? detail,
     String? owner,
+    Object? createdById = _unset,
+    Object? assignedToId = _unset,
+    Object? assigneeName = _unset,
     String? timeLabel,
     Object? startsAt = _unset,
     Object? dueAt = _unset,
@@ -94,6 +103,15 @@ class BoardItem {
       title: title ?? this.title,
       detail: detail ?? this.detail,
       owner: owner ?? this.owner,
+      createdById: createdById == _unset
+          ? this.createdById
+          : createdById as String?,
+      assignedToId: assignedToId == _unset
+          ? this.assignedToId
+          : assignedToId as String?,
+      assigneeName: assigneeName == _unset
+          ? this.assigneeName
+          : assigneeName as String?,
       timeLabel: timeLabel ?? this.timeLabel,
       startsAt: startsAt == _unset ? this.startsAt : startsAt as DateTime?,
       dueAt: dueAt == _unset ? this.dueAt : dueAt as DateTime?,

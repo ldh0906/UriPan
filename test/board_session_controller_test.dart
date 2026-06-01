@@ -85,6 +85,23 @@ void main() {
     },
   );
 
+  test('memory-created items keep the assigned user id after reload', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.createItem(
+      const BoardItemDraft(
+        type: BoardItemType.task,
+        title: 'Take out trash',
+        detail: '',
+        assignedTo: 'user-2',
+      ),
+    );
+
+    expect(controller.items.single.assignedToId, 'user-2');
+  });
+
   test(
     'updateItem changes a memory item and reloads controller items',
     () async {
@@ -329,6 +346,7 @@ class _FakeBoardRepository implements BoardRepository {
       title: draft.title,
       detail: draft.detail,
       owner: 'Us',
+      assignedToId: draft.assignedTo,
       timeLabel: 'Today',
       startsAt: draft.startsAt,
       dueAt: draft.dueAt,

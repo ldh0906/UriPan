@@ -59,6 +59,8 @@ class ItemDetailSheet extends StatelessWidget {
                 children: [
                   InfoChip(label: typeLabel),
                   InfoChip(label: item.owner),
+                  if (item.assigneeName != null)
+                    InfoChip(label: '\uB2F4\uB2F9: ${item.assigneeName}'),
                   InfoChip(label: dateLabel ?? item.timeLabel),
                   if (item.isPinned) const InfoChip(label: '고정'),
                   if (item.type == BoardItemType.task)
