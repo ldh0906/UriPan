@@ -117,6 +117,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     final tasks = _itemsOfType(displayedItems, BoardItemType.task);
     final notices = _itemsOfType(displayedItems, BoardItemType.notice);
     final openTasks = todayTasks.where((item) => !item.isDone).length;
+    final attentionItems = _attentionItems(displayedItems);
     final selectedTab = _effectiveSelectedTab;
 
     return Scaffold(
@@ -150,6 +151,18 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         openTasks: openTasks,
                         notices: todayNotices.length,
                       ),
+                      if (attentionItems.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        BoardItemSection(
+                          title: '\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694',
+                          items: attentionItems,
+                          accentColor: AppColors.tertiary,
+                          accentSoftColor: AppColors.warningSoft,
+                          icon: Icons.priority_high_rounded,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       BoardItemSection(
                         title: '\uC624\uB298 \uC77C\uC815',
@@ -274,6 +287,22 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   List<BoardItem> _itemsOfType(List<BoardItem> items, BoardItemType type) {
     return items.where((item) => item.type == type).toList(growable: false);
+  }
+
+  List<BoardItem> _attentionItems(List<BoardItem> items) {
+    final now = DateTime.now();
+    return items
+        .where((item) {
+          if (item.type == BoardItemType.task) {
+            final dueAt = item.dueAt;
+            return !item.isDone && dueAt != null && dueAt.isBefore(now);
+          }
+          if (item.type == BoardItemType.notice) {
+            return item.requiresConfirmation && !item.isConfirmedByMe;
+          }
+          return false;
+        })
+        .toList(growable: false);
   }
 
   List<BoardItem> _filteredTasks(List<BoardItem> tasks) {

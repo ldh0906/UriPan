@@ -123,6 +123,89 @@ void main() {
     expect(find.text('Future schedule'), findsNothing);
   });
 
+  testWidgets('Today tab shows overdue tasks and unconfirmed notices', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'overdue-task',
+              type: BoardItemType.task,
+              title: 'Overdue task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Yesterday',
+              dueAt: now.subtract(const Duration(days: 1)),
+            ),
+            const BoardItem(
+              id: 'required-notice',
+              type: BoardItemType.notice,
+              title: 'Required notice',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+            ),
+            BoardItem(
+              id: 'future-task',
+              type: BoardItemType.task,
+              title: 'Future task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Tomorrow',
+              dueAt: now.add(const Duration(days: 1)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694'), findsOneWidget);
+    expect(find.text('Overdue task'), findsOneWidget);
+    expect(find.text('Required notice'), findsWidgets);
+    expect(find.text('Future task'), findsNothing);
+  });
+
+  testWidgets('Today tab hides attention block when nothing needs attention', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'future-task',
+              type: BoardItemType.task,
+              title: 'Future task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Tomorrow',
+              dueAt: now.add(const Duration(days: 1)),
+            ),
+            const BoardItem(
+              id: 'confirmed-notice',
+              type: BoardItemType.notice,
+              title: 'Confirmed notice',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+              isConfirmedByMe: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694'), findsNothing);
+  });
+
   testWidgets('Members tab shows invite code and copy action for admins', (
     tester,
   ) async {
@@ -632,7 +715,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('Confirm this notice'));
+    await tester.tap(find.text('Confirm this notice').first);
     await tester.pumpAndSettle();
 
     expect(find.text('\uD655\uC778 0\uBA85'), findsWidgets);
