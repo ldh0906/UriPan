@@ -291,6 +291,85 @@ void main() {
     expect(submittedDraft?.assignedTo, 'user-2');
   });
 
+  testWidgets('Add item sheet rejects a past task datetime in create mode', (
+    tester,
+  ) async {
+    BoardItemDraft? submittedDraft;
+    final observer = _ResultObserver<BoardItemDraft>(
+      onPopped: (result) => submittedDraft = result,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [observer],
+        home: Scaffold(
+          body: AddItemSheet(
+            initialType: BoardItemType.task,
+            initialDateTime: DateTime.now().subtract(const Duration(days: 1)),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '\uC81C\uBAA9'),
+      'Past task',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        '\uC9C0\uB09C \uC2DC\uAC04\uC740 \uC120\uD0DD\uD560 \uC218 \uC5C6\uC5B4\uC694.',
+      ),
+      findsOneWidget,
+    );
+    expect(submittedDraft, isNull);
+    expect(find.byType(AddItemSheet), findsOneWidget);
+  });
+
+  testWidgets('Add item sheet submits a future task datetime in create mode', (
+    tester,
+  ) async {
+    BoardItemDraft? submittedDraft;
+    final observer = _ResultObserver<BoardItemDraft>(
+      onPopped: (result) => submittedDraft = result,
+    );
+    final futureDateTime = DateTime.now().add(const Duration(days: 1));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [observer],
+        home: Scaffold(
+          body: AddItemSheet(
+            initialType: BoardItemType.task,
+            initialDateTime: futureDateTime,
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '\uC81C\uBAA9'),
+      'Future task',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
+    await tester.pumpAndSettle();
+
+    expect(submittedDraft?.type, BoardItemType.task);
+    expect(submittedDraft?.title, 'Future task');
+    expect(
+      submittedDraft?.dueAt,
+      DateTime(
+        futureDateTime.year,
+        futureDateTime.month,
+        futureDateTime.day,
+        futureDateTime.hour,
+        futureDateTime.minute,
+      ),
+    );
+  });
+
   testWidgets('Add item sheet shows an error for an empty title', (
     tester,
   ) async {

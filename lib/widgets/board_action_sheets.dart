@@ -111,11 +111,13 @@ class AddItemSheet extends StatefulWidget {
     this.initialType,
     this.initialItem,
     this.members = const [],
+    this.initialDateTime,
   });
 
   final BoardItemType? initialType;
   final BoardItem? initialItem;
   final List<BoardMember> members;
+  final DateTime? initialDateTime;
 
   @override
   State<AddItemSheet> createState() => _AddItemSheetState();
@@ -132,6 +134,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
   bool _requiresConfirmation = true;
   String? _assignedToId;
   String? _titleError;
+  String? _dateTimeError;
 
   bool get _isEditing => widget.initialItem != null;
 
@@ -141,7 +144,10 @@ class _AddItemSheetState extends State<AddItemSheet> {
     final initialItem = widget.initialItem;
     _type = initialItem?.type ?? widget.initialType ?? BoardItemType.task;
     final dateTime =
-        initialItem?.startsAt ?? initialItem?.dueAt ?? DateTime.now();
+        initialItem?.startsAt ??
+        initialItem?.dueAt ??
+        widget.initialDateTime ??
+        DateTime.now();
     _selectedDate = dateTime;
     _selectedTime = TimeOfDay.fromDateTime(dateTime);
 
@@ -195,7 +201,10 @@ class _AddItemSheetState extends State<AddItemSheet> {
                 onSelectionChanged: _isEditing
                     ? null
                     : (values) {
-                        setState(() => _type = values.single);
+                        setState(() {
+                          _type = values.single;
+                          _dateTimeError = null;
+                        });
                       },
               ),
               const SizedBox(height: 12),
@@ -210,6 +219,15 @@ class _AddItemSheetState extends State<AddItemSheet> {
                   onPickDate: _pickDate,
                   onPickTime: _pickTime,
                 ),
+                if (_dateTimeError != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    _dateTimeError!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
               ],
               if (_type == BoardItemType.task && widget.members.isNotEmpty) ...[
@@ -327,6 +345,18 @@ class _AddItemSheetState extends State<AddItemSheet> {
       _selectedTime.hour,
       _selectedTime.minute,
     );
+    if (!_isEditing &&
+        (_type == BoardItemType.schedule || _type == BoardItemType.task) &&
+        selectedDateTime.isBefore(
+          DateTime.now().subtract(const Duration(minutes: 1)),
+        )) {
+      setState(
+        () => _dateTimeError =
+            '\uC9C0\uB09C \uC2DC\uAC04\uC740 \uC120\uD0DD\uD560 \uC218 \uC5C6\uC5B4\uC694.',
+      );
+      return;
+    }
+
     Navigator.pop(
       context,
       BoardItemDraft(
@@ -373,7 +403,10 @@ class _AddItemSheetState extends State<AddItemSheet> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
     );
     if (picked == null || !mounted) return;
-    setState(() => _selectedDate = picked);
+    setState(() {
+      _selectedDate = picked;
+      _dateTimeError = null;
+    });
   }
 
   Future<void> _pickTime() async {
@@ -382,7 +415,10 @@ class _AddItemSheetState extends State<AddItemSheet> {
       initialTime: _selectedTime,
     );
     if (picked == null || !mounted) return;
-    setState(() => _selectedTime = picked);
+    setState(() {
+      _selectedTime = picked;
+      _dateTimeError = null;
+    });
   }
 }
 
