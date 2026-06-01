@@ -36,17 +36,21 @@ The latest full local verification passed after the current refactor and UI/data
 - Live Supabase migrations and hardening already applied include trigger-function privilege locking and Realtime publication coverage for board membership, items, and confirmations.
 - Live two-session browser QA still needs to be rerun after the latest tab/date/detail changes.
 
+## Recently completed (2026-06-01)
+
+- `today_board_screen.dart` split into the shell plus `board_item_card.dart`, `item_detail_sheet.dart`, and `board_header.dart` (behavior-preserving refactor; commit `6547cfd`).
+- Notice confirmation end to end on the existing backend (commit `8881d98`): `BoardItem` confirmation fields + `copyWith`, repository `confirmNotice` and confirmation reads, controller `confirmNotice`, detail-sheet confirm/undo, card status chip, AddItemSheet "requires confirmation" toggle. 20 tests pass, analyze clean.
+
 ## Open product/engineering gaps
 
-- Notice confirmation is not yet complete in the UI or model/repository read path.
-- `BoardItem` still needs server metadata for board id, assignee, creator, display names, confirmation count, and current-user confirmation state.
+- `BoardItem` still needs server metadata for board id, assignee, creator, and real display names (owner is hardcoded to '우리').
 - Item detail still lacks edit.
 - Date/time policy validation and live timezone/date/tag persistence QA need more work.
 
 ## Next recommended work
 
-1. Implement notice confirmation end to end.
-2. Add item edit actions.
+1. Add item edit actions (title/detail/date/tags from the detail sheet).
+2. Fill remaining `BoardItem` server metadata (assignee, creator, display names).
 3. Tighten schedule/task date-time policy validation.
 4. Keep new UI work aligned with `docs/DESIGN.md`.
 5. Run two-session Supabase browser QA for Realtime sync, delete, tags, and date/time behavior.

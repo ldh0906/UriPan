@@ -52,25 +52,22 @@ Flutter/Dart commands may need sandbox escalation because SDK/cache files live u
 - `test/board_session_controller_test.dart`: controller tests
 - `test/widget_test.dart`: widget tests
 
+## Recently Completed (2026-06-01)
+
+- Split the 866-line `today_board_screen.dart` into the shell plus `board_item_card.dart`, `item_detail_sheet.dart`, and `board_header.dart` (behavior-preserving; commit `6547cfd`).
+- Notice confirmation end to end (client side on the existing backend; commit `8881d98`):
+  - `BoardItem` now carries `requiresConfirmation`, `confirmationCount`, `isConfirmedByMe`, plus `copyWith`.
+  - Repository `confirmNotice` (Supabase insert/delete, memory toggle); `loadBoardItems` reads count + current-user state.
+  - Controller `confirmNotice`, detail-sheet confirm/undo, card status chip, AddItemSheet "requires confirmation" toggle.
+  - 20 tests pass.
+
 ## Remaining Work
 
-1. Run live Supabase two-session browser QA after the latest tab/date/detail changes.
-2. Complete notice confirmation end to end:
-   - model fields,
-   - repository reads/RPC,
-   - card/detail confirmation UI,
-   - Realtime update,
-   - tests.
-3. Add missing `BoardItem` server metadata:
-   - `boardId`,
-   - `assignedTo`,
-   - `createdBy`,
-   - display names,
-   - confirmation count,
-   - current-user confirmation state.
-4. Add stronger date/time policy validation for schedules and tasks.
-5. Add item edit from detail.
-6. QA live timezone/date persistence plus Supabase delete/tag behavior.
+1. Add item edit from detail (title/detail/date/tags). **<- next**
+2. Add remaining `BoardItem` server metadata: `boardId`, `assignedTo`, `createdBy`, real display names (owner is still hardcoded to '우리').
+3. Add stronger date/time policy validation for schedules and tasks.
+4. Run live Supabase two-session browser QA (share/confirm/tags/date regression) after the latest changes.
+5. QA live timezone/date persistence plus Supabase delete/tag behavior.
 
 ## Project Notes
 
