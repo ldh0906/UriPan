@@ -74,6 +74,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   final Set<String> _pendingTaskIds = {};
   bool _isRefreshing = false;
   _TaskFilter _taskFilter = _TaskFilter.open;
+  DateTime _selectedCalendarDate = DateTime.now();
 
   @override
   void didUpdateWidget(TodayBoardScreen oldWidget) {
@@ -181,19 +182,37 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
                       ),
-                    ] else if (selectedTab == BoardTab.calendar)
+                    ] else if (selectedTab == BoardTab.calendar) ...[
+                      _CalendarWeekStrip(
+                        selectedDate: _selectedCalendarDate,
+                        onDateSelected: (date) =>
+                            setState(() => _selectedCalendarDate = date),
+                        onPreviousWeek: () => setState(
+                          () => _selectedCalendarDate = _selectedCalendarDate
+                              .subtract(const Duration(days: 7)),
+                        ),
+                        onNextWeek: () => setState(
+                          () => _selectedCalendarDate = _selectedCalendarDate
+                              .add(const Duration(days: 7)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       BoardItemSection(
                         title: '\uC77C\uC815',
-                        items: schedules,
+                        items: schedules
+                            .where(
+                              (item) => item.isForDate(_selectedCalendarDate),
+                            )
+                            .toList(growable: false),
                         accentColor: AppColors.primary,
                         accentSoftColor: AppColors.primarySoft,
                         icon: Icons.calendar_month_rounded,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
                         emptyText:
-                            '\uB4F1\uB85D\uB41C \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
-                      )
-                    else if (selectedTab == BoardTab.tasks) ...[
+                            '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
+                      ),
+                    ] else if (selectedTab == BoardTab.tasks) ...[
                       SegmentedButton<_TaskFilter>(
                         segments: _TaskFilter.values
                             .map(
@@ -444,6 +463,151 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           Navigator.pop(context);
           await _deleteItem(item);
         },
+      ),
+    );
+  }
+}
+
+class _CalendarWeekStrip extends StatelessWidget {
+  const _CalendarWeekStrip({
+    required this.selectedDate,
+    required this.onDateSelected,
+    required this.onPreviousWeek,
+    required this.onNextWeek,
+  });
+
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+  final VoidCallback onPreviousWeek;
+  final VoidCallback onNextWeek;
+
+  static const _weekdayLabels = [
+    '\uC6D4',
+    '\uD654',
+    '\uC218',
+    '\uBAA9',
+    '\uAE08',
+    '\uD1A0',
+    '\uC77C',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final weekStart = _startOfWeek(selectedDate);
+    final days = List.generate(
+      7,
+      (index) => weekStart.add(Duration(days: index)),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton.filledTonal(
+              onPressed: onPreviousWeek,
+              tooltip: '\uC774\uC804 \uC8FC',
+              icon: const Icon(Icons.chevron_left_rounded),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  '${weekStart.month}.${weekStart.day} - '
+                  '${days.last.month}.${days.last.day}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+            ),
+            IconButton.filledTonal(
+              onPressed: onNextWeek,
+              tooltip: '\uB2E4\uC74C \uC8FC',
+              icon: const Icon(Icons.chevron_right_rounded),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (final day in days) ...[
+              Expanded(
+                child: _CalendarDayCell(
+                  date: day,
+                  weekdayLabel: _weekdayLabels[day.weekday - 1],
+                  isSelected: _isSameDay(day, selectedDate),
+                  onTap: () => onDateSelected(day),
+                ),
+              ),
+              if (day != days.last) const SizedBox(width: 6),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  DateTime _startOfWeek(DateTime date) {
+    final local = DateTime(date.year, date.month, date.day);
+    return local.subtract(Duration(days: local.weekday - 1));
+  }
+
+  bool _isSameDay(DateTime left, DateTime right) {
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
+  }
+}
+
+class _CalendarDayCell extends StatelessWidget {
+  const _CalendarDayCell({
+    required this.date,
+    required this.weekdayLabel,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final String weekdayLabel;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      key: ValueKey('calendar-day-${date.year}-${date.month}-${date.day}'),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : AppColors.primary.withValues(alpha: 0.14),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              weekdayLabel,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: isSelected ? colors.onPrimary : AppColors.mutedText,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              date.day.toString(),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isSelected ? colors.onPrimary : null,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
