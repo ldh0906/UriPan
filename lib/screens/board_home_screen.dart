@@ -295,6 +295,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               items: _controller.items,
               members: _controller.members,
               board: board,
+              currentUserId: widget.client.auth.currentUser?.id,
               selectedTab: _selectedTab,
               onTabSelected: (tab) => setState(() => _selectedTab = tab),
               onRefresh: _refresh,

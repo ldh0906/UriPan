@@ -9,6 +9,16 @@ import '../widgets/board_item_card.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/item_detail_sheet.dart';
 
+enum _TaskFilter {
+  open('\uBBF8\uC644\uB8CC'),
+  mine('\uB0B4 \uD560 \uC77C'),
+  done('\uC644\uB8CC');
+
+  const _TaskFilter(this.label);
+
+  final String label;
+}
+
 class TodayBoardScreen extends StatefulWidget {
   const TodayBoardScreen({
     super.key,
@@ -16,6 +26,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.items,
     this.members = const [],
     this.board,
+    this.currentUserId,
     this.selectedTab = BoardTab.today,
     this.onTabSelected,
     this.onRefresh,
@@ -38,6 +49,7 @@ class TodayBoardScreen extends StatefulWidget {
   final List<BoardItem>? items;
   final List<BoardMember> members;
   final BoardSummary? board;
+  final String? currentUserId;
   final BoardTab selectedTab;
   final ValueChanged<BoardTab>? onTabSelected;
   final Future<void> Function()? onRefresh;
@@ -61,6 +73,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   List<BoardItem>? _fallbackItems;
   final Set<String> _pendingTaskIds = {};
   bool _isRefreshing = false;
+  _TaskFilter _taskFilter = _TaskFilter.open;
 
   @override
   void didUpdateWidget(TodayBoardScreen oldWidget) {
@@ -180,10 +193,24 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         emptyText:
                             '\uB4F1\uB85D\uB41C \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
                       )
-                    else if (selectedTab == BoardTab.tasks)
+                    else if (selectedTab == BoardTab.tasks) ...[
+                      SegmentedButton<_TaskFilter>(
+                        segments: _TaskFilter.values
+                            .map(
+                              (filter) => ButtonSegment(
+                                value: filter,
+                                label: Text(filter.label),
+                              ),
+                            )
+                            .toList(),
+                        selected: {_taskFilter},
+                        onSelectionChanged: (values) =>
+                            setState(() => _taskFilter = values.single),
+                      ),
+                      const SizedBox(height: 12),
                       BoardItemSection(
                         title: '\uD560 \uC77C',
-                        items: tasks,
+                        items: _filteredTasks(tasks),
                         accentColor: AppColors.tertiary,
                         accentSoftColor: AppColors.warningSoft,
                         icon: Icons.check_rounded,
@@ -193,8 +220,8 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         onItemTap: _showItemDetail,
                         emptyText:
                             '\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
-                      )
-                    else if (selectedTab == BoardTab.notices)
+                      ),
+                    ] else if (selectedTab == BoardTab.notices)
                       BoardItemSection(
                         title: '\uACF5\uC9C0',
                         items: notices,
@@ -228,6 +255,21 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   List<BoardItem> _itemsOfType(List<BoardItem> items, BoardItemType type) {
     return items.where((item) => item.type == type).toList(growable: false);
+  }
+
+  List<BoardItem> _filteredTasks(List<BoardItem> tasks) {
+    switch (_taskFilter) {
+      case _TaskFilter.open:
+        return tasks.where((item) => !item.isDone).toList(growable: false);
+      case _TaskFilter.mine:
+        final currentUserId = widget.currentUserId;
+        if (currentUserId == null) return const [];
+        return tasks
+            .where((item) => item.assignedToId == currentUserId)
+            .toList(growable: false);
+      case _TaskFilter.done:
+        return tasks.where((item) => item.isDone).toList(growable: false);
+    }
   }
 
   Future<void> _addFallbackItem([BoardItemType? initialType]) async {

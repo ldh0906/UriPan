@@ -209,6 +209,79 @@ void main() {
     },
   );
 
+  testWidgets('Tasks tab filters open, mine, and done tasks', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: TodayBoardScreen(
+          currentUserId: 'user-1',
+          items: [
+            BoardItem(
+              id: 'open-unassigned',
+              type: BoardItemType.task,
+              title: 'Open unassigned task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+            ),
+            BoardItem(
+              id: 'open-mine',
+              type: BoardItemType.task,
+              title: 'Open mine task',
+              detail: '',
+              owner: 'Us',
+              assignedToId: 'user-1',
+              timeLabel: 'Today',
+            ),
+            BoardItem(
+              id: 'done-mine',
+              type: BoardItemType.task,
+              title: 'Done mine task',
+              detail: '',
+              owner: 'Us',
+              assignedToId: 'user-1',
+              timeLabel: 'Today',
+              isDone: true,
+            ),
+            BoardItem(
+              id: 'done-other',
+              type: BoardItemType.task,
+              title: 'Done other task',
+              detail: '',
+              owner: 'Us',
+              assignedToId: 'user-2',
+              timeLabel: 'Today',
+              isDone: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uD560 \uC77C').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open unassigned task'), findsOneWidget);
+    expect(find.text('Open mine task'), findsOneWidget);
+    expect(find.text('Done mine task'), findsNothing);
+    expect(find.text('Done other task'), findsNothing);
+
+    await tester.tap(find.text('\uB0B4 \uD560 \uC77C'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open unassigned task'), findsNothing);
+    expect(find.text('Open mine task'), findsOneWidget);
+    expect(find.text('Done mine task'), findsOneWidget);
+    expect(find.text('Done other task'), findsNothing);
+
+    await tester.tap(find.text('\uC644\uB8CC').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open unassigned task'), findsNothing);
+    expect(find.text('Open mine task'), findsNothing);
+    expect(find.text('Done mine task'), findsOneWidget);
+    expect(find.text('Done other task'), findsOneWidget);
+  });
+
   testWidgets('Add item sheet exposes date and time controls for schedules', (
     tester,
   ) async {
