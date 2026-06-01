@@ -20,7 +20,11 @@ class TodayBoardScreen extends StatefulWidget {
     this.onTabSelected,
     this.onRefresh,
     this.onAddItem,
+    this.activeInvite,
     this.onCreateInvite,
+    this.onRegenerateInvite,
+    this.onRevokeInvite,
+    this.onLeaveBoard,
     this.onCompleteTask,
     this.onConfirmNotice,
     this.onEditItem,
@@ -38,7 +42,11 @@ class TodayBoardScreen extends StatefulWidget {
   final ValueChanged<BoardTab>? onTabSelected;
   final Future<void> Function()? onRefresh;
   final ValueChanged<BoardItemType?>? onAddItem;
+  final BoardInvite? activeInvite;
   final VoidCallback? onCreateInvite;
+  final VoidCallback? onRegenerateInvite;
+  final VoidCallback? onRevokeInvite;
+  final Future<void> Function()? onLeaveBoard;
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
   final Future<void> Function(BoardItem item, bool confirmed)? onConfirmNotice;
   final void Function(BoardItem item)? onEditItem;
@@ -202,7 +210,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       MembersPanel(
                         board: widget.board,
                         members: widget.members,
+                        activeInvite: widget.activeInvite,
                         onCreateInvite: widget.onCreateInvite,
+                        onRegenerateInvite: widget.onRegenerateInvite,
+                        onRevokeInvite: widget.onRevokeInvite,
+                        onLeaveBoard: widget.onLeaveBoard,
                       ),
                   ],
                 ),

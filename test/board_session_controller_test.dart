@@ -113,6 +113,57 @@ void main() {
     expect(controller.members.first.isAdmin, isTrue);
   });
 
+  test('load populates the active invite for admin boards', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      itemsByBoard: {'board-1': []},
+      activeInvite: BoardInvite(
+        id: 'invite-1',
+        code: 'URIP-0001',
+        expiresAt: DateTime(2026, 6, 8),
+      ),
+    );
+    final controller = BoardSessionController(repository);
+
+    await controller.load();
+
+    expect(controller.activeInvite?.code, 'URIP-0001');
+  });
+
+  test(
+    'regenerateInvite sets activeInvite and revokeInvite clears it',
+    () async {
+      final repository = MemoryBoardRepository([]);
+      final controller = BoardSessionController(repository);
+      await controller.load();
+
+      final invite = await controller.regenerateInvite();
+
+      expect(invite.code, 'URIP-2026');
+      expect(controller.activeInvite?.code, 'URIP-2026');
+
+      await controller.revokeInvite();
+
+      expect(controller.activeInvite, isNull);
+    },
+  );
+
+  test(
+    'leaveBoard removes the memory membership and clears active board',
+    () async {
+      final repository = MemoryBoardRepository([]);
+      final controller = BoardSessionController(repository);
+      await controller.load();
+
+      await controller.leaveBoard();
+
+      expect(controller.activeBoard, isNull);
+      expect(controller.boards, isEmpty);
+      expect(controller.items, isEmpty);
+      expect(controller.members, isEmpty);
+    },
+  );
+
   test(
     'updateItem changes a memory item and reloads controller items',
     () async {
@@ -305,12 +356,14 @@ class _FakeBoardRepository implements BoardRepository {
     required List<BoardSummary> boards,
     required this.itemsByBoard,
     Map<String, List<BoardMember>>? membersByBoard,
+    this.activeInvite,
   }) : boards = List.of(boards),
        membersByBoard = membersByBoard ?? const {};
 
   List<BoardSummary> boards;
   Map<String, List<BoardItem>> itemsByBoard;
   Map<String, List<BoardMember>> membersByBoard;
+  BoardInvite? activeInvite;
   final queuedItemLoads = <Completer<List<BoardItem>>>[];
   final loadedItemBoardIds = <String?>[];
 
@@ -338,15 +391,33 @@ class _FakeBoardRepository implements BoardRepository {
 
   @override
   Future<BoardInvite> createInvite(String boardId) async {
-    return BoardInvite(
+    final invite = BoardInvite(
       id: 'invite-1',
       code: 'URIP-0001',
       expiresAt: DateTime(2026, 6),
     );
+    activeInvite = invite;
+    return invite;
+  }
+
+  @override
+  Future<BoardInvite?> loadActiveInvite(String boardId) async => activeInvite;
+
+  @override
+  Future<void> revokeInvite(String inviteId) async {
+    activeInvite = null;
   }
 
   @override
   Future<BoardSummary> joinBoardWithInvite(String code) async => boards.first;
+
+  @override
+  Future<void> leaveBoard(String boardId) async {
+    boards.removeWhere((board) => board.id == boardId);
+    itemsByBoard.remove(boardId);
+    membersByBoard.remove(boardId);
+    activeInvite = null;
+  }
 
   @override
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {

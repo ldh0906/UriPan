@@ -13,7 +13,17 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<BoardInvite?> loadActiveInvite(String boardId) async => null;
+
+  Future<void> revokeInvite(String inviteId) {
+    throw UnimplementedError();
+  }
+
   Future<BoardSummary> joinBoardWithInvite(String code) {
+    throw UnimplementedError();
+  }
+
+  Future<void> leaveBoard(String boardId) {
     throw UnimplementedError();
   }
 
@@ -43,6 +53,7 @@ class MemoryBoardRepository implements BoardRepository {
   MemoryBoardRepository(this._items);
 
   final List<BoardItem> _items;
+  BoardInvite? _activeInvite;
   final List<BoardSummary> _boards = [
     const BoardSummary(
       id: 'memory-board',
@@ -92,15 +103,38 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<BoardInvite> createInvite(String boardId) async {
-    return BoardInvite(
+    final invite = BoardInvite(
       id: 'memory-invite',
       code: 'URIP-2026',
       expiresAt: DateTime.now().add(const Duration(days: 7)),
     );
+    _activeInvite = invite;
+    return invite;
+  }
+
+  @override
+  Future<BoardInvite?> loadActiveInvite(String boardId) async {
+    final invite = _activeInvite;
+    if (invite == null || invite.expiresAt.isBefore(DateTime.now())) {
+      return null;
+    }
+    return invite;
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) async {
+    _activeInvite = null;
   }
 
   @override
   Future<BoardSummary> joinBoardWithInvite(String code) async => _boards.first;
+
+  @override
+  Future<void> leaveBoard(String boardId) async {
+    _boards.removeWhere((board) => board.id == boardId);
+    _members.clear();
+    _activeInvite = null;
+  }
 
   @override
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
@@ -276,6 +310,29 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<BoardInvite?> loadActiveInvite(String boardId) async {
+    final rows = await _client
+        .from('board_invites')
+        .select('id, code, expires_at')
+        .eq('board_id', boardId)
+        .filter('revoked_at', 'is', null)
+        .gt('expires_at', DateTime.now().toUtc().toIso8601String())
+        .order('expires_at', ascending: false)
+        .limit(1);
+
+    if (rows.isEmpty) return null;
+    return _inviteFromRow(Map<String, dynamic>.from(rows.first as Map));
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) async {
+    await _client.rpc<void>(
+      'revoke_board_invite',
+      params: {'target_invite_id': inviteId},
+    );
+  }
+
+  @override
   Future<BoardSummary> joinBoardWithInvite(String code) async {
     final member = await _client.rpc<Map<String, dynamic>>(
       'join_board_with_invite',
@@ -296,6 +353,15 @@ class SupabaseBoardRepository implements BoardRepository {
       maxMembers: board['max_members'] as int,
       memberCount: members.length,
     );
+  }
+
+  @override
+  Future<void> leaveBoard(String boardId) async {
+    await _client
+        .from('board_members')
+        .delete()
+        .eq('board_id', boardId)
+        .eq('user_id', _client.auth.currentUser!.id);
   }
 
   @override
@@ -518,6 +584,14 @@ class SupabaseBoardRepository implements BoardRepository {
             return confirmation['user_id'] == currentUserId;
           }),
       tags: _tagsFromRow(row['tags']),
+    );
+  }
+
+  BoardInvite _inviteFromRow(Map<String, dynamic> row) {
+    return BoardInvite(
+      id: row['id'] as String,
+      code: row['code'] as String,
+      expiresAt: DateTime.parse(row['expires_at'] as String),
     );
   }
 

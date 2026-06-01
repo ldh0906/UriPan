@@ -11,6 +11,7 @@ class BoardSessionController extends ChangeNotifier {
   List<BoardSummary> _boards = const [];
   List<BoardItem> _items = const [];
   List<BoardMember> _members = const [];
+  BoardInvite? _activeInvite;
   BoardSummary? _activeBoard;
   bool _isLoading = false;
   String? _errorMessage;
@@ -19,6 +20,7 @@ class BoardSessionController extends ChangeNotifier {
   List<BoardSummary> get boards => _boards;
   List<BoardItem> get items => _items;
   List<BoardMember> get members => _members;
+  BoardInvite? get activeInvite => _activeInvite;
   BoardSummary? get activeBoard => _activeBoard;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -39,12 +41,16 @@ class BoardSessionController extends ChangeNotifier {
       final loadedMembers = activeBoard == null
           ? const <BoardMember>[]
           : await _repository.loadMembers(activeBoard.id);
+      final loadedInvite = activeBoard?.isAdmin == true
+          ? await _repository.loadActiveInvite(activeBoard!.id)
+          : null;
       if (!_isCurrentStateRequest(requestId)) return;
 
       _boards = loadedBoards;
       _activeBoard = activeBoard;
       _items = loadedItems;
       _members = loadedMembers;
+      _activeInvite = loadedInvite;
     } catch (error) {
       if (!_isCurrentStateRequest(requestId)) return;
       _errorMessage = error.toString();
@@ -62,6 +68,7 @@ class BoardSessionController extends ChangeNotifier {
     if (board == null) {
       _items = const [];
       _members = const [];
+      _activeInvite = null;
       notifyListeners();
       return;
     }
@@ -95,12 +102,27 @@ class BoardSessionController extends ChangeNotifier {
   }
 
   Future<BoardInvite> createInvite() async {
+    return regenerateInvite();
+  }
+
+  Future<BoardInvite> regenerateInvite() async {
     final board = _requireActiveBoard();
     late BoardInvite invite;
     await _runAction(() async {
       invite = await _repository.createInvite(board.id);
+      _activeInvite = invite;
     });
     return invite;
+  }
+
+  Future<void> revokeInvite() async {
+    final invite = _activeInvite;
+    if (invite == null) return;
+
+    await _runAction(() async {
+      await _repository.revokeInvite(invite.id);
+      _activeInvite = null;
+    });
   }
 
   Future<BoardSummary> joinBoardWithInvite(String code) async {
@@ -110,6 +132,14 @@ class BoardSessionController extends ChangeNotifier {
       await load(preferredBoardId: joined.id);
     });
     return joined;
+  }
+
+  Future<void> leaveBoard() async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.leaveBoard(board.id);
+      await load();
+    });
   }
 
   Future<void> createItem(BoardItemDraft draft) async {

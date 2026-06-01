@@ -117,6 +117,33 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _regenerateInvite() async {
+    final board = _controller.activeBoard;
+    if (board == null || !board.isAdmin) return;
+
+    await _runAction(() async {
+      await _controller.regenerateInvite();
+    });
+  }
+
+  Future<void> _revokeInvite() async {
+    final board = _controller.activeBoard;
+    if (board == null || !board.isAdmin) return;
+
+    await _runAction(() async {
+      await _controller.revokeInvite();
+    });
+  }
+
+  Future<void> _leaveBoard() async {
+    final board = _controller.activeBoard;
+    if (board == null) return;
+
+    await _runAction(() async {
+      await _controller.leaveBoard();
+    });
+  }
+
   Future<void> _addItem([BoardItemType? initialType]) async {
     final board = _controller.activeBoard;
     if (board == null) return;
@@ -196,6 +223,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (message.contains('admin_required')) {
       return '\uAD00\uB9AC\uC790\uB9CC \uD560 \uC218 \uC788\uC5B4\uC694.';
     }
+    if (message.contains('creator_admin_required')) {
+      return '\uBCF4\uB4DC\uB97C \uB9CC\uB4E0 \uC0AC\uB78C\uC740 \uB098\uAC08 \uC218 \uC5C6\uC5B4\uC694.';
+    }
+    if (message.contains('last_admin_required')) {
+      return '\uB9C8\uC9C0\uB9C9 \uAD00\uB9AC\uC790\uB294 \uB098\uAC08 \uC218 \uC5C6\uC5B4\uC694.';
+    }
     return message;
   }
 
@@ -266,7 +299,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onTabSelected: (tab) => setState(() => _selectedTab = tab),
               onRefresh: _refresh,
               onAddItem: _addItem,
+              activeInvite: _controller.activeInvite,
               onCreateInvite: _createInvite,
+              onRegenerateInvite: _regenerateInvite,
+              onRevokeInvite: _revokeInvite,
+              onLeaveBoard: _leaveBoard,
               onCompleteTask: _completeTask,
               onConfirmNotice: _confirmNotice,
               onEditItem: _editItem,

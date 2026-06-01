@@ -123,6 +123,36 @@ void main() {
     expect(find.text('Future schedule'), findsNothing);
   });
 
+  testWidgets('Members tab shows invite code and copy action for admins', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          selectedTab: BoardTab.members,
+          onTabSelected: (_) {},
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'admin',
+            maxMembers: 4,
+            memberCount: 1,
+          ),
+          activeInvite: BoardInvite(
+            id: 'invite-1',
+            code: 'URIP-2026',
+            expiresAt: DateTime(2026, 6, 8, 18),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('URIP-2026'), findsOneWidget);
+    expect(find.text('\uBCF5\uC0AC'), findsOneWidget);
+    expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
+  });
+
   testWidgets(
     'Calendar tab shows all schedules and excludes other item types',
     (tester) async {
