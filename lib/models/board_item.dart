@@ -165,6 +165,24 @@ class BoardSummary {
   bool get isAdmin => role == 'admin';
 }
 
+class BoardMember {
+  const BoardMember({
+    required this.userId,
+    required this.displayName,
+    required this.avatarColor,
+    required this.role,
+    required this.joinedAt,
+  });
+
+  final String userId;
+  final String displayName;
+  final String avatarColor;
+  final String role;
+  final DateTime joinedAt;
+
+  bool get isAdmin => role == 'admin';
+}
+
 class BoardInvite {
   const BoardInvite({
     required this.id,

@@ -10,6 +10,7 @@ class BoardSessionController extends ChangeNotifier {
 
   List<BoardSummary> _boards = const [];
   List<BoardItem> _items = const [];
+  List<BoardMember> _members = const [];
   BoardSummary? _activeBoard;
   bool _isLoading = false;
   String? _errorMessage;
@@ -17,6 +18,7 @@ class BoardSessionController extends ChangeNotifier {
 
   List<BoardSummary> get boards => _boards;
   List<BoardItem> get items => _items;
+  List<BoardMember> get members => _members;
   BoardSummary? get activeBoard => _activeBoard;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -34,11 +36,15 @@ class BoardSessionController extends ChangeNotifier {
       final loadedItems = activeBoard == null
           ? const <BoardItem>[]
           : await _repository.loadBoardItems(boardId: activeBoard.id);
+      final loadedMembers = activeBoard == null
+          ? const <BoardMember>[]
+          : await _repository.loadMembers(activeBoard.id);
       if (!_isCurrentStateRequest(requestId)) return;
 
       _boards = loadedBoards;
       _activeBoard = activeBoard;
       _items = loadedItems;
+      _members = loadedMembers;
     } catch (error) {
       if (!_isCurrentStateRequest(requestId)) return;
       _errorMessage = error.toString();
@@ -55,6 +61,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _activeBoard;
     if (board == null) {
       _items = const [];
+      _members = const [];
       notifyListeners();
       return;
     }

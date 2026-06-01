@@ -164,6 +164,124 @@ class AddItemFab extends StatelessWidget {
   }
 }
 
+class MemberAvatar extends StatelessWidget {
+  const MemberAvatar({
+    super.key,
+    required this.displayName,
+    required this.avatarColor,
+    this.size = 42,
+  });
+
+  final String displayName;
+  final String avatarColor;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _avatarColorFromHex(avatarColor);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+      ),
+      child: Text(
+        _initials(displayName),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
+  String _initials(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return '?';
+    final words = trimmed.split(RegExp(r'\s+'));
+    if (words.length == 1) {
+      return String.fromCharCodes(words.first.runes.take(2));
+    }
+    return words
+        .take(2)
+        .map((word) => String.fromCharCode(word.runes.first))
+        .join();
+  }
+
+  Color _avatarColorFromHex(String value) {
+    final hex = value.trim().replaceFirst('#', '');
+    if (!RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex)) {
+      return AppColors.primary;
+    }
+    return Color(int.parse('FF$hex', radix: 16));
+  }
+}
+
+class RoleChip extends StatelessWidget {
+  const RoleChip({super.key, required this.role});
+
+  final String role;
+
+  @override
+  Widget build(BuildContext context) {
+    final isAdmin = role == 'admin';
+    return _SmallPill(
+      label: isAdmin ? '\uAD00\uB9AC\uC790' : '\uBA64\uBC84',
+      color: isAdmin ? AppColors.primarySoft : AppColors.infoSoft,
+      textColor: isAdmin ? AppColors.primary : AppColors.info,
+    );
+  }
+}
+
+class CapacityChip extends StatelessWidget {
+  const CapacityChip({super.key, required this.count, required this.max});
+
+  final int count;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SmallPill(
+      label: '$count/$max\uBA85',
+      color: AppColors.surfaceVariant,
+      textColor: AppColors.text,
+    );
+  }
+}
+
+class _SmallPill extends StatelessWidget {
+  const _SmallPill({
+    required this.label,
+    required this.color,
+    required this.textColor,
+  });
+
+  final String label;
+  final Color color;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
     super.key,

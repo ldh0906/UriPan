@@ -6,6 +6,7 @@ import 'package:uripan/screens/today_board_screen.dart';
 import 'package:uripan/services/auth_error_messages.dart';
 import 'package:uripan/services/auth_input_validator.dart';
 import 'package:uripan/widgets/board_action_sheets.dart';
+import 'package:uripan/widgets/common_widgets.dart';
 
 void main() {
   testWidgets('UriPan shows the Today board sections', (tester) async {
@@ -452,5 +453,45 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(refreshCount, 1);
+  });
+
+  testWidgets('Members tab shows member names and roles', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          selectedTab: BoardTab.members,
+          onTabSelected: (_) {},
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'admin',
+            maxMembers: 4,
+            memberCount: 2,
+          ),
+          members: [
+            BoardMember(
+              userId: 'user-1',
+              displayName: 'Mina',
+              avatarColor: '#647D31',
+              role: 'admin',
+              joinedAt: DateTime(2026, 6),
+            ),
+            BoardMember(
+              userId: 'user-2',
+              displayName: 'Joon',
+              avatarColor: '#E7A14B',
+              role: 'member',
+              joinedAt: DateTime(2026, 6, 1, 1),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Mina'), findsOneWidget);
+    expect(find.text('\uAD00\uB9AC\uC790'), findsOneWidget);
+    expect(find.text('Joon'), findsOneWidget);
+    expect(find.text('\uBA64\uBC84'), findsOneWidget);
   });
 }

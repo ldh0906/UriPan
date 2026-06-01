@@ -102,6 +102,17 @@ void main() {
     expect(controller.items.single.assignedToId, 'user-2');
   });
 
+  test('load populates members from the repository', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+
+    await controller.load();
+
+    expect(controller.members, isNotEmpty);
+    expect(controller.members.first.displayName, '\uC9C0\uC6B0');
+    expect(controller.members.first.isAdmin, isTrue);
+  });
+
   test(
     'updateItem changes a memory item and reloads controller items',
     () async {
@@ -293,15 +304,23 @@ class _FakeBoardRepository implements BoardRepository {
   _FakeBoardRepository({
     required List<BoardSummary> boards,
     required this.itemsByBoard,
-  }) : boards = List.of(boards);
+    Map<String, List<BoardMember>>? membersByBoard,
+  }) : boards = List.of(boards),
+       membersByBoard = membersByBoard ?? const {};
 
   List<BoardSummary> boards;
   Map<String, List<BoardItem>> itemsByBoard;
+  Map<String, List<BoardMember>> membersByBoard;
   final queuedItemLoads = <Completer<List<BoardItem>>>[];
   final loadedItemBoardIds = <String?>[];
 
   @override
   Future<List<BoardSummary>> loadBoards() async => List.unmodifiable(boards);
+
+  @override
+  Future<List<BoardMember>> loadMembers(String boardId) async {
+    return List.unmodifiable(membersByBoard[boardId] ?? const []);
+  }
 
   @override
   Future<BoardSummary> createBoard(String name, int maxMembers) async {

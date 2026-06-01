@@ -252,6 +252,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
           children: [
             TodayBoardScreen(
               items: _controller.items,
+              members: _controller.members,
               board: board,
               selectedTab: _selectedTab,
               onTabSelected: (tab) => setState(() => _selectedTab = tab),

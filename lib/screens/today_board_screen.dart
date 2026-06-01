@@ -14,6 +14,7 @@ class TodayBoardScreen extends StatefulWidget {
     super.key,
     this.repository,
     this.items,
+    this.members = const [],
     this.board,
     this.selectedTab = BoardTab.today,
     this.onTabSelected,
@@ -31,6 +32,7 @@ class TodayBoardScreen extends StatefulWidget {
 
   final BoardRepository? repository;
   final List<BoardItem>? items;
+  final List<BoardMember> members;
   final BoardSummary? board;
   final BoardTab selectedTab;
   final ValueChanged<BoardTab>? onTabSelected;
@@ -199,6 +201,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                     else
                       MembersPanel(
                         board: widget.board,
+                        members: widget.members,
                         onCreateInvite: widget.onCreateInvite,
                       ),
                   ],

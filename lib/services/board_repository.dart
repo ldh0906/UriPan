@@ -4,6 +4,7 @@ import '../models/board_item.dart';
 
 abstract class BoardRepository {
   Future<List<BoardSummary>> loadBoards() async => const [];
+  Future<List<BoardMember>> loadMembers(String boardId) async => const [];
   Future<BoardSummary> createBoard(String name, int maxMembers) {
     throw UnimplementedError();
   }
@@ -48,12 +49,33 @@ class MemoryBoardRepository implements BoardRepository {
       name: '\uC6B0\uB9AC\uC9D1',
       role: 'admin',
       maxMembers: 4,
-      memberCount: 1,
+      memberCount: 2,
+    ),
+  ];
+  final List<BoardMember> _members = [
+    BoardMember(
+      userId: 'memory-user-1',
+      displayName: '\uC9C0\uC6B0',
+      avatarColor: '#647D31',
+      role: 'admin',
+      joinedAt: DateTime(2026, 6),
+    ),
+    BoardMember(
+      userId: 'memory-user-2',
+      displayName: '\uBBFC\uC900',
+      avatarColor: '#E7A14B',
+      role: 'member',
+      joinedAt: DateTime(2026, 6, 1, 1),
     ),
   ];
 
   @override
   Future<List<BoardSummary>> loadBoards() async => List.unmodifiable(_boards);
+
+  @override
+  Future<List<BoardMember>> loadMembers(String boardId) async {
+    return List.unmodifiable(_members);
+  }
 
   @override
   Future<BoardSummary> createBoard(String name, int maxMembers) async {
@@ -294,6 +316,37 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<List<BoardMember>> loadMembers(String boardId) async {
+    final memberRows = await _client
+        .from('board_members')
+        .select('user_id, role, joined_at')
+        .eq('board_id', boardId);
+    final userIds = memberRows
+        .map<String?>((row) => row['user_id'] as String?)
+        .whereType<String>()
+        .toSet();
+    final profiles = await _profiles(userIds);
+    final members = memberRows
+        .map<BoardMember>((row) {
+          final userId = row['user_id'] as String;
+          final profile = profiles[userId];
+          return BoardMember(
+            userId: userId,
+            displayName: profile?.displayName ?? userId,
+            avatarColor: profile?.avatarColor ?? '#647D31',
+            role: row['role'] as String,
+            joinedAt: DateTime.parse(row['joined_at'] as String),
+          );
+        })
+        .toList(growable: false);
+
+    return members.toList()..sort((a, b) {
+      if (a.isAdmin != b.isAdmin) return a.isAdmin ? -1 : 1;
+      return a.joinedAt.compareTo(b.joinedAt);
+    });
+  }
+
+  @override
   Future<BoardItem> createItem(String boardId, BoardItemDraft draft) async {
     final now = DateTime.now();
     final startsAt = draft.type == BoardItemType.schedule
@@ -404,6 +457,24 @@ class SupabaseBoardRepository implements BoardRepository {
     };
   }
 
+  Future<Map<String, _ProfileRow>> _profiles(Set<String> userIds) async {
+    if (userIds.isEmpty) return const {};
+
+    final rows = await _client
+        .from('profiles')
+        .select('id, display_name, avatar_color')
+        .inFilter('id', userIds.toList());
+
+    return {
+      for (final row in rows)
+        if (row['id'] is String)
+          row['id'] as String: _ProfileRow(
+            displayName: row['display_name'] as String?,
+            avatarColor: row['avatar_color'] as String?,
+          ),
+    };
+  }
+
   Set<String> _userIdsFromRows(Iterable<Map<String, dynamic>> rows) {
     return rows.expand(_userIdsFromRow).toSet();
   }
@@ -472,4 +543,11 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   String _two(int value) => value.toString().padLeft(2, '0');
+}
+
+class _ProfileRow {
+  const _ProfileRow({required this.displayName, required this.avatarColor});
+
+  final String? displayName;
+  final String? avatarColor;
 }
