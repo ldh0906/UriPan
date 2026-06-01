@@ -207,6 +207,60 @@ void main() {
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
   });
 
+  testWidgets('Add item sheet assigns a task to a selected member', (
+    tester,
+  ) async {
+    BoardItemDraft? submittedDraft;
+    final observer = _ResultObserver<BoardItemDraft>(
+      onPopped: (result) => submittedDraft = result,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [observer],
+        home: Scaffold(
+          body: AddItemSheet(
+            initialType: BoardItemType.task,
+            members: [
+              BoardMember(
+                userId: 'user-1',
+                displayName: 'Mina',
+                avatarColor: '#647D31',
+                role: 'admin',
+                joinedAt: DateTime(2026, 6),
+              ),
+              BoardMember(
+                userId: 'user-2',
+                displayName: 'Joon',
+                avatarColor: '#E7A14B',
+                role: 'member',
+                joinedAt: DateTime(2026, 6, 1),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('\uB2F4\uB2F9\uC790'), findsOneWidget);
+    expect(find.text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C'), findsOneWidget);
+
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Joon').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, '\uC81C\uBAA9'),
+      'Buy milk',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
+    await tester.pumpAndSettle();
+
+    expect(submittedDraft?.type, BoardItemType.task);
+    expect(submittedDraft?.title, 'Buy milk');
+    expect(submittedDraft?.assignedTo, 'user-2');
+  });
+
   testWidgets('Add item sheet shows an error for an empty title', (
     tester,
   ) async {
@@ -494,4 +548,18 @@ void main() {
     expect(find.text('Joon'), findsOneWidget);
     expect(find.text('\uBA64\uBC84'), findsOneWidget);
   });
+}
+
+class _ResultObserver<T> extends NavigatorObserver {
+  _ResultObserver({required this.onPopped});
+
+  final ValueChanged<T?> onPopped;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    route.popped.then((result) {
+      if (result is T) onPopped(result);
+    });
+    super.didPush(route, previousRoute);
+  }
 }

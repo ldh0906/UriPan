@@ -121,7 +121,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     final board = _controller.activeBoard;
     if (board == null) return;
 
-    final draft = await showAddItemSheet(context, initialType: initialType);
+    final draft = await showAddItemSheet(
+      context,
+      initialType: initialType,
+      members: _controller.members,
+    );
     if (draft == null) return;
 
     await _runAction(() async {
@@ -130,7 +134,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   }
 
   Future<void> _editItem(BoardItem item) async {
-    final draft = await showEditItemSheet(context, item);
+    final draft = await showEditItemSheet(
+      context,
+      item,
+      members: _controller.members,
+    );
     if (draft == null) return;
 
     await _runAction(() async {

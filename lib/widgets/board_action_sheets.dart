@@ -5,22 +5,25 @@ import '../models/board_item.dart';
 Future<BoardItemDraft?> showAddItemSheet(
   BuildContext context, {
   BoardItemType? initialType,
+  List<BoardMember> members = const [],
 }) {
   return showModalBottomSheet<BoardItemDraft>(
     context: context,
     showDragHandle: true,
-    builder: (context) => AddItemSheet(initialType: initialType),
+    builder: (context) =>
+        AddItemSheet(initialType: initialType, members: members),
   );
 }
 
 Future<BoardItemDraft?> showEditItemSheet(
   BuildContext context,
-  BoardItem item,
-) {
+  BoardItem item, {
+  List<BoardMember> members = const [],
+}) {
   return showModalBottomSheet<BoardItemDraft>(
     context: context,
     showDragHandle: true,
-    builder: (context) => AddItemSheet(initialItem: item),
+    builder: (context) => AddItemSheet(initialItem: item, members: members),
   );
 }
 
@@ -103,10 +106,16 @@ class _CreateBoardDialogState extends State<CreateBoardDialog> {
 }
 
 class AddItemSheet extends StatefulWidget {
-  const AddItemSheet({super.key, this.initialType, this.initialItem});
+  const AddItemSheet({
+    super.key,
+    this.initialType,
+    this.initialItem,
+    this.members = const [],
+  });
 
   final BoardItemType? initialType;
   final BoardItem? initialItem;
+  final List<BoardMember> members;
 
   @override
   State<AddItemSheet> createState() => _AddItemSheetState();
@@ -121,6 +130,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
   late TimeOfDay _selectedTime;
   bool _isPinned = false;
   bool _requiresConfirmation = true;
+  String? _assignedToId;
   String? _titleError;
 
   bool get _isEditing => widget.initialItem != null;
@@ -141,6 +151,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
       _tagController.text = initialItem.tags.join(', ');
       _isPinned = initialItem.isPinned;
       _requiresConfirmation = initialItem.requiresConfirmation;
+      _assignedToId = initialItem.assignedToId;
     }
   }
 
@@ -198,6 +209,34 @@ class _AddItemSheetState extends State<AddItemSheet> {
                   time: _selectedTime,
                   onPickDate: _pickDate,
                   onPickTime: _pickTime,
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_type == BoardItemType.task && widget.members.isNotEmpty) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: _assigneeDropdownValue,
+                  decoration: const InputDecoration(
+                    labelText: '\uB2F4\uB2F9\uC790',
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C'),
+                    ),
+                    ...widget.members.map(
+                      (member) => DropdownMenuItem(
+                        value: member.userId,
+                        child: Text(member.displayName),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _assignedToId = value == null || value.isEmpty
+                          ? null
+                          : value;
+                    });
+                  },
                 ),
                 const SizedBox(height: 12),
               ],
@@ -296,6 +335,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
         detail: _detailController.text.trim(),
         startsAt: _type == BoardItemType.schedule ? selectedDateTime : null,
         dueAt: _type == BoardItemType.task ? selectedDateTime : null,
+        assignedTo: _type == BoardItemType.task ? _assignedToId : null,
         requiresConfirmation:
             _type == BoardItemType.notice && _requiresConfirmation,
         isPinned: _isPinned,
@@ -306,6 +346,14 @@ class _AddItemSheetState extends State<AddItemSheet> {
 
   List<String> get _parsedTags {
     return normalizeBoardItemTags(_tagController.text.split(RegExp(r'[,\s]+')));
+  }
+
+  String get _assigneeDropdownValue {
+    final assignedToId = _assignedToId;
+    if (assignedToId == null) return '';
+    return widget.members.any((member) => member.userId == assignedToId)
+        ? assignedToId
+        : '';
   }
 
   void _removeTag(String tag) {

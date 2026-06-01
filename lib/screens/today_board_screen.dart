@@ -222,7 +222,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     final repository = widget.repository;
     if (repository == null) return;
 
-    final draft = await showAddItemSheet(context, initialType: initialType);
+    final draft = await showAddItemSheet(
+      context,
+      initialType: initialType,
+      members: widget.members,
+    );
     if (draft == null) return;
 
     final boardId = widget.board?.id ?? 'memory-board';
@@ -347,7 +351,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
     final repository = widget.repository;
     if (repository == null) return;
-    final draft = await showEditItemSheet(context, item);
+    final draft = await showEditItemSheet(
+      context,
+      item,
+      members: widget.members,
+    );
     if (draft == null) return;
 
     await repository.updateItem(item.id, draft);
