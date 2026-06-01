@@ -112,10 +112,14 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
         .toList(growable: false);
     final todaySchedules = _itemsOfType(todayItems, BoardItemType.schedule);
     final todayTasks = _itemsOfType(todayItems, BoardItemType.task);
-    final todayNotices = _itemsOfType(todayItems, BoardItemType.notice);
+    final todayNotices = _sortedNotices(
+      _itemsOfType(todayItems, BoardItemType.notice),
+    );
     final schedules = _itemsOfType(displayedItems, BoardItemType.schedule);
     final tasks = _itemsOfType(displayedItems, BoardItemType.task);
-    final notices = _itemsOfType(displayedItems, BoardItemType.notice);
+    final notices = _sortedNotices(
+      _itemsOfType(displayedItems, BoardItemType.notice),
+    );
     final openTasks = todayTasks.where((item) => !item.isDone).length;
     final attentionItems = _attentionItems(displayedItems);
     final selectedTab = _effectiveSelectedTab;
@@ -303,6 +307,24 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           return false;
         })
         .toList(growable: false);
+  }
+
+  List<BoardItem> _sortedNotices(List<BoardItem> notices) {
+    final indexed = notices.indexed.toList(growable: false)
+      ..sort((left, right) {
+        final priority = _noticePriority(
+          left.$2,
+        ).compareTo(_noticePriority(right.$2));
+        if (priority != 0) return priority;
+        return left.$1.compareTo(right.$1);
+      });
+    return indexed.map((entry) => entry.$2).toList(growable: false);
+  }
+
+  int _noticePriority(BoardItem item) {
+    if (item.requiresConfirmation && !item.isConfirmedByMe) return 0;
+    if (item.isPinned) return 1;
+    return 2;
   }
 
   List<BoardItem> _filteredTasks(List<BoardItem> tasks) {

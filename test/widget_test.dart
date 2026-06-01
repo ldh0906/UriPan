@@ -379,6 +379,47 @@ void main() {
     expect(find.text('Done other task'), findsOneWidget);
   });
 
+  testWidgets('Notices tab puts required unconfirmed notices first', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.notices,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'normal-notice',
+              type: BoardItemType.notice,
+              title: 'Normal notice',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+            ),
+            BoardItem(
+              id: 'required-notice',
+              type: BoardItemType.notice,
+              title: 'Required notice',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(
+      find.text('\uD655\uC778 0\uBA85 / \uBBF8\uD655\uC778'),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(find.text('Required notice')).dy,
+      lessThan(tester.getTopLeft(find.text('Normal notice')).dy),
+    );
+  });
+
   testWidgets('Add item sheet exposes date and time controls for schedules', (
     tester,
   ) async {
@@ -828,6 +869,8 @@ void main() {
     expect(find.text('\uBA64\uBC84'), findsOneWidget);
   });
 }
+
+void _ignoreBoardTab(BoardTab tab) {}
 
 class _ResultObserver<T> extends NavigatorObserver {
   _ResultObserver({required this.onPopped});
