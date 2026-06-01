@@ -10,12 +10,14 @@ class ItemDetailSheet extends StatelessWidget {
     required this.item,
     required this.isPending,
     this.onToggle,
+    this.onConfirm,
     this.onDelete,
   });
 
   final BoardItem item;
   final bool isPending;
   final Future<void> Function(bool isDone)? onToggle;
+  final Future<void> Function(bool confirmed)? onConfirm;
   final Future<void> Function()? onDelete;
 
   @override
@@ -89,6 +91,40 @@ class ItemDetailSheet extends StatelessWidget {
                   ),
                   label: Text(item.isDone ? '완료 취소' : '완료하기'),
                 ),
+              ],
+              if (item.type == BoardItemType.notice &&
+                  item.requiresConfirmation) ...[
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    InfoChip(
+                      label: '\uD655\uC778 ${item.confirmationCount}\uBA85',
+                    ),
+                    InfoChip(
+                      label: item.isConfirmedByMe
+                          ? '\uB0B4\uAC00 \uD655\uC778\uD568'
+                          : '\uC544\uC9C1 \uD655\uC778 \uC804',
+                    ),
+                  ],
+                ),
+                if (onConfirm != null) ...[
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () => onConfirm!(!item.isConfirmedByMe),
+                    icon: Icon(
+                      item.isConfirmedByMe
+                          ? Icons.undo_rounded
+                          : Icons.visibility_rounded,
+                    ),
+                    label: Text(
+                      item.isConfirmedByMe
+                          ? '\uD655\uC778 \uCDE8\uC18C'
+                          : '\uD655\uC778\uD588\uC5B4\uC694',
+                    ),
+                  ),
+                ],
               ],
               if (onDelete != null) ...[
                 const SizedBox(height: 10),

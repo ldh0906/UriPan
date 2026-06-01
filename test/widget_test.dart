@@ -323,6 +323,46 @@ void main() {
     expect(deletedItemId, 'delete-me');
   });
 
+  testWidgets('Notice detail sheet confirms required notices', (tester) async {
+    BoardItem? confirmedItem;
+    bool? confirmedValue;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [
+            BoardItem(
+              id: 'confirm-me',
+              type: BoardItemType.notice,
+              title: 'Confirm this notice',
+              detail: 'Please read',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+            ),
+          ],
+          onConfirmNotice: (item, confirmed) async {
+            confirmedItem = item;
+            confirmedValue = confirmed;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Confirm this notice'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('\uD655\uC778 0\uBA85'), findsWidgets);
+    expect(find.text('\uC544\uC9C1 \uD655\uC778 \uC804'), findsWidgets);
+    await tester.tap(
+      find.widgetWithText(FilledButton, '\uD655\uC778\uD588\uC5B4\uC694'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(confirmedItem?.id, 'confirm-me');
+    expect(confirmedValue, isTrue);
+  });
+
   testWidgets('Refresh button calls the board refresh callback', (
     tester,
   ) async {

@@ -21,6 +21,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.onAddItem,
     this.onCreateInvite,
     this.onCompleteTask,
+    this.onConfirmNotice,
     this.onDeleteItem,
   }) : assert(
          items != null || repository != null,
@@ -36,6 +37,7 @@ class TodayBoardScreen extends StatefulWidget {
   final ValueChanged<BoardItemType?>? onAddItem;
   final VoidCallback? onCreateInvite;
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
+  final Future<void> Function(BoardItem item, bool confirmed)? onConfirmNotice;
   final Future<void> Function(BoardItem item)? onDeleteItem;
 
   @override
@@ -282,6 +284,20 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     }
   }
 
+  Future<void> _confirmNotice(BoardItem item, bool confirmed) async {
+    final onConfirmNotice = widget.onConfirmNotice;
+    if (onConfirmNotice != null) {
+      await onConfirmNotice(item, confirmed);
+      return;
+    }
+
+    final repository = widget.repository;
+    if (repository == null) return;
+    await repository.confirmNotice(item.id, confirmed);
+    final items = await repository.loadBoardItems(boardId: widget.board?.id);
+    if (mounted) setState(() => _fallbackItems = items);
+  }
+
   Future<void> _deleteItem(BoardItem item) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -328,6 +344,12 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
             ? (isDone) async {
                 Navigator.pop(context);
                 await _toggleTask(item, isDone);
+              }
+            : null,
+        onConfirm: item.type == BoardItemType.notice
+            ? (confirmed) async {
+                Navigator.pop(context);
+                await _confirmNotice(item, confirmed);
               }
             : null,
         onDelete: () async {

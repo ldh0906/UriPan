@@ -149,6 +149,28 @@ class BoardSessionController extends ChangeNotifier {
     }
   }
 
+  Future<void> confirmNotice(String itemId, bool confirmed) async {
+    final board = _requireActiveBoard();
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.confirmNotice(itemId, confirmed);
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
+  }
+
   Future<void> deleteItem(String itemId) async {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();

@@ -103,6 +103,33 @@ void main() {
     },
   );
 
+  test('confirmNotice reloads items with my confirmation state', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      itemsByBoard: {
+        'board-1': [
+          const BoardItem(
+            id: 'notice-1',
+            type: BoardItemType.notice,
+            title: 'Read this',
+            detail: '',
+            owner: 'Us',
+            timeLabel: 'Read',
+            requiresConfirmation: true,
+          ),
+        ],
+      },
+    );
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.confirmNotice('notice-1', true);
+
+    expect(controller.items.single.confirmationCount, 1);
+    expect(controller.items.single.isConfirmedByMe, isTrue);
+    expect(repository.loadedItemBoardIds, ['board-1', 'board-1']);
+  });
+
   test('reloads active board items when item realtime events arrive', () async {
     final repository = _FakeBoardRepository(
       boards: [_adminBoard],
@@ -263,6 +290,7 @@ class _FakeBoardRepository implements BoardRepository {
       startsAt: draft.startsAt,
       dueAt: draft.dueAt,
       tags: normalizeBoardItemTags(draft.tags),
+      requiresConfirmation: draft.requiresConfirmation,
     );
     itemsByBoard[boardId] = [...itemsByBoard[boardId] ?? const [], item];
     return item;
@@ -274,21 +302,25 @@ class _FakeBoardRepository implements BoardRepository {
       final index = entry.value.indexWhere((item) => item.id == itemId);
       if (index >= 0) {
         final old = entry.value[index];
-        final updated = BoardItem(
-          id: old.id,
-          type: old.type,
-          title: old.title,
-          detail: old.detail,
-          owner: old.owner,
-          timeLabel: old.timeLabel,
-          startsAt: old.startsAt,
-          dueAt: old.dueAt,
-          isDone: isDone,
-          isPinned: old.isPinned,
-          tags: old.tags,
-        );
+        final updated = old.copyWith(isDone: isDone);
         entry.value[index] = updated;
         return updated;
+      }
+    }
+    throw StateError('Item not found');
+  }
+
+  @override
+  Future<void> confirmNotice(String itemId, bool confirmed) async {
+    for (final entry in itemsByBoard.entries) {
+      final index = entry.value.indexWhere((item) => item.id == itemId);
+      if (index >= 0) {
+        final old = entry.value[index];
+        entry.value[index] = old.copyWith(
+          confirmationCount: confirmed ? 1 : 0,
+          isConfirmedByMe: confirmed,
+        );
+        return;
       }
     }
     throw StateError('Item not found');

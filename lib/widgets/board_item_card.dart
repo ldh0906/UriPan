@@ -177,6 +177,12 @@ class BoardItemCard extends StatelessWidget {
                     children: [
                       InfoChip(label: item.timeLabel),
                       InfoChip(label: item.owner),
+                      if (item.type == BoardItemType.notice &&
+                          item.requiresConfirmation)
+                        InfoChip(
+                          label:
+                              '\uD655\uC778 ${item.confirmationCount}\uBA85 / ${item.isConfirmedByMe ? '\uD655\uC778\uD568' : '\uBBF8\uD655\uC778'}',
+                        ),
                       ...item.tags
                           .take(3)
                           .map((tag) => TagChip(label: tag, compact: true)),

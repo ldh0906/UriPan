@@ -49,8 +49,13 @@ class BoardItem {
     this.dueAt,
     this.isDone = false,
     this.isPinned = false,
+    this.requiresConfirmation = false,
+    this.confirmationCount = 0,
+    this.isConfirmedByMe = false,
     this.tags = const [],
   });
+
+  static const Object _unset = Object();
 
   final String id;
   final BoardItemType type;
@@ -62,7 +67,44 @@ class BoardItem {
   final DateTime? dueAt;
   final bool isDone;
   final bool isPinned;
+  final bool requiresConfirmation;
+  final int confirmationCount;
+  final bool isConfirmedByMe;
   final List<String> tags;
+
+  BoardItem copyWith({
+    String? id,
+    BoardItemType? type,
+    String? title,
+    String? detail,
+    String? owner,
+    String? timeLabel,
+    Object? startsAt = _unset,
+    Object? dueAt = _unset,
+    bool? isDone,
+    bool? isPinned,
+    bool? requiresConfirmation,
+    int? confirmationCount,
+    bool? isConfirmedByMe,
+    List<String>? tags,
+  }) {
+    return BoardItem(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      detail: detail ?? this.detail,
+      owner: owner ?? this.owner,
+      timeLabel: timeLabel ?? this.timeLabel,
+      startsAt: startsAt == _unset ? this.startsAt : startsAt as DateTime?,
+      dueAt: dueAt == _unset ? this.dueAt : dueAt as DateTime?,
+      isDone: isDone ?? this.isDone,
+      isPinned: isPinned ?? this.isPinned,
+      requiresConfirmation: requiresConfirmation ?? this.requiresConfirmation,
+      confirmationCount: confirmationCount ?? this.confirmationCount,
+      isConfirmedByMe: isConfirmedByMe ?? this.isConfirmedByMe,
+      tags: tags ?? this.tags,
+    );
+  }
 
   bool isForDate(DateTime date) {
     final target = DateTime(date.year, date.month, date.day);

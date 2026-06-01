@@ -25,6 +25,10 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<void> confirmNotice(String itemId, bool confirmed) {
+    throw UnimplementedError();
+  }
+
   Future<void> deleteItem(String itemId) {
     throw UnimplementedError();
   }
@@ -96,6 +100,7 @@ class MemoryBoardRepository implements BoardRepository {
       startsAt: startsAt,
       dueAt: dueAt,
       isPinned: draft.isPinned,
+      requiresConfirmation: draft.requiresConfirmation,
       tags: normalizeBoardItemTags(draft.tags),
     );
     _items.add(item);
@@ -107,21 +112,30 @@ class MemoryBoardRepository implements BoardRepository {
     final index = _items.indexWhere((item) => item.id == itemId);
     if (index < 0) throw StateError('Item not found');
     final old = _items[index];
-    final updated = BoardItem(
-      id: old.id,
-      type: old.type,
-      title: old.title,
-      detail: old.detail,
-      owner: old.owner,
-      timeLabel: old.timeLabel,
-      startsAt: old.startsAt,
-      dueAt: old.dueAt,
-      isDone: isDone,
-      isPinned: old.isPinned,
-      tags: old.tags,
-    );
+    final updated = old.copyWith(isDone: isDone);
     _items[index] = updated;
     return updated;
+  }
+
+  @override
+  Future<void> confirmNotice(String itemId, bool confirmed) async {
+    final index = _items.indexWhere((item) => item.id == itemId);
+    if (index < 0) throw StateError('Item not found');
+
+    final old = _items[index];
+    if (confirmed && !old.isConfirmedByMe) {
+      _items[index] = old.copyWith(
+        isConfirmedByMe: true,
+        confirmationCount: old.confirmationCount + 1,
+      );
+    } else if (!confirmed && old.isConfirmedByMe) {
+      _items[index] = old.copyWith(
+        isConfirmedByMe: false,
+        confirmationCount: old.confirmationCount > 0
+            ? old.confirmationCount - 1
+            : 0,
+      );
+    }
   }
 
   @override
@@ -235,7 +249,7 @@ class SupabaseBoardRepository implements BoardRepository {
     final rows = await _client
         .from('board_items')
         .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, tags',
+          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
         )
         .eq('board_id', boardId)
         .order('is_pinned', ascending: false)
@@ -271,7 +285,7 @@ class SupabaseBoardRepository implements BoardRepository {
           'tags': normalizeBoardItemTags(draft.tags),
         })
         .select(
-          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, tags',
+          'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, item_confirmations(user_id)',
         )
         .single();
 
@@ -289,6 +303,24 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> confirmNotice(String itemId, bool confirmed) async {
+    final userId = _client.auth.currentUser!.id;
+    if (confirmed) {
+      await _client.from('item_confirmations').insert({
+        'item_id': itemId,
+        'user_id': userId,
+      });
+      return;
+    }
+
+    await _client
+        .from('item_confirmations')
+        .delete()
+        .eq('item_id', itemId)
+        .eq('user_id', userId);
+  }
+
+  @override
   Future<void> deleteItem(String itemId) async {
     await _client.from('board_items').delete().eq('id', itemId);
   }
@@ -297,6 +329,8 @@ class SupabaseBoardRepository implements BoardRepository {
     final type = BoardItemTypeWire.fromWireName(row['type'] as String);
     final startsAt = DateTime.tryParse((row['starts_at'] as String?) ?? '');
     final dueAt = DateTime.tryParse((row['due_at'] as String?) ?? '');
+    final confirmations = (row['item_confirmations'] as List?) ?? const [];
+    final currentUserId = _client.auth.currentUser?.id;
 
     return BoardItem(
       id: row['id'] as String,
@@ -309,6 +343,14 @@ class SupabaseBoardRepository implements BoardRepository {
       dueAt: dueAt,
       isDone: (row['is_done'] as bool?) ?? false,
       isPinned: (row['is_pinned'] as bool?) ?? false,
+      requiresConfirmation: (row['requires_confirmation'] as bool?) ?? false,
+      confirmationCount: confirmations.length,
+      isConfirmedByMe:
+          currentUserId != null &&
+          confirmations.any((confirmation) {
+            if (confirmation is! Map) return false;
+            return confirmation['user_id'] == currentUserId;
+          }),
       tags: _tagsFromRow(row['tags']),
     );
   }

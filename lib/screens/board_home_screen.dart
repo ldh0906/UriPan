@@ -135,6 +135,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _confirmNotice(BoardItem item, bool confirmed) async {
+    await _runAction(() async {
+      await _controller.confirmNotice(item.id, confirmed);
+    });
+  }
+
   Future<void> _deleteItem(BoardItem item) async {
     await _runAction(() async {
       await _controller.deleteItem(item.id);
@@ -244,6 +250,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onAddItem: _addItem,
               onCreateInvite: _createInvite,
               onCompleteTask: _completeTask,
+              onConfirmNotice: _confirmNotice,
               onDeleteItem: _deleteItem,
             ),
             if (_message != null)
