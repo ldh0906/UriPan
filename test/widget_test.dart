@@ -306,6 +306,22 @@ void main() {
     expect(find.text('Today task'), findsNothing);
   });
 
+  testWidgets('Calendar tab marks today once in the week strip', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          selectedTab: BoardTab.calendar,
+          onTabSelected: _ignoreBoardTab,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('calendar-today-dot')), findsOneWidget);
+  });
+
   testWidgets('Tasks tab filters open, mine, and done tasks', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -379,6 +395,46 @@ void main() {
     expect(find.text('Done other task'), findsOneWidget);
   });
 
+  testWidgets('Tasks tab empty copy follows mine and done filters', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          currentUserId: null,
+          items: [
+            BoardItem(
+              id: 'open-unassigned',
+              type: BoardItemType.task,
+              title: 'Open unassigned task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uB0B4 \uD560 \uC77C'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uB0B4 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('\uC644\uB8CC').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uC644\uB8CC\uD55C \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Notices tab puts required unconfirmed notices first', (
     tester,
   ) async {
@@ -432,6 +488,34 @@ void main() {
     expect(find.text('\uC77C\uC815 \uB0A0\uC9DC'), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+  });
+
+  testWidgets('showAddItemSheet forwards an initial schedule datetime', (
+    tester,
+  ) async {
+    final initialDateTime = DateTime(2027, 3, 14, 9, 30);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => showAddItemSheet(
+                context,
+                initialType: BoardItemType.schedule,
+                initialDateTime: initialDateTime,
+              ),
+              child: const Text('Open sheet'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open sheet'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2027.03.14'), findsOneWidget);
   });
 
   testWidgets('Add item sheet exposes due date controls for tasks', (

@@ -6,12 +6,16 @@ Future<BoardItemDraft?> showAddItemSheet(
   BuildContext context, {
   BoardItemType? initialType,
   List<BoardMember> members = const [],
+  DateTime? initialDateTime,
 }) {
   return showModalBottomSheet<BoardItemDraft>(
     context: context,
     showDragHandle: true,
-    builder: (context) =>
-        AddItemSheet(initialType: initialType, members: members),
+    builder: (context) => AddItemSheet(
+      initialType: initialType,
+      members: members,
+      initialDateTime: initialDateTime,
+    ),
   );
 }
 

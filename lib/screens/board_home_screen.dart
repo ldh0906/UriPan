@@ -144,7 +144,10 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
-  Future<void> _addItem([BoardItemType? initialType]) async {
+  Future<void> _addItem([
+    BoardItemType? initialType,
+    DateTime? initialDateTime,
+  ]) async {
     final board = _controller.activeBoard;
     if (board == null) return;
 
@@ -152,6 +155,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       context,
       initialType: initialType,
       members: _controller.members,
+      initialDateTime: initialDateTime,
     );
     if (draft == null) return;
 

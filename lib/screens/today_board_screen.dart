@@ -53,7 +53,8 @@ class TodayBoardScreen extends StatefulWidget {
   final BoardTab selectedTab;
   final ValueChanged<BoardTab>? onTabSelected;
   final Future<void> Function()? onRefresh;
-  final ValueChanged<BoardItemType?>? onAddItem;
+  final void Function(BoardItemType? type, [DateTime? initialDateTime])?
+  onAddItem;
   final BoardInvite? activeInvite;
   final VoidCallback? onCreateInvite;
   final VoidCallback? onRegenerateInvite;
@@ -146,7 +147,10 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       isRefreshing: _isRefreshing,
                       onAddItem: selectedTab == BoardTab.members
                           ? null
-                          : () => _addItem(selectedTab.defaultItemType),
+                          : () => _addItem(
+                              selectedTab.defaultItemType,
+                              _initialDateTimeForAdd(),
+                            ),
                     ),
                     const SizedBox(height: 20),
                     if (selectedTab == BoardTab.today) ...[
@@ -254,8 +258,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         onToggle: _toggleTask,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
-                        emptyText:
-                            '\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
+                        emptyText: _taskEmptyText,
                       ),
                     ] else if (selectedTab == BoardTab.notices)
                       BoardItemSection(
@@ -342,7 +345,33 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     }
   }
 
-  Future<void> _addFallbackItem([BoardItemType? initialType]) async {
+  String get _taskEmptyText {
+    switch (_taskFilter) {
+      case _TaskFilter.open:
+        return '\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
+      case _TaskFilter.mine:
+        return '\uB0B4 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
+      case _TaskFilter.done:
+        return '\uC644\uB8CC\uD55C \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
+    }
+  }
+
+  DateTime? _initialDateTimeForAdd() {
+    if (_effectiveSelectedTab != BoardTab.calendar) return null;
+    final now = DateTime.now();
+    return DateTime(
+      _selectedCalendarDate.year,
+      _selectedCalendarDate.month,
+      _selectedCalendarDate.day,
+      now.hour,
+      now.minute,
+    );
+  }
+
+  Future<void> _addFallbackItem([
+    BoardItemType? initialType,
+    DateTime? initialDateTime,
+  ]) async {
     final repository = widget.repository;
     if (repository == null) return;
 
@@ -350,6 +379,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
       context,
       initialType: initialType,
       members: widget.members,
+      initialDateTime: initialDateTime,
     );
     if (draft == null) return;
 
@@ -373,13 +403,16 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   BoardTab get _effectiveSelectedTab =>
       widget.onTabSelected == null ? _localSelectedTab : widget.selectedTab;
 
-  Future<void> _addItem(BoardItemType? initialType) async {
+  Future<void> _addItem([
+    BoardItemType? initialType,
+    DateTime? initialDateTime,
+  ]) async {
     final onAddItem = widget.onAddItem;
     if (onAddItem != null) {
-      onAddItem(initialType);
+      onAddItem(initialType, initialDateTime);
       return;
     }
-    await _addFallbackItem(initialType);
+    await _addFallbackItem(initialType, initialDateTime);
   }
 
   Future<void> _refresh() async {
@@ -545,6 +578,7 @@ class _CalendarWeekStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final weekStart = _startOfWeek(selectedDate);
+    final today = DateTime.now();
     final days = List.generate(
       7,
       (index) => weekStart.add(Duration(days: index)),
@@ -585,6 +619,7 @@ class _CalendarWeekStrip extends StatelessWidget {
                   date: day,
                   weekdayLabel: _weekdayLabels[day.weekday - 1],
                   isSelected: _isSameDay(day, selectedDate),
+                  isToday: _isSameDay(day, today),
                   onTap: () => onDateSelected(day),
                 ),
               ),
@@ -613,12 +648,14 @@ class _CalendarDayCell extends StatelessWidget {
     required this.date,
     required this.weekdayLabel,
     required this.isSelected,
+    required this.isToday,
     required this.onTap,
   });
 
   final DateTime date;
   final String weekdayLabel;
   final bool isSelected;
+  final bool isToday;
   final VoidCallback onTap;
 
   @override
@@ -656,6 +693,23 @@ class _CalendarDayCell extends StatelessWidget {
                 color: isSelected ? colors.onPrimary : null,
                 fontWeight: FontWeight.w800,
               ),
+            ),
+            const SizedBox(height: 3),
+            SizedBox(
+              height: 4,
+              child: isToday
+                  ? Container(
+                      key: const ValueKey('calendar-today-dot'),
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? colors.onPrimary
+                            : AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                  : null,
             ),
           ],
         ),
