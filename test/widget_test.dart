@@ -601,6 +601,112 @@ void main() {
     );
   });
 
+  testWidgets('BoardItemSection caps visible items and shows more count', (
+    tester,
+  ) async {
+    final items = List.generate(
+      4,
+      (index) => BoardItem(
+        id: 'item-$index',
+        type: BoardItemType.task,
+        title: 'Task $index',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Today',
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemSection(
+            title: '\uD560 \uC77C',
+            items: items,
+            accentColor: Colors.orange,
+            accentSoftColor: Colors.orangeAccent,
+            icon: Icons.check_rounded,
+            maxVisible: 3,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Task 0'), findsOneWidget);
+    expect(find.text('Task 1'), findsOneWidget);
+    expect(find.text('Task 2'), findsOneWidget);
+    expect(find.text('Task 3'), findsNothing);
+    expect(find.text('\uB354\uBCF4\uAE30 +1'), findsOneWidget);
+  });
+
+  testWidgets('BoardItemSection hides more button at or below maxVisible', (
+    tester,
+  ) async {
+    final items = List.generate(
+      3,
+      (index) => BoardItem(
+        id: 'item-$index',
+        type: BoardItemType.task,
+        title: 'Task $index',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Today',
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemSection(
+            title: '\uD560 \uC77C',
+            items: items,
+            accentColor: Colors.orange,
+            accentSoftColor: Colors.orangeAccent,
+            icon: Icons.check_rounded,
+            maxVisible: 3,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Task 2'), findsOneWidget);
+    expect(find.textContaining('\uB354\uBCF4\uAE30'), findsNothing);
+  });
+
+  testWidgets('BoardItemSection more button calls onShowMore', (tester) async {
+    var showMoreCalls = 0;
+    final items = List.generate(
+      4,
+      (index) => BoardItem(
+        id: 'item-$index',
+        type: BoardItemType.task,
+        title: 'Task $index',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Today',
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemSection(
+            title: '\uD560 \uC77C',
+            items: items,
+            accentColor: Colors.orange,
+            accentSoftColor: Colors.orangeAccent,
+            icon: Icons.check_rounded,
+            maxVisible: 3,
+            onShowMore: () => showMoreCalls += 1,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uB354\uBCF4\uAE30 +1'));
+
+    expect(showMoreCalls, 1);
+  });
+
   testWidgets('Today tab shows overdue tasks and unconfirmed notices', (
     tester,
   ) async {
@@ -859,7 +965,7 @@ void main() {
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
 
-  testWidgets('Calendar tab shows schedules for the selected day', (
+  testWidgets('Calendar tab shows schedules and tasks for the selected day', (
     tester,
   ) async {
     final now = DateTime(2026, 6, 2, 12);
@@ -914,7 +1020,7 @@ void main() {
 
     expect(find.text('Today schedule'), findsOneWidget);
     expect(find.text('Other day schedule'), findsNothing);
-    expect(find.text('Today task'), findsNothing);
+    expect(find.text('Today task'), findsOneWidget);
 
     await tester.tap(
       find.byKey(
@@ -928,6 +1034,42 @@ void main() {
     expect(find.text('Today schedule'), findsNothing);
     expect(find.text('Other day schedule'), findsOneWidget);
     expect(find.text('Today task'), findsNothing);
+  });
+
+  testWidgets('Calendar tab caps selected day tasks and shows more button', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 6, 2, 12);
+    final tasks = List.generate(
+      4,
+      (index) => BoardItem(
+        id: 'calendar-task-$index',
+        type: BoardItemType.task,
+        title: 'Calendar task $index',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Today',
+        dueAt: DateTime(now.year, now.month, now.day, 18),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          now: () => now,
+          items: tasks,
+          selectedTab: BoardTab.calendar,
+          onTabSelected: _ignoreBoardTab,
+        ),
+      ),
+    );
+
+    expect(find.text('\uD560 \uC77C'), findsWidgets);
+    expect(find.text('Calendar task 0'), findsOneWidget);
+    expect(find.text('Calendar task 1'), findsOneWidget);
+    expect(find.text('Calendar task 2'), findsOneWidget);
+    expect(find.text('Calendar task 3'), findsNothing);
+    expect(find.text('\uB354\uBCF4\uAE30 +1'), findsOneWidget);
   });
 
   testWidgets('Calendar tab marks today once in the week strip', (

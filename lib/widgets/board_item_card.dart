@@ -20,6 +20,8 @@ class BoardItemSection extends StatelessWidget {
     this.isOverdue,
     this.onItemTap,
     this.onTagTap,
+    this.maxVisible,
+    this.onShowMore,
   });
 
   final String title;
@@ -34,9 +36,14 @@ class BoardItemSection extends StatelessWidget {
   final bool Function(BoardItem item)? isOverdue;
   final ValueChanged<BoardItem>? onItemTap;
   final ValueChanged<String>? onTagTap;
+  final int? maxVisible;
+  final VoidCallback? onShowMore;
 
   @override
   Widget build(BuildContext context) {
+    final visibleItems = _visibleItems();
+    final hiddenCount = items.length - visibleItems.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,7 +57,7 @@ class BoardItemSection extends StatelessWidget {
                 '\uC544\uC9C1 \uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694.',
           )
         else
-          ...items.map(
+          ...visibleItems.map(
             (item) => BoardItemCard(
               item: item,
               accentColor: accentColor,
@@ -64,8 +71,26 @@ class BoardItemSection extends StatelessWidget {
               onTagTap: onTagTap,
             ),
           ),
+        if (hiddenCount > 0)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: onShowMore,
+              style: TextButton.styleFrom(
+                foregroundColor: accentColor,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              ),
+              child: Text('\uB354\uBCF4\uAE30 +$hiddenCount'),
+            ),
+          ),
       ],
     );
+  }
+
+  List<BoardItem> _visibleItems() {
+    final limit = maxVisible;
+    if (limit == null || items.length <= limit) return items;
+    return items.take(limit < 0 ? 0 : limit).toList(growable: false);
   }
 }
 

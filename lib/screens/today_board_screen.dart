@@ -20,6 +20,8 @@ enum _TaskFilter {
   final String label;
 }
 
+enum _CalendarDayCategory { schedule, task }
+
 class CalendarBarSegment {
   const CalendarBarSegment({
     required this.itemId,
@@ -205,6 +207,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   _TaskFilter _taskFilter = _TaskFilter.open;
   late DateTime _selectedCalendarDate;
   bool _isCalendarExpanded = false;
+  List<BoardItem> _latestDisplayedItems = const [];
 
   @override
   void initState() {
@@ -249,6 +252,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   Widget _buildBoard(BuildContext context, List<BoardItem> items) {
     final displayedItems = _fallbackItems ?? items;
+    _latestDisplayedItems = displayedItems;
     final todayItems = displayedItems
         .where((item) => item.isForDate(widget.now()))
         .toList(growable: false);
@@ -267,6 +271,12 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     final tasks = _itemsWithActiveTag(
       _itemsOfType(displayedItems, BoardItemType.task),
     );
+    final selectedDaySchedules = schedules
+        .where((item) => item.isForDate(_selectedCalendarDate))
+        .toList(growable: false);
+    final selectedDayTasks = tasks
+        .where((item) => item.isForDate(_selectedCalendarDate))
+        .toList(growable: false);
     final notices = _sortedNotices(
       _itemsWithActiveTag(_itemsOfType(displayedItems, BoardItemType.notice)),
     );
@@ -448,11 +458,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         const SizedBox(height: 16),
                         BoardItemSection(
                           title: '\uC77C\uC815',
-                          items: schedules
-                              .where(
-                                (item) => item.isForDate(_selectedCalendarDate),
-                              )
-                              .toList(growable: false),
+                          items: selectedDaySchedules,
                           accentColor: AppColors.primary,
                           accentSoftColor: AppColors.primarySoft,
                           icon: Icons.calendar_month_rounded,
@@ -461,6 +467,32 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           onTagTap: _setActiveTag,
                           emptyText:
                               '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
+                          maxVisible: 3,
+                          onShowMore: () => _showCalendarDaySheet(
+                            context,
+                            _CalendarDayCategory.schedule,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        BoardItemSection(
+                          title: '\uD560 \uC77C',
+                          items: selectedDayTasks,
+                          accentColor: AppColors.tertiary,
+                          accentSoftColor: AppColors.warningSoft,
+                          icon: Icons.check_rounded,
+                          showCheckbox: true,
+                          onToggle: _toggleTask,
+                          pendingTaskIds: _pendingTaskIds,
+                          isOverdue: _isOverdueTask,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                          emptyText:
+                              '\uC774\uB0A0 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
+                          maxVisible: 3,
+                          onShowMore: () => _showCalendarDaySheet(
+                            context,
+                            _CalendarDayCategory.task,
+                          ),
                         ),
                       ] else if (selectedTab == BoardTab.tasks) ...[
                         SegmentedButton<_TaskFilter>(
@@ -538,6 +570,88 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     return items
         .where((item) => item.tags.contains(activeTag))
         .toList(growable: false);
+  }
+
+  List<BoardItem> _calendarDayItems(_CalendarDayCategory category) {
+    final type = switch (category) {
+      _CalendarDayCategory.schedule => BoardItemType.schedule,
+      _CalendarDayCategory.task => BoardItemType.task,
+    };
+    return _itemsWithActiveTag(_itemsOfType(_latestDisplayedItems, type))
+        .where((item) => item.isForDate(_selectedCalendarDate))
+        .toList(growable: false);
+  }
+
+  String _calendarDayTitle(_CalendarDayCategory category) {
+    final categoryLabel = switch (category) {
+      _CalendarDayCategory.schedule => '\uC77C\uC815',
+      _CalendarDayCategory.task => '\uD560 \uC77C',
+    };
+    return '${_selectedCalendarDate.month}\uC6D4 '
+        '${_selectedCalendarDate.day}\uC77C $categoryLabel';
+  }
+
+  Future<void> _showCalendarDaySheet(
+    BuildContext context,
+    _CalendarDayCategory category,
+  ) async {
+    final items = _calendarDayItems(category);
+    final isTask = category == _CalendarDayCategory.task;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        final maxHeight = MediaQuery.of(sheetContext).size.height * 0.7;
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _calendarDayTitle(category),
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                BoardItemSection(
+                  title: isTask ? '\uD560 \uC77C' : '\uC77C\uC815',
+                  items: items,
+                  accentColor: isTask ? AppColors.tertiary : AppColors.primary,
+                  accentSoftColor: isTask
+                      ? AppColors.warningSoft
+                      : AppColors.primarySoft,
+                  icon: isTask
+                      ? Icons.check_rounded
+                      : Icons.calendar_month_rounded,
+                  showCheckbox: isTask,
+                  onToggle: isTask ? _toggleTask : null,
+                  pendingTaskIds: _pendingTaskIds,
+                  isOverdue: isTask ? _isOverdueTask : null,
+                  onItemTap: (item) {
+                    Navigator.pop(sheetContext);
+                    if (!mounted) return;
+                    _showItemDetail(item);
+                  },
+                  onTagTap: _setActiveTag,
+                  emptyText: isTask
+                      ? '\uC774\uB0A0 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.'
+                      : '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _setActiveTag(String tag) {
