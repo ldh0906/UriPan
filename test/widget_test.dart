@@ -264,7 +264,7 @@ void main() {
     expect(find.text('Future schedule'), findsNothing);
   });
 
-  testWidgets('Board item card derives a friendly due date chip', (
+  testWidgets('Board item card derives friendly due date meta from dueAt', (
     tester,
   ) async {
     final now = DateTime.now();
@@ -290,8 +290,10 @@ void main() {
       ),
     );
 
-    expect(find.text('\uC624\uB298'), findsOneWidget);
-    expect(find.text('Today'), findsOneWidget);
+    expect(find.textContaining('\uC624\uB298'), findsOneWidget);
+    expect(find.textContaining('18:00'), findsOneWidget);
+    expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+    expect(find.text('Today'), findsNothing);
   });
 
   testWidgets('Board item card shows comment badge only when comments exist', (
@@ -300,44 +302,50 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: Column(
-            children: [
-              BoardItemCard(
-                item: const BoardItem(
-                  id: 'with-comments',
-                  type: BoardItemType.notice,
-                  title: 'With comments',
-                  detail: '',
-                  owner: 'Us',
-                  timeLabel: 'Read',
-                  commentCount: 3,
-                ),
-                accentColor: Colors.blue,
-                accentSoftColor: Colors.blue.shade50,
-                icon: Icons.campaign_rounded,
-              ),
-              BoardItemCard(
-                item: BoardItem(
-                  id: 'without-comments',
-                  type: BoardItemType.notice,
-                  title: 'Without comments',
-                  detail: '',
-                  owner: 'Us',
-                  timeLabel: 'Read',
-                  commentCount: 0,
-                ),
-                accentColor: Colors.green,
-                accentSoftColor: Colors.green.shade50,
-                icon: Icons.campaign_rounded,
-              ),
-            ],
+          body: BoardItemCard(
+            item: const BoardItem(
+              id: 'with-comments',
+              type: BoardItemType.notice,
+              title: 'With comments',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+              commentCount: 3,
+            ),
+            accentColor: Colors.blue,
+            accentSoftColor: Colors.blue.shade50,
+            icon: Icons.campaign_rounded,
           ),
         ),
       ),
     );
 
-    expect(find.text('\uD83D\uDCAC 3'), findsOneWidget);
-    expect(find.text('\uD83D\uDCAC 0'), findsNothing);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.byIcon(Icons.mode_comment_outlined), findsOneWidget);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemCard(
+            item: BoardItem(
+              id: 'without-comments',
+              type: BoardItemType.notice,
+              title: 'Without comments',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+              commentCount: 0,
+            ),
+            accentColor: Colors.green,
+            accentSoftColor: Colors.green.shade50,
+            icon: Icons.campaign_rounded,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('0'), findsNothing);
+    expect(find.byIcon(Icons.mode_comment_outlined), findsNothing);
   });
 
   testWidgets('CommentThread renders comments and sends trimmed text', (
@@ -1122,10 +1130,8 @@ void main() {
       ),
     );
 
-    expect(
-      find.text('\uD655\uC778 0\uBA85 / \uBBF8\uD655\uC778'),
-      findsOneWidget,
-    );
+    expect(find.text('\uD655\uC778 0\uBA85'), findsOneWidget);
+    expect(find.byIcon(Icons.how_to_reg_rounded), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('Required notice')).dy,
       lessThan(tester.getTopLeft(find.text('Normal notice')).dy),

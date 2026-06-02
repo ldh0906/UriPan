@@ -92,9 +92,64 @@ class BoardItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final friendlyDateLabel = item.type == BoardItemType.notice
-        ? null
-        : friendlyDayLabel(item.startsAt ?? item.dueAt);
+    final metaBits = <Widget>[];
+    final when = item.startsAt ?? item.dueAt;
+    if (item.type != BoardItemType.notice && when != null) {
+      final localWhen = when.toLocal();
+      final day = friendlyDayLabel(when) ?? '';
+      final time = localWhen.hour == 0 && localWhen.minute == 0
+          ? ''
+          : '${localWhen.hour.toString().padLeft(2, '0')}:'
+                '${localWhen.minute.toString().padLeft(2, '0')}';
+      final label = [day, time].where((value) => value.isNotEmpty).join(' ');
+      if (label.isNotEmpty) {
+        metaBits.add(
+          _MetaBit(
+            icon: item.type == BoardItemType.task
+                ? Icons.schedule_rounded
+                : Icons.event_rounded,
+            label: label,
+          ),
+        );
+      }
+    }
+    if (isOverdue) metaBits.add(const _OverdueChip());
+
+    final personLabel = item.assigneeName ?? item.owner;
+    if (personLabel.isNotEmpty) {
+      metaBits.add(
+        _MetaBit(icon: Icons.person_outline_rounded, label: personLabel),
+      );
+    }
+
+    if (item.type == BoardItemType.notice && item.requiresConfirmation) {
+      metaBits.add(
+        _MetaBit(
+          icon: Icons.how_to_reg_rounded,
+          label: '\uD655\uC778 ${item.confirmationCount}\uBA85',
+        ),
+      );
+    }
+
+    if (item.commentCount > 0) {
+      metaBits.add(
+        _MetaBit(
+          icon: Icons.mode_comment_outlined,
+          label: '${item.commentCount}',
+        ),
+      );
+    }
+
+    final tagChips = item.tags
+        .take(3)
+        .map(
+          (tag) => TagChip(
+            label: tag,
+            compact: true,
+            onTap: onTagTap == null ? null : () => onTagTap!(tag),
+          ),
+        )
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -134,17 +189,18 @@ class BoardItemCard extends StatelessWidget {
                         ),
                 ),
               ),
-            ],
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: accentSoftColor,
-                borderRadius: BorderRadius.circular(15),
+            ] else ...[
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: accentSoftColor,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: accentColor),
               ),
-              child: Icon(icon, color: accentColor),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,36 +235,12 @@ class BoardItemCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      if (friendlyDateLabel != null)
-                        InfoChip(label: friendlyDateLabel),
-                      if (isOverdue) const _OverdueChip(),
-                      InfoChip(label: item.timeLabel),
-                      InfoChip(label: item.owner),
-                      if (item.type == BoardItemType.notice &&
-                          item.requiresConfirmation)
-                        InfoChip(
-                          label:
-                              '\uD655\uC778 ${item.confirmationCount}\uBA85 / ${item.isConfirmedByMe ? '\uD655\uC778\uD568' : '\uBBF8\uD655\uC778'}',
-                        ),
-                      if (item.commentCount > 0)
-                        InfoChip(label: '\uD83D\uDCAC ${item.commentCount}'),
-                      ...item.tags
-                          .take(3)
-                          .map(
-                            (tag) => TagChip(
-                              label: tag,
-                              compact: true,
-                              onTap: onTagTap == null
-                                  ? null
-                                  : () => onTagTap!(tag),
-                            ),
-                          ),
-                    ],
-                  ),
+                  if (metaBits.isNotEmpty)
+                    Wrap(spacing: 12, runSpacing: 4, children: metaBits),
+                  if (metaBits.isNotEmpty && tagChips.isNotEmpty)
+                    const SizedBox(height: 6),
+                  if (tagChips.isNotEmpty)
+                    Wrap(spacing: 8, runSpacing: 6, children: tagChips),
                 ],
               ),
             ),
@@ -246,7 +278,7 @@ class TagChip extends StatelessWidget {
       child: Text(
         '#$label',
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: AppColors.primary,
+          color: const Color(0xFF4F6328),
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -268,6 +300,30 @@ class TagChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         child: ExcludeSemantics(child: chip),
       ),
+    );
+  }
+}
+
+class _MetaBit extends StatelessWidget {
+  const _MetaBit({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.mutedText),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
+        ),
+      ],
     );
   }
 }

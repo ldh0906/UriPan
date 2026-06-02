@@ -34,12 +34,12 @@ class BoardHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                board?.name ?? '우리집',
+                board?.name ?? '\uC6B0\uB9AC\uC9D1',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 4),
               Text(
-                '오늘 보드',
+                '\uC624\uB298 \uBCF4\uB4DC',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.mutedText,
                   fontWeight: FontWeight.w700,
@@ -48,9 +48,10 @@ class BoardHeader extends StatelessWidget {
             ],
           ),
         ),
-        IconButton.filledTonal(
+        IconButton(
           onPressed: isRefreshing ? null : onRefresh,
-          tooltip: '새로고침',
+          style: IconButton.styleFrom(foregroundColor: AppColors.mutedText),
+          tooltip: '\uC0C8\uB85C\uACE0\uCE68',
           icon: isRefreshing
               ? const SizedBox.square(
                   dimension: 18,
@@ -59,9 +60,12 @@ class BoardHeader extends StatelessWidget {
               : const Icon(Icons.refresh_rounded),
         ),
         const SizedBox(width: 8),
-        IconButton.filledTonal(
+        IconButton(
           onPressed: onCreateInvite,
-          tooltip: board?.isAdmin == true ? '초대코드' : '가족',
+          style: IconButton.styleFrom(foregroundColor: AppColors.mutedText),
+          tooltip: board?.isAdmin == true
+              ? '\uCD08\uB300\uCF54\uB4DC'
+              : '\uAC00\uC871',
           icon: Icon(
             board?.isAdmin == true
                 ? Icons.ios_share_rounded
@@ -74,8 +78,9 @@ class BoardHeader extends StatelessWidget {
             button: true,
             label: '\uC124\uC815',
             onTap: onOpenSettings,
-            child: IconButton.filledTonal(
+            child: IconButton(
               onPressed: onOpenSettings,
+              style: IconButton.styleFrom(foregroundColor: AppColors.mutedText),
               tooltip: '\uC124\uC815',
               icon: const Icon(Icons.settings_outlined),
             ),
@@ -86,8 +91,9 @@ class BoardHeader extends StatelessWidget {
           button: true,
           label: '\uAC80\uC0C9',
           onTap: onSearchToggle,
-          child: IconButton.filledTonal(
+          child: IconButton(
             onPressed: onSearchToggle,
+            style: IconButton.styleFrom(foregroundColor: AppColors.mutedText),
             tooltip: '\uAC80\uC0C9',
             icon: const Icon(Icons.search_rounded),
           ),
@@ -131,10 +137,13 @@ class PulseCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('오늘의 상황', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  '\uC624\uB298\uC758 \uC0C1\uD669',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 3),
                 Text(
-                  '일정 $schedules개, 남은 할 일 $openTasks개, 공지 $notices개가 있어요.',
+                  '\uC77C\uC815 $schedules\uAC1C \u00B7 \uD560 \uC77C $openTasks\uAC1C \u00B7 \uACF5\uC9C0 $notices\uAC1C',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
