@@ -955,6 +955,48 @@ void main() {
     expect(signedOut, isTrue);
   });
 
+  testWidgets('Board settings sheet switches to another board', (tester) async {
+    String? selectedBoardId;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardSettingsSheet(
+            boardName: 'Home',
+            userName: 'Mina',
+            boards: const [
+              BoardSummary(
+                id: 'board-1',
+                name: 'Home',
+                role: 'admin',
+                maxMembers: 4,
+                memberCount: 2,
+              ),
+              BoardSummary(
+                id: 'board-2',
+                name: 'Second home',
+                role: 'member',
+                maxMembers: 5,
+                memberCount: 3,
+              ),
+            ],
+            activeBoardId: 'board-1',
+            onSelectBoard: (id) => selectedBoardId = id,
+            onSignOut: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Second home'), findsOneWidget);
+
+    await tester.tap(find.text('Second home'));
+    await tester.pumpAndSettle();
+
+    expect(selectedBoardId, 'board-2');
+  });
+
   testWidgets('Members tab shows member names and roles', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

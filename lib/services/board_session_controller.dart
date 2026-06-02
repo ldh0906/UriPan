@@ -134,6 +134,12 @@ class BoardSessionController extends ChangeNotifier {
     return joined;
   }
 
+  Future<void> switchBoard(String boardId) async {
+    if (boardId == _activeBoard?.id) return;
+
+    await load(preferredBoardId: boardId);
+  }
+
   Future<void> leaveBoard() async {
     final board = _requireActiveBoard();
     await _runAction(() async {

@@ -153,6 +153,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       context,
       boardName: board.name,
       userName: _currentUserDisplayName(),
+      boards: _controller.boards,
+      activeBoardId: board.id,
+      onSelectBoard: (id) => _runAction(() => _controller.switchBoard(id)),
       onSignOut: () {
         Navigator.pop(context);
         unawaited(widget.client.auth.signOut());

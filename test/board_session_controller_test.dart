@@ -225,6 +225,46 @@ void main() {
     },
   );
 
+  test(
+    'switchBoard selects another board and skips active board reload',
+    () async {
+      final repository = _FakeBoardRepository(
+        boards: [_adminBoard, _secondBoard],
+        itemsByBoard: {
+          'board-1': [
+            const BoardItem(
+              id: 'first-item',
+              type: BoardItemType.task,
+              title: 'First item',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+            ),
+          ],
+          'board-2': [
+            const BoardItem(
+              id: 'second-item',
+              type: BoardItemType.notice,
+              title: 'Second item',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+            ),
+          ],
+        },
+      );
+      final controller = BoardSessionController(repository);
+      await controller.load();
+
+      await controller.switchBoard('board-2');
+      await controller.switchBoard('board-2');
+
+      expect(controller.activeBoard?.id, 'board-2');
+      expect(controller.items.single.id, 'second-item');
+      expect(repository.loadedItemBoardIds, ['board-1', 'board-2']);
+    },
+  );
+
   test('confirmNotice reloads items with my confirmation state', () async {
     final repository = _FakeBoardRepository(
       boards: [_adminBoard],
