@@ -408,6 +408,36 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<List<BoardComment>> _loadComments(BoardItem item) {
+    return _controller.loadComments(item.id);
+  }
+
+  Future<void> _addComment(BoardItem item, String body) async {
+    Object? actionError;
+    await _runAction(() async {
+      try {
+        await _controller.addComment(item.id, body);
+      } catch (error) {
+        actionError = error;
+        rethrow;
+      }
+    });
+    if (actionError != null) throw actionError!;
+  }
+
+  Future<void> _deleteComment(BoardComment comment) async {
+    Object? actionError;
+    await _runAction(() async {
+      try {
+        await _controller.deleteComment(comment.id);
+      } catch (error) {
+        actionError = error;
+        rethrow;
+      }
+    });
+    if (actionError != null) throw actionError!;
+  }
+
   Future<void> _updateMemberRole(String userId, String role) async {
     await _runAction(() async {
       await _controller.updateMemberRole(userId, role);
@@ -540,6 +570,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onRemoveMember: _removeMember,
               onCompleteTask: _completeTask,
               onConfirmNotice: _confirmNotice,
+              loadComments: _loadComments,
+              onAddComment: _addComment,
+              onDeleteComment: _deleteComment,
               onEditItem: _editItem,
               onDeleteItem: _deleteItem,
             ),

@@ -4,6 +4,7 @@ import '../models/board_item.dart';
 import '../services/friendly_date.dart';
 import '../theme/app_theme.dart';
 import 'board_item_card.dart';
+import 'comment_thread.dart';
 import 'common_widgets.dart';
 
 class ItemDetailSheet extends StatelessWidget {
@@ -15,6 +16,11 @@ class ItemDetailSheet extends StatelessWidget {
     this.onConfirm,
     this.onEdit,
     this.onDelete,
+    this.loadComments,
+    this.onAddComment,
+    this.onDeleteComment,
+    this.currentUserId,
+    this.isAdmin = false,
     this.members = const [],
   });
 
@@ -24,6 +30,11 @@ class ItemDetailSheet extends StatelessWidget {
   final Future<void> Function(bool confirmed)? onConfirm;
   final Future<void> Function()? onEdit;
   final Future<void> Function()? onDelete;
+  final Future<List<BoardComment>> Function()? loadComments;
+  final Future<void> Function(String body)? onAddComment;
+  final Future<void> Function(BoardComment comment)? onDeleteComment;
+  final String? currentUserId;
+  final bool isAdmin;
   final List<BoardMember> members;
 
   @override
@@ -152,6 +163,18 @@ class ItemDetailSheet extends StatelessWidget {
                   onPressed: onDelete,
                   icon: const Icon(Icons.delete_outline_rounded),
                   label: const Text('삭제'),
+                ),
+              ],
+              if (loadComments != null &&
+                  onAddComment != null &&
+                  onDeleteComment != null) ...[
+                const SizedBox(height: 24),
+                CommentThread(
+                  loadComments: loadComments!,
+                  onAddComment: onAddComment!,
+                  onDeleteComment: onDeleteComment!,
+                  currentUserId: currentUserId,
+                  isAdmin: isAdmin,
                 ),
               ],
             ],

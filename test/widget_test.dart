@@ -13,6 +13,7 @@ import 'package:uripan/services/notifications/reminder_planner.dart';
 import 'package:uripan/services/notifications/reminder_scheduler.dart';
 import 'package:uripan/widgets/board_action_sheets.dart';
 import 'package:uripan/widgets/board_item_card.dart';
+import 'package:uripan/widgets/comment_thread.dart';
 import 'package:uripan/widgets/board_settings_sheet.dart';
 import 'package:uripan/widgets/common_widgets.dart';
 
@@ -291,6 +292,151 @@ void main() {
 
     expect(find.text('\uC624\uB298'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
+  });
+
+  testWidgets('Board item card shows comment badge only when comments exist', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              BoardItemCard(
+                item: const BoardItem(
+                  id: 'with-comments',
+                  type: BoardItemType.notice,
+                  title: 'With comments',
+                  detail: '',
+                  owner: 'Us',
+                  timeLabel: 'Read',
+                  commentCount: 3,
+                ),
+                accentColor: Colors.blue,
+                accentSoftColor: Colors.blue.shade50,
+                icon: Icons.campaign_rounded,
+              ),
+              BoardItemCard(
+                item: BoardItem(
+                  id: 'without-comments',
+                  type: BoardItemType.notice,
+                  title: 'Without comments',
+                  detail: '',
+                  owner: 'Us',
+                  timeLabel: 'Read',
+                  commentCount: 0,
+                ),
+                accentColor: Colors.green,
+                accentSoftColor: Colors.green.shade50,
+                icon: Icons.campaign_rounded,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('\uD83D\uDCAC 3'), findsOneWidget);
+    expect(find.text('\uD83D\uDCAC 0'), findsNothing);
+  });
+
+  testWidgets('CommentThread renders comments and sends trimmed text', (
+    tester,
+  ) async {
+    final comments = [
+      BoardComment(
+        id: 'comment-1',
+        itemId: 'item-1',
+        authorId: 'user-1',
+        authorName: 'Mina',
+        authorAvatarColor: '#3366FF',
+        body: 'Looks good',
+        createdAt: DateTime.now().subtract(const Duration(minutes: 3)),
+      ),
+    ];
+    final addedBodies = <String>[];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommentThread(
+            loadComments: () async => comments,
+            onAddComment: (body) async => addedBodies.add(body),
+            onDeleteComment: (_) async {},
+            currentUserId: 'user-2',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mina'), findsOneWidget);
+    expect(find.text('Looks good'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '  Thanks  ');
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pumpAndSettle();
+
+    expect(addedBodies, ['Thanks']);
+  });
+
+  testWidgets('CommentThread shows empty state', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommentThread(
+            loadComments: () async => const [],
+            onAddComment: (_) async {},
+            onDeleteComment: (_) async {},
+            currentUserId: 'user-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('CommentThread confirms before deleting author comment', (
+    tester,
+  ) async {
+    final comment = BoardComment(
+      id: 'comment-1',
+      itemId: 'item-1',
+      authorId: 'user-1',
+      authorName: 'Mina',
+      authorAvatarColor: '#3366FF',
+      body: 'Remove me',
+      createdAt: DateTime.now(),
+    );
+    final deleted = <BoardComment>[];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommentThread(
+            loadComments: () async => [comment],
+            onAddComment: (_) async {},
+            onDeleteComment: (comment) async => deleted.add(comment),
+            currentUserId: 'user-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('\uB313\uAE00 \uC0AD\uC81C'), findsOneWidget);
+
+    await tester.tap(find.text('\uC0AD\uC81C'));
+    await tester.pumpAndSettle();
+
+    expect(deleted, [comment]);
   });
 
   testWidgets('BoardHomeScreen syncs reminders when loaded items change', (

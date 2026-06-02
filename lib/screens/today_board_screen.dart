@@ -41,6 +41,9 @@ class TodayBoardScreen extends StatefulWidget {
     this.onRemoveMember,
     this.onCompleteTask,
     this.onConfirmNotice,
+    this.loadComments,
+    this.onAddComment,
+    this.onDeleteComment,
     this.onEditItem,
     this.onDeleteItem,
     this.now = DateTime.now,
@@ -69,6 +72,9 @@ class TodayBoardScreen extends StatefulWidget {
   final Future<void> Function(String userId)? onRemoveMember;
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
   final Future<void> Function(BoardItem item, bool confirmed)? onConfirmNotice;
+  final Future<List<BoardComment>> Function(BoardItem item)? loadComments;
+  final Future<void> Function(BoardItem item, String body)? onAddComment;
+  final Future<void> Function(BoardComment comment)? onDeleteComment;
   final void Function(BoardItem item)? onEditItem;
   final Future<void> Function(BoardItem item)? onDeleteItem;
   final DateTime Function() now;
@@ -681,7 +687,51 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     if (mounted) setState(() => _fallbackItems = items);
   }
 
+  Future<List<BoardComment>> _loadComments(BoardItem item) async {
+    final loadComments = widget.loadComments;
+    if (loadComments != null) return loadComments(item);
+
+    final repository = widget.repository;
+    if (repository == null) return const [];
+    return repository.loadComments(item.id);
+  }
+
+  Future<void> _addComment(BoardItem item, String body) async {
+    final onAddComment = widget.onAddComment;
+    if (onAddComment != null) {
+      await onAddComment(item, body);
+      return;
+    }
+
+    final repository = widget.repository;
+    if (repository == null) return;
+    await repository.addComment(item.id, body);
+    final items = await repository.loadBoardItems(boardId: widget.board?.id);
+    if (mounted) setState(() => _fallbackItems = items);
+  }
+
+  Future<void> _deleteComment(BoardComment comment) async {
+    final onDeleteComment = widget.onDeleteComment;
+    if (onDeleteComment != null) {
+      await onDeleteComment(comment);
+      return;
+    }
+
+    final repository = widget.repository;
+    if (repository == null) return;
+    await repository.deleteComment(comment.id);
+    final items = await repository.loadBoardItems(boardId: widget.board?.id);
+    if (mounted) setState(() => _fallbackItems = items);
+  }
+
   Future<void> _showItemDetail(BoardItem item) async {
+    final hasInjectedCommentCallbacks =
+        widget.loadComments != null &&
+        widget.onAddComment != null &&
+        widget.onDeleteComment != null;
+    final canShowComments =
+        hasInjectedCommentCallbacks || widget.repository != null;
+
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -709,6 +759,13 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           Navigator.pop(context);
           await _deleteItem(item);
         },
+        loadComments: canShowComments ? () => _loadComments(item) : null,
+        onAddComment: canShowComments
+            ? (body) => _addComment(item, body)
+            : null,
+        onDeleteComment: canShowComments ? _deleteComment : null,
+        currentUserId: widget.currentUserId,
+        isAdmin: widget.board?.isAdmin == true,
       ),
     );
   }

@@ -194,6 +194,8 @@ class BoardItemCard extends StatelessWidget {
                           label:
                               '\uD655\uC778 ${item.confirmationCount}\uBA85 / ${item.isConfirmedByMe ? '\uD655\uC778\uD568' : '\uBBF8\uD655\uC778'}',
                         ),
+                      if (item.commentCount > 0)
+                        InfoChip(label: '\uD83D\uDCAC ${item.commentCount}'),
                       ...item.tags
                           .take(3)
                           .map(

@@ -302,6 +302,26 @@ class BoardSessionController extends ChangeNotifier {
     }
   }
 
+  Future<List<BoardComment>> loadComments(String itemId) {
+    return _repository.loadComments(itemId);
+  }
+
+  Future<void> addComment(String itemId, String body) async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.addComment(itemId, body);
+      _items = await _repository.loadBoardItems(boardId: board.id);
+    });
+  }
+
+  Future<void> deleteComment(String commentId) async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.deleteComment(commentId);
+      _items = await _repository.loadBoardItems(boardId: board.id);
+    });
+  }
+
   Future<void> handleBoardMembershipChanged() async {
     await load(preferredBoardId: _activeBoard?.id);
   }
