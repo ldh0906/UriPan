@@ -12,6 +12,8 @@ class BoardSettingsSheet extends StatelessWidget {
     this.boards = const [],
     this.activeBoardId,
     this.onSelectBoard,
+    this.myProfile,
+    this.onEditProfile,
     required this.onSignOut,
   });
 
@@ -20,6 +22,8 @@ class BoardSettingsSheet extends StatelessWidget {
   final List<BoardSummary> boards;
   final String? activeBoardId;
   final ValueChanged<String>? onSelectBoard;
+  final UserProfile? myProfile;
+  final VoidCallback? onEditProfile;
   final VoidCallback onSignOut;
 
   @override
@@ -65,6 +69,20 @@ class BoardSettingsSheet extends StatelessWidget {
                 );
               }),
             ],
+            if (myProfile != null && onEditProfile != null) ...[
+              const SizedBox(height: 18),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: MemberAvatar(
+                  displayName: myProfile!.displayName,
+                  avatarColor: myProfile!.avatarColor,
+                ),
+                title: const Text('\uB0B4 \uC815\uBCF4'),
+                subtitle: Text(myProfile!.displayName),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: onEditProfile,
+              ),
+            ],
             const SizedBox(height: 18),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -76,6 +94,215 @@ class BoardSettingsSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class EditProfileResult {
+  const EditProfileResult({
+    required this.displayName,
+    required this.avatarColor,
+  });
+
+  final String displayName;
+  final String avatarColor;
+}
+
+class EditProfileSheet extends StatefulWidget {
+  const EditProfileSheet({super.key, required this.profile});
+
+  final UserProfile profile;
+
+  @override
+  State<EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<EditProfileSheet> {
+  static const _palette = [
+    '#647D31',
+    '#E7A14B',
+    '#4B7BE7',
+    '#C2497A',
+    '#3FA796',
+    '#8A6FE0',
+  ];
+
+  late final TextEditingController _displayNameController;
+  late String _selectedColor;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayNameController = TextEditingController(
+      text: widget.profile.displayName,
+    );
+    _selectedColor = _palette.contains(widget.profile.avatarColor)
+        ? widget.profile.avatarColor
+        : _palette.first;
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final displayName = _displayNameController.text.trim();
+    if (displayName.isEmpty) {
+      setState(() {
+        _errorText = '\uC774\uB984\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.';
+      });
+      return;
+    }
+    if (displayName.length > 60) {
+      setState(() {
+        _errorText =
+            '\uC774\uB984\uC740 60\uC790 \uC774\uD558\uC5EC\uC57C \uD574\uC694.';
+      });
+      return;
+    }
+
+    Navigator.pop(
+      context,
+      EditProfileResult(displayName: displayName, avatarColor: _selectedColor),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final previewName = _displayNameController.text.trim().isEmpty
+        ? widget.profile.displayName
+        : _displayNameController.text.trim();
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          8,
+          20,
+          24 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '\uB0B4 \uC815\uBCF4',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                MemberAvatar(
+                  displayName: previewName,
+                  avatarColor: _selectedColor,
+                  size: 52,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: TextField(
+                    controller: _displayNameController,
+                    maxLength: 60,
+                    decoration: InputDecoration(
+                      labelText: '\uC774\uB984',
+                      errorText: _errorText,
+                      counterText: '',
+                    ),
+                    onChanged: (_) {
+                      if (_errorText != null) setState(() => _errorText = null);
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Text(
+              '\uC544\uBC14\uD0C0 \uC0C9\uC0C1',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              children: _palette
+                  .map((color) {
+                    final selected = color == _selectedColor;
+                    return _AvatarColorButton(
+                      colorHex: color,
+                      selected: selected,
+                      onTap: () => setState(() => _selectedColor = color),
+                    );
+                  })
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('\uCDE8\uC18C'),
+                ),
+                const SizedBox(width: 10),
+                FilledButton(
+                  onPressed: _save,
+                  child: const Text('\uC800\uC7A5'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AvatarColorButton extends StatelessWidget {
+  const _AvatarColorButton({
+    required this.colorHex,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String colorHex;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: colorHex,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: _colorFromHex(colorHex),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected ? AppColors.text : Colors.white,
+              width: selected ? 3 : 2,
+            ),
+          ),
+          child: selected
+              ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Color _colorFromHex(String value) {
+    final hex = value.trim().replaceFirst('#', '');
+    if (!RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(hex)) {
+      return AppColors.primary;
+    }
+    return Color(int.parse('FF$hex', radix: 16));
   }
 }
 
@@ -164,6 +391,8 @@ Future<void> showBoardSettingsSheet(
   List<BoardSummary> boards = const [],
   String? activeBoardId,
   ValueChanged<String>? onSelectBoard,
+  UserProfile? myProfile,
+  VoidCallback? onEditProfile,
   required VoidCallback onSignOut,
 }) {
   return showModalBottomSheet<void>(
@@ -175,7 +404,21 @@ Future<void> showBoardSettingsSheet(
       boards: boards,
       activeBoardId: activeBoardId,
       onSelectBoard: onSelectBoard,
+      myProfile: myProfile,
+      onEditProfile: onEditProfile,
       onSignOut: onSignOut,
     ),
+  );
+}
+
+Future<EditProfileResult?> showEditProfileSheet(
+  BuildContext context, {
+  required UserProfile profile,
+}) {
+  return showModalBottomSheet<EditProfileResult>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) => EditProfileSheet(profile: profile),
   );
 }

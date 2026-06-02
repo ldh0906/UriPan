@@ -4,8 +4,16 @@ import '../models/board_item.dart';
 
 abstract class BoardRepository {
   Future<List<BoardSummary>> loadBoards() async => const [];
+  Future<UserProfile?> loadMyProfile() async => null;
   Future<List<BoardMember>> loadMembers(String boardId) async => const [];
   Future<BoardSummary> createBoard(String name, int maxMembers) {
+    throw UnimplementedError();
+  }
+
+  Future<UserProfile> updateMyProfile({
+    String? displayName,
+    String? avatarColor,
+  }) {
     throw UnimplementedError();
   }
 
@@ -79,9 +87,30 @@ class MemoryBoardRepository implements BoardRepository {
       joinedAt: DateTime(2026, 6, 1, 1),
     ),
   ];
+  UserProfile _myProfile = const UserProfile(
+    id: 'memory-user-1',
+    displayName: '\uC9C0\uC6B0',
+    avatarColor: '#647D31',
+  );
 
   @override
   Future<List<BoardSummary>> loadBoards() async => List.unmodifiable(_boards);
+
+  @override
+  Future<UserProfile?> loadMyProfile() async => _myProfile;
+
+  @override
+  Future<UserProfile> updateMyProfile({
+    String? displayName,
+    String? avatarColor,
+  }) async {
+    _myProfile = UserProfile(
+      id: _myProfile.id,
+      displayName: displayName ?? _myProfile.displayName,
+      avatarColor: avatarColor ?? _myProfile.avatarColor,
+    );
+    return _myProfile;
+  }
 
   @override
   Future<List<BoardMember>> loadMembers(String boardId) async {
@@ -277,6 +306,41 @@ class SupabaseBoardRepository implements BoardRepository {
           );
         })
         .toList(growable: false);
+  }
+
+  @override
+  Future<UserProfile?> loadMyProfile() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    final rows = await _client
+        .from('profiles')
+        .select('id, display_name, avatar_color')
+        .eq('id', userId)
+        .limit(1);
+
+    if (rows.isEmpty) return null;
+    return _userProfileFromRow(Map<String, dynamic>.from(rows.first as Map));
+  }
+
+  @override
+  Future<UserProfile> updateMyProfile({
+    String? displayName,
+    String? avatarColor,
+  }) async {
+    final values = <String, dynamic>{};
+    if (displayName != null) values['display_name'] = displayName;
+    if (avatarColor != null) values['avatar_color'] = avatarColor;
+    final userId = _client.auth.currentUser!.id;
+
+    final row = await _client
+        .from('profiles')
+        .update(values)
+        .eq('id', userId)
+        .select('id, display_name, avatar_color')
+        .single();
+
+    return _userProfileFromRow(Map<String, dynamic>.from(row));
   }
 
   @override
@@ -592,6 +656,14 @@ class SupabaseBoardRepository implements BoardRepository {
       id: row['id'] as String,
       code: row['code'] as String,
       expiresAt: DateTime.parse(row['expires_at'] as String),
+    );
+  }
+
+  UserProfile _userProfileFromRow(Map<String, dynamic> row) {
+    return UserProfile(
+      id: row['id'] as String,
+      displayName: row['display_name'] as String,
+      avatarColor: row['avatar_color'] as String,
     );
   }
 

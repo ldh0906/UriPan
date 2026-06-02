@@ -195,6 +195,18 @@ class BoardInvite {
   final DateTime expiresAt;
 }
 
+class UserProfile {
+  const UserProfile({
+    required this.id,
+    required this.displayName,
+    required this.avatarColor,
+  });
+
+  final String id;
+  final String displayName;
+  final String avatarColor;
+}
+
 class BoardItemDraft {
   const BoardItemDraft({
     required this.type,

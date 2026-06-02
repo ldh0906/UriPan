@@ -997,6 +997,43 @@ void main() {
     expect(selectedBoardId, 'board-2');
   });
 
+  testWidgets('Profile edit sheet saves a new display name', (tester) async {
+    EditProfileResult? saved;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              saved = await showEditProfileSheet(
+                tester.element(find.byType(TextButton)),
+                profile: const UserProfile(
+                  id: 'user-1',
+                  displayName: 'Mina',
+                  avatarColor: '#647D31',
+                ),
+              );
+            },
+            child: const Text('Open profile'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mina'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'Nari');
+    await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+    await tester.pumpAndSettle();
+
+    expect(saved?.displayName, 'Nari');
+    expect(saved?.avatarColor, '#647D31');
+    expect(find.text('Nari'), findsNothing);
+  });
+
   testWidgets('Members tab shows member names and roles', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

@@ -12,6 +12,7 @@ class BoardSessionController extends ChangeNotifier {
   List<BoardItem> _items = const [];
   List<BoardMember> _members = const [];
   BoardInvite? _activeInvite;
+  UserProfile? _myProfile;
   BoardSummary? _activeBoard;
   bool _isLoading = false;
   String? _errorMessage;
@@ -21,6 +22,7 @@ class BoardSessionController extends ChangeNotifier {
   List<BoardItem> get items => _items;
   List<BoardMember> get members => _members;
   BoardInvite? get activeInvite => _activeInvite;
+  UserProfile? get myProfile => _myProfile;
   BoardSummary? get activeBoard => _activeBoard;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -34,6 +36,7 @@ class BoardSessionController extends ChangeNotifier {
 
     try {
       final loadedBoards = await _repository.loadBoards();
+      final loadedProfile = await _repository.loadMyProfile();
       final activeBoard = _selectBoard(loadedBoards, preferredBoardId);
       final loadedItems = activeBoard == null
           ? const <BoardItem>[]
@@ -51,6 +54,7 @@ class BoardSessionController extends ChangeNotifier {
       _items = loadedItems;
       _members = loadedMembers;
       _activeInvite = loadedInvite;
+      _myProfile = loadedProfile;
     } catch (error) {
       if (!_isCurrentStateRequest(requestId)) return;
       _errorMessage = error.toString();
@@ -145,6 +149,18 @@ class BoardSessionController extends ChangeNotifier {
     await _runAction(() async {
       await _repository.leaveBoard(board.id);
       await load();
+    });
+  }
+
+  Future<void> updateMyProfile({
+    String? displayName,
+    String? avatarColor,
+  }) async {
+    await _runAction(() async {
+      _myProfile = await _repository.updateMyProfile(
+        displayName: displayName,
+        avatarColor: avatarColor,
+      );
     });
   }
 

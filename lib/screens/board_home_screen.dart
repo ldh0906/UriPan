@@ -156,6 +156,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       boards: _controller.boards,
       activeBoardId: board.id,
       onSelectBoard: (id) => _runAction(() => _controller.switchBoard(id)),
+      myProfile: _controller.myProfile,
+      onEditProfile: () {
+        Navigator.pop(context);
+        unawaited(_editProfile());
+      },
       onSignOut: () {
         Navigator.pop(context);
         unawaited(widget.client.auth.signOut());
@@ -163,7 +168,27 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     );
   }
 
+  Future<void> _editProfile() async {
+    final profile = _controller.myProfile;
+    if (profile == null) return;
+
+    final result = await showEditProfileSheet(context, profile: profile);
+    if (result == null) return;
+
+    await _runAction(() async {
+      await _controller.updateMyProfile(
+        displayName: result.displayName,
+        avatarColor: result.avatarColor,
+      );
+    });
+  }
+
   String? _currentUserDisplayName() {
+    final profileName = _controller.myProfile?.displayName;
+    if (profileName != null && profileName.trim().isNotEmpty) {
+      return profileName;
+    }
+
     final metadataName =
         widget.client.auth.currentUser?.userMetadata?['display_name'];
     if (metadataName is String && metadataName.trim().isNotEmpty) {

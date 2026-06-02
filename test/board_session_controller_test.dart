@@ -113,6 +113,26 @@ void main() {
     expect(controller.members.first.isAdmin, isTrue);
   });
 
+  test('updateMyProfile changes and reloads the memory profile', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.updateMyProfile(
+      displayName: '\uBBFC\uC9C0',
+      avatarColor: '#4B7BE7',
+    );
+
+    expect(controller.myProfile?.displayName, '\uBBFC\uC9C0');
+    expect(controller.myProfile?.avatarColor, '#4B7BE7');
+
+    final reloaded = BoardSessionController(repository);
+    await reloaded.load();
+
+    expect(reloaded.myProfile?.displayName, '\uBBFC\uC9C0');
+    expect(reloaded.myProfile?.avatarColor, '#4B7BE7');
+  });
+
   test('load populates the active invite for admin boards', () async {
     final repository = _FakeBoardRepository(
       boards: [_adminBoard],
@@ -397,18 +417,45 @@ class _FakeBoardRepository implements BoardRepository {
     required this.itemsByBoard,
     Map<String, List<BoardMember>>? membersByBoard,
     this.activeInvite,
+    UserProfile? myProfile,
   }) : boards = List.of(boards),
-       membersByBoard = membersByBoard ?? const {};
+       membersByBoard = membersByBoard ?? const {},
+       myProfile =
+           myProfile ??
+           const UserProfile(
+             id: 'user-1',
+             displayName: 'Mina',
+             avatarColor: '#647D31',
+           );
 
   List<BoardSummary> boards;
   Map<String, List<BoardItem>> itemsByBoard;
   Map<String, List<BoardMember>> membersByBoard;
   BoardInvite? activeInvite;
+  UserProfile? myProfile;
   final queuedItemLoads = <Completer<List<BoardItem>>>[];
   final loadedItemBoardIds = <String?>[];
 
   @override
   Future<List<BoardSummary>> loadBoards() async => List.unmodifiable(boards);
+
+  @override
+  Future<UserProfile?> loadMyProfile() async => myProfile;
+
+  @override
+  Future<UserProfile> updateMyProfile({
+    String? displayName,
+    String? avatarColor,
+  }) async {
+    final old = myProfile!;
+    final updated = UserProfile(
+      id: old.id,
+      displayName: displayName ?? old.displayName,
+      avatarColor: avatarColor ?? old.avatarColor,
+    );
+    myProfile = updated;
+    return updated;
+  }
 
   @override
   Future<List<BoardMember>> loadMembers(String boardId) async {
