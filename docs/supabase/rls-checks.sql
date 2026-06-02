@@ -233,6 +233,49 @@ insert into public.board_items (
 -- Expected:
 --   Fails RLS because the user is not a board member.
 
+-- ---------------------------------------------------------------------------
+-- 10. Item comments are board-scoped, own-user inserts, and own/admin deletes.
+-- ---------------------------------------------------------------------------
+-- As <MEMBER_USER_ID>:
+select *
+from public.item_comments
+where item_id = '<NOTICE_ITEM_ID>'::uuid;
+
+insert into public.item_comments (item_id, author_id, body)
+values ('<NOTICE_ITEM_ID>'::uuid, auth.uid(), 'Member QA comment');
+
+delete from public.item_comments
+where item_id = '<NOTICE_ITEM_ID>'::uuid
+  and author_id = auth.uid()
+  and body = 'Member QA comment';
+
+-- Expected:
+--   Board member can read comments, insert their own comment, and delete their
+--   own comment.
+
+-- As <OTHER_USER_ID>:
+select *
+from public.item_comments
+where item_id = '<NOTICE_ITEM_ID>'::uuid;
+
+insert into public.item_comments (item_id, author_id, body)
+values ('<NOTICE_ITEM_ID>'::uuid, auth.uid(), 'Cross-family comment');
+
+delete from public.item_comments
+where item_id = '<NOTICE_ITEM_ID>'::uuid;
+
+-- Expected:
+--   Non-member gets zero rows for comments and cannot insert or delete comments
+--   on another board.
+
+-- As <ADMIN_USER_ID>, after <MEMBER_USER_ID> has inserted a comment:
+delete from public.item_comments
+where item_id = '<NOTICE_ITEM_ID>'::uuid
+  and author_id = '<MEMBER_USER_ID>'::uuid;
+
+-- Expected:
+--   Board admin can delete another member's comment on the board.
+
 -- As <MEMBER_USER_ID>, for an item they did not create:
 update public.board_items
 set title = 'Should not edit broad item fields'
