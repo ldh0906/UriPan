@@ -147,6 +147,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     );
     final openTasks = todayTasks.where((item) => !item.isDone).length;
     final attentionItems = _itemsWithActiveTag(_attentionItems(displayedItems));
+    final badges = <BoardTab, int>{
+      BoardTab.today: attentionItems.length,
+      BoardTab.tasks: _taskBadgeCount(displayedItems),
+      BoardTab.notices: _noticeBadgeCount(displayedItems),
+    };
     final selectedTab = _effectiveSelectedTab;
     final trimmedSearchQuery = _searchQuery.trim();
     final isSearching = trimmedSearchQuery.isNotEmpty;
@@ -160,6 +165,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
       bottomNavigationBar: AppBottomNav(
         selectedTab: selectedTab,
         onSelected: _selectTab,
+        badges: badges,
       ),
       body: SafeArea(
         bottom: false,
@@ -417,6 +423,29 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           return false;
         })
         .toList(growable: false);
+  }
+
+  int _noticeBadgeCount(List<BoardItem> items) {
+    return items
+        .where(
+          (item) =>
+              item.type == BoardItemType.notice &&
+              item.requiresConfirmation &&
+              !item.isConfirmedByMe,
+        )
+        .length;
+  }
+
+  int _taskBadgeCount(List<BoardItem> items) {
+    final now = DateTime.now();
+    final endOfToday = DateTime(now.year, now.month, now.day + 1);
+    return items.where((item) {
+      final dueAt = item.dueAt;
+      return item.type == BoardItemType.task &&
+          !item.isDone &&
+          dueAt != null &&
+          dueAt.isBefore(endOfToday);
+    }).length;
   }
 
   List<BoardItem> _sortedNotices(List<BoardItem> notices) {

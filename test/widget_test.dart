@@ -24,6 +24,95 @@ void main() {
     expect(find.text('\uCD94\uAC00'), findsOneWidget);
   });
 
+  testWidgets('Today board shows notice count badges only when present', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'notice-badge',
+              type: BoardItemType.notice,
+              title: 'Required notice',
+              detail: 'Please confirm',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+            ),
+            BoardItem(
+              id: 'confirmed-notice',
+              type: BoardItemType.notice,
+              title: 'Confirmed notice',
+              detail: 'Already read',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+              isConfirmedByMe: true,
+            ),
+          ],
+          selectedTab: BoardTab.notices,
+          onTabSelected: null,
+        ),
+      ),
+    );
+
+    final bottomNav = find.byType(AppBottomNav);
+    final noticeBadge = find.byKey(const Key('app-bottom-nav-badge-notices'));
+
+    expect(
+      find.descendant(of: bottomNav, matching: find.text('\uACF5\uC9C0')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: noticeBadge, matching: find.text('1')),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'confirmed-notice',
+              type: BoardItemType.notice,
+              title: 'Confirmed notice',
+              detail: 'Already read',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+              isConfirmedByMe: true,
+            ),
+          ],
+          selectedTab: BoardTab.notices,
+          onTabSelected: null,
+        ),
+      ),
+    );
+
+    expect(
+      find.descendant(of: bottomNav, matching: find.text('\uACF5\uC9C0')),
+      findsOneWidget,
+    );
+    expect(noticeBadge, findsNothing);
+  });
+
+  testWidgets('AppBottomNav caps badge labels at 9+', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: AppBottomNav(
+            selectedTab: BoardTab.today,
+            badges: const {BoardTab.notices: 10},
+            onSelected: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('9+'), findsOneWidget);
+  });
+
   test('auth input validation blocks invalid id/password payloads', () {
     expect(
       AuthInputValidator.validateUserIdPassword('', ''),
