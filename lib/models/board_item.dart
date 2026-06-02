@@ -54,6 +54,7 @@ class BoardItem {
     this.isPinned = false,
     this.requiresConfirmation = false,
     this.confirmationCount = 0,
+    this.commentCount = 0,
     this.isConfirmedByMe = false,
     this.confirmedUserIds = const [],
     this.tags = const [],
@@ -76,6 +77,7 @@ class BoardItem {
   final bool isPinned;
   final bool requiresConfirmation;
   final int confirmationCount;
+  final int commentCount;
   final bool isConfirmedByMe;
   final List<String> confirmedUserIds;
   final List<String> tags;
@@ -96,6 +98,7 @@ class BoardItem {
     bool? isPinned,
     bool? requiresConfirmation,
     int? confirmationCount,
+    int? commentCount,
     bool? isConfirmedByMe,
     List<String>? confirmedUserIds,
     List<String>? tags,
@@ -122,6 +125,7 @@ class BoardItem {
       isPinned: isPinned ?? this.isPinned,
       requiresConfirmation: requiresConfirmation ?? this.requiresConfirmation,
       confirmationCount: confirmationCount ?? this.confirmationCount,
+      commentCount: commentCount ?? this.commentCount,
       isConfirmedByMe: isConfirmedByMe ?? this.isConfirmedByMe,
       confirmedUserIds: confirmedUserIds ?? this.confirmedUserIds,
       tags: tags ?? this.tags,
@@ -135,6 +139,26 @@ class BoardItem {
     final local = value.toLocal();
     return DateTime(local.year, local.month, local.day) == target;
   }
+}
+
+class BoardComment {
+  const BoardComment({
+    required this.id,
+    required this.itemId,
+    required this.authorId,
+    required this.authorName,
+    required this.authorAvatarColor,
+    required this.body,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String itemId;
+  final String authorId;
+  final String authorName;
+  final String authorAvatarColor;
+  final String body;
+  final DateTime createdAt;
 }
 
 bool boardItemMatchesQuery(BoardItem item, String query) {

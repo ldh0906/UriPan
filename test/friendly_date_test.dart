@@ -49,4 +49,40 @@ void main() {
       );
     });
   });
+
+  group('friendlyRelativeTime', () {
+    final now = DateTime(2026, 6, 2, 15, 30);
+
+    test('labels times under a minute as just now', () {
+      expect(
+        friendlyRelativeTime(DateTime(2026, 6, 2, 15, 29, 30), now: now),
+        '\uBC29\uAE08',
+      );
+    });
+
+    test('labels times under an hour in minutes', () {
+      expect(
+        friendlyRelativeTime(DateTime(2026, 6, 2, 15, 5), now: now),
+        '25\uBD84 \uC804',
+      );
+    });
+
+    test('labels times under a day in hours', () {
+      expect(
+        friendlyRelativeTime(DateTime(2026, 6, 2, 10, 0), now: now),
+        '5\uC2DC\uAC04 \uC804',
+      );
+    });
+
+    test('labels the previous local calendar day as yesterday', () {
+      expect(
+        friendlyRelativeTime(DateTime(2026, 6, 1, 8), now: now),
+        '\uC5B4\uC81C',
+      );
+    });
+
+    test('labels older dates as month dot day', () {
+      expect(friendlyRelativeTime(DateTime(2026, 5, 31, 8), now: now), '5.31');
+    });
+  });
 }

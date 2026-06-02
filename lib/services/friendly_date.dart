@@ -18,6 +18,25 @@ String? friendlyDayLabel(DateTime? when, {DateTime? now}) {
   return '${targetDay.month}\uC6D4 ${targetDay.day}\uC77C';
 }
 
+String friendlyRelativeTime(DateTime when, {DateTime? now}) {
+  final localWhen = when.toLocal();
+  final localNow = (now ?? DateTime.now()).toLocal();
+  final elapsed = localNow.difference(localWhen);
+  final seconds = elapsed.inSeconds;
+
+  if (seconds < 60) return '\uBC29\uAE08';
+  if (seconds < 60 * 60) return '${elapsed.inMinutes}\uBD84 \uC804';
+  if (seconds < 24 * 60 * 60) return '${elapsed.inHours}\uC2DC\uAC04 \uC804';
+
+  final targetDay = DateTime(localWhen.year, localWhen.month, localWhen.day);
+  final today = DateTime(localNow.year, localNow.month, localNow.day);
+  if (targetDay == today.subtract(const Duration(days: 1))) {
+    return '\uC5B4\uC81C';
+  }
+
+  return '${targetDay.month}.${targetDay.day}';
+}
+
 const _weekdayLabels = <int, String>{
   DateTime.monday: '\uC6D4',
   DateTime.tuesday: '\uD654',

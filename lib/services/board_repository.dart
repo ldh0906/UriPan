@@ -68,6 +68,15 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<List<BoardComment>> loadComments(String itemId) async => const [];
+  Future<BoardComment> addComment(String itemId, String body) {
+    throw UnimplementedError();
+  }
+
+  Future<void> deleteComment(String commentId) {
+    throw UnimplementedError();
+  }
+
   Future<void> deleteItem(String itemId) {
     throw UnimplementedError();
   }
@@ -77,6 +86,7 @@ class MemoryBoardRepository implements BoardRepository {
   MemoryBoardRepository(this._items);
 
   final List<BoardItem> _items;
+  final List<BoardComment> _comments = [];
   BoardInvite? _activeInvite;
   final List<BoardSummary> _boards = [
     const BoardSummary(
@@ -319,10 +329,44 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<List<BoardComment>> loadComments(String itemId) async {
+    final comments =
+        _comments.where((comment) => comment.itemId == itemId).toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return List.unmodifiable(comments);
+  }
+
+  @override
+  Future<BoardComment> addComment(String itemId, String body) async {
+    final comment = BoardComment(
+      id: 'memory-comment-${_comments.length + 1}',
+      itemId: itemId,
+      authorId: _myProfile.id,
+      authorName: _myProfile.displayName,
+      authorAvatarColor: _myProfile.avatarColor,
+      body: body,
+      createdAt: DateTime.now(),
+    );
+    _comments.add(comment);
+    _updateItemCommentCount(itemId);
+    return comment;
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    final index = _comments.indexWhere((comment) => comment.id == commentId);
+    if (index < 0) throw StateError('Comment not found');
+    final itemId = _comments[index].itemId;
+    _comments.removeAt(index);
+    _updateItemCommentCount(itemId);
+  }
+
+  @override
   Future<void> deleteItem(String itemId) async {
     final before = _items.length;
     _items.removeWhere((item) => item.id == itemId);
     if (_items.length == before) throw StateError('Item not found');
+    _comments.removeWhere((comment) => comment.itemId == itemId);
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
@@ -353,13 +397,20 @@ class MemoryBoardRepository implements BoardRepository {
       memberCount: _members.length,
     );
   }
+
+  void _updateItemCommentCount(String itemId) {
+    final index = _items.indexWhere((item) => item.id == itemId);
+    if (index < 0) return;
+    final count = _comments.where((comment) => comment.itemId == itemId).length;
+    _items[index] = _items[index].copyWith(commentCount: count);
+  }
 }
 
 class SupabaseBoardRepository implements BoardRepository {
   const SupabaseBoardRepository(this._client);
 
   static const _itemSelectColumns =
-      'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, created_by, assigned_to, item_confirmations(user_id)';
+      'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, created_by, assigned_to, item_confirmations(user_id), item_comments(count)';
 
   final SupabaseClient _client;
 
@@ -686,6 +737,42 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<List<BoardComment>> loadComments(String itemId) async {
+    final rows = await _client
+        .from('item_comments')
+        .select('id, item_id, author_id, body, created_at')
+        .eq('item_id', itemId)
+        .order('created_at');
+    final comments = rows
+        .map<Map<String, dynamic>>((row) => Map<String, dynamic>.from(row))
+        .toList(growable: false);
+    final profiles = await _profiles(_commentAuthorIds(comments));
+
+    return comments
+        .map<BoardComment>((row) => _commentFromRow(row, profiles))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<BoardComment> addComment(String itemId, String body) async {
+    final userId = _client.auth.currentUser!.id;
+    final row = await _client
+        .from('item_comments')
+        .insert({'item_id': itemId, 'author_id': userId, 'body': body})
+        .select('id, item_id, author_id, body, created_at')
+        .single();
+    final commentRow = Map<String, dynamic>.from(row);
+    final profiles = await _profiles(_commentAuthorIds([commentRow]));
+
+    return _commentFromRow(commentRow, profiles);
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    await _client.from('item_comments').delete().eq('id', commentId);
+  }
+
+  @override
   Future<void> deleteItem(String itemId) async {
     await _client.from('board_items').delete().eq('id', itemId);
   }
@@ -746,6 +833,13 @@ class SupabaseBoardRepository implements BoardRepository {
     };
   }
 
+  Set<String> _commentAuthorIds(Iterable<Map<String, dynamic>> rows) {
+    return {
+      for (final row in rows)
+        if (row['author_id'] case final String authorId) authorId,
+    };
+  }
+
   BoardItem _itemFromRow(Map<String, dynamic> row, Map<String, String> names) {
     final type = BoardItemTypeWire.fromWireName(row['type'] as String);
     final startsAt = DateTime.tryParse((row['starts_at'] as String?) ?? '');
@@ -778,6 +872,7 @@ class SupabaseBoardRepository implements BoardRepository {
       isPinned: (row['is_pinned'] as bool?) ?? false,
       requiresConfirmation: (row['requires_confirmation'] as bool?) ?? false,
       confirmationCount: confirmations.length,
+      commentCount: _commentCountFromRow(row),
       confirmedUserIds: confirmedUserIds,
       isConfirmedByMe:
           currentUserId != null &&
@@ -787,6 +882,35 @@ class SupabaseBoardRepository implements BoardRepository {
           }),
       tags: _tagsFromRow(row['tags']),
     );
+  }
+
+  BoardComment _commentFromRow(
+    Map<String, dynamic> row,
+    Map<String, _ProfileRow> profiles,
+  ) {
+    final authorId = row['author_id'] as String;
+    final profile = profiles[authorId];
+    return BoardComment(
+      id: row['id'] as String,
+      itemId: row['item_id'] as String,
+      authorId: authorId,
+      authorName: profile?.displayName ?? authorId,
+      authorAvatarColor: profile?.avatarColor ?? '#647D31',
+      body: row['body'] as String,
+      createdAt: DateTime.parse(row['created_at'] as String),
+    );
+  }
+
+  int _commentCountFromRow(Map<String, dynamic> row) {
+    final comments = row['item_comments'];
+    if (comments is! List || comments.isEmpty) return 0;
+    final first = comments.first;
+    if (first is! Map) return 0;
+    final count = first['count'];
+    if (count is int) return count;
+    if (count is num) return count.toInt();
+    if (count is String) return int.tryParse(count) ?? 0;
+    return 0;
   }
 
   BoardInvite _inviteFromRow(Map<String, dynamic> row) {

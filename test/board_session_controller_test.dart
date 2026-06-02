@@ -717,6 +717,19 @@ class _FakeBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<List<BoardComment>> loadComments(String itemId) async => const [];
+
+  @override
+  Future<BoardComment> addComment(String itemId, String body) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> deleteItem(String itemId) async {
     for (final entry in itemsByBoard.entries) {
       final before = entry.value.length;
