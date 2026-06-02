@@ -88,7 +88,7 @@ create index item_comments_item_id_idx on public.item_comments(item_id, created_
 
 - 상세 시트 열림 시 해당 item_id의 item_comments를 구독(보드 레벨 BoardRealtimeSubscription 패턴 차용, 시트 전용 경량 구독). insert/delete 콜백 → 스레드 목록 갱신. 시트 닫힐 때 채널 해제.
 
-## 10. 테스트 (기존 73→ 유지, 추가)
+## 10. 테스트 (기존 85 유지, 추가)
 
 - 유닛: 친절한 상대시간 포맷, MemoryBoardRepository 코멘트 CRUD(add/load 정렬/delete).
 - 위젯: 상세 시트 코멘트 렌더, 작성 콜백 호출, 삭제 확인 다이얼로그, 빈 상태, 카드 commentCount 배지 표시/미표시.
