@@ -127,12 +127,13 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
     final calendarLabel = RegExp('${now.month}\uC6D4 ${now.day}\uC77C');
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'tagged-task',
@@ -212,12 +213,13 @@ void main() {
   testWidgets('Today tab hides future dated schedules and tasks', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
     final tomorrow = now.add(const Duration(days: 1));
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'today-schedule',
@@ -406,11 +408,12 @@ void main() {
   testWidgets('Today tab shows overdue tasks and unconfirmed notices', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'overdue-task',
@@ -453,13 +456,14 @@ void main() {
   testWidgets('Attention block lets overdue tasks be completed', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
     BoardItem? completedItem;
     bool? completedIsDone;
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'overdue-task',
@@ -501,11 +505,12 @@ void main() {
   testWidgets('Today tab hides attention block when nothing needs attention', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'future-task',
@@ -578,11 +583,12 @@ void main() {
   testWidgets(
     'Tapping a tag filters the current tab and clearing restores it',
     (tester) async {
-      final now = DateTime.now();
+      final now = DateTime(2026, 6, 2, 12);
 
       await tester.pumpWidget(
         MaterialApp(
           home: TodayBoardScreen(
+            now: () => now,
             items: [
               BoardItem(
                 id: 'school-task',
@@ -660,7 +666,7 @@ void main() {
   testWidgets('Calendar tab shows schedules for the selected day', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
     final otherDay = now.weekday == DateTime.sunday
         ? now.subtract(const Duration(days: 1))
         : now.add(const Duration(days: 1));
@@ -668,6 +674,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'today-schedule',
@@ -730,9 +737,12 @@ void main() {
   testWidgets('Calendar tab marks today once in the week strip', (
     tester,
   ) async {
+    final now = DateTime(2026, 6, 2, 12);
+
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: const [],
           selectedTab: BoardTab.calendar,
           onTabSelected: _ignoreBoardTab,
@@ -817,11 +827,12 @@ void main() {
   });
 
   testWidgets('Tasks tab flags overdue tasks', (tester) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           selectedTab: BoardTab.tasks,
           onTabSelected: _ignoreBoardTab,
           items: [
@@ -1207,11 +1218,12 @@ void main() {
   testWidgets('Tapping a task opens detail sheet with completion action', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
 
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'task-detail',
@@ -1373,13 +1385,14 @@ void main() {
   testWidgets('Tapping edit in a task detail sheet opens edit sheet', (
     tester,
   ) async {
-    final now = DateTime.now();
+    final now = DateTime(2026, 6, 2, 12);
     final navigatorKey = GlobalKey<NavigatorState>();
 
     await tester.pumpWidget(
       MaterialApp(
         navigatorKey: navigatorKey,
         home: TodayBoardScreen(
+          now: () => now,
           items: [
             BoardItem(
               id: 'edit-me',

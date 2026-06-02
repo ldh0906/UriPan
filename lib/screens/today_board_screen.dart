@@ -43,6 +43,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.onConfirmNotice,
     this.onEditItem,
     this.onDeleteItem,
+    this.now = DateTime.now,
   }) : assert(
          items != null || repository != null,
          'Provide items for controlled rendering or repository for fallback loading.',
@@ -70,6 +71,7 @@ class TodayBoardScreen extends StatefulWidget {
   final Future<void> Function(BoardItem item, bool confirmed)? onConfirmNotice;
   final void Function(BoardItem item)? onEditItem;
   final Future<void> Function(BoardItem item)? onDeleteItem;
+  final DateTime Function() now;
 
   @override
   State<TodayBoardScreen> createState() => _TodayBoardScreenState();
@@ -85,7 +87,13 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   String _searchQuery = '';
   String? _activeTag;
   _TaskFilter _taskFilter = _TaskFilter.open;
-  DateTime _selectedCalendarDate = DateTime.now();
+  late DateTime _selectedCalendarDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCalendarDate = widget.now();
+  }
 
   @override
   void dispose() {
@@ -125,7 +133,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   Widget _buildBoard(BuildContext context, List<BoardItem> items) {
     final displayedItems = _fallbackItems ?? items;
     final todayItems = displayedItems
-        .where((item) => item.isForDate(DateTime.now()))
+        .where((item) => item.isForDate(widget.now()))
         .toList(growable: false);
     final todaySchedules = _itemsWithActiveTag(
       _itemsOfType(todayItems, BoardItemType.schedule),
@@ -284,6 +292,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       ] else if (selectedTab == BoardTab.calendar) ...[
                         _CalendarWeekStrip(
                           selectedDate: _selectedCalendarDate,
+                          today: widget.now(),
                           onDateSelected: (date) =>
                               setState(() => _selectedCalendarDate = date),
                           onPreviousWeek: () => setState(
@@ -418,7 +427,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   }
 
   List<BoardItem> _attentionItems(List<BoardItem> items) {
-    final now = DateTime.now();
+    final now = widget.now();
     return items
         .where((item) {
           if (item.type == BoardItemType.task) {
@@ -438,7 +447,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     return item.type == BoardItemType.task &&
         !item.isDone &&
         dueAt != null &&
-        dueAt.isBefore(DateTime.now());
+        dueAt.isBefore(widget.now());
   }
 
   int _noticeBadgeCount(List<BoardItem> items) {
@@ -453,7 +462,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   }
 
   int _taskBadgeCount(List<BoardItem> items) {
-    final now = DateTime.now();
+    final now = widget.now();
     final endOfToday = DateTime(now.year, now.month, now.day + 1);
     return items.where((item) {
       final dueAt = item.dueAt;
@@ -510,7 +519,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   DateTime? _initialDateTimeForAdd() {
     if (_effectiveSelectedTab != BoardTab.calendar) return null;
-    final now = DateTime.now();
+    final now = widget.now();
     return DateTime(
       _selectedCalendarDate.year,
       _selectedCalendarDate.month,
@@ -761,12 +770,14 @@ class _SearchField extends StatelessWidget {
 class _CalendarWeekStrip extends StatelessWidget {
   const _CalendarWeekStrip({
     required this.selectedDate,
+    required this.today,
     required this.onDateSelected,
     required this.onPreviousWeek,
     required this.onNextWeek,
   });
 
   final DateTime selectedDate;
+  final DateTime today;
   final ValueChanged<DateTime> onDateSelected;
   final VoidCallback onPreviousWeek;
   final VoidCallback onNextWeek;
@@ -784,7 +795,6 @@ class _CalendarWeekStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final weekStart = _startOfWeek(selectedDate);
-    final today = DateTime.now();
     final days = List.generate(
       7,
       (index) => weekStart.add(Duration(days: index)),
