@@ -17,6 +17,7 @@ class BoardItemSection extends StatelessWidget {
     this.emptyText,
     this.pendingTaskIds = const {},
     this.onItemTap,
+    this.onTagTap,
   });
 
   final String title;
@@ -29,6 +30,7 @@ class BoardItemSection extends StatelessWidget {
   final String? emptyText;
   final Set<String> pendingTaskIds;
   final ValueChanged<BoardItem>? onItemTap;
+  final ValueChanged<String>? onTagTap;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +59,7 @@ class BoardItemSection extends StatelessWidget {
               onToggle: onToggle,
               isPending: pendingTaskIds.contains(item.id),
               onTap: onItemTap == null ? null : () => onItemTap!(item),
+              onTagTap: onTagTap,
             ),
           ),
       ],
@@ -75,6 +78,7 @@ class BoardItemCard extends StatelessWidget {
     this.onToggle,
     this.isPending = false,
     this.onTap,
+    this.onTagTap,
   });
 
   final BoardItem item;
@@ -85,6 +89,7 @@ class BoardItemCard extends StatelessWidget {
   final Future<void> Function(BoardItem item, bool isDone)? onToggle;
   final bool isPending;
   final VoidCallback? onTap;
+  final ValueChanged<String>? onTagTap;
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +190,15 @@ class BoardItemCard extends StatelessWidget {
                         ),
                       ...item.tags
                           .take(3)
-                          .map((tag) => TagChip(label: tag, compact: true)),
+                          .map(
+                            (tag) => TagChip(
+                              label: tag,
+                              compact: true,
+                              onTap: onTagTap == null
+                                  ? null
+                                  : () => onTagTap!(tag),
+                            ),
+                          ),
                     ],
                   ),
                 ],
@@ -199,14 +212,20 @@ class BoardItemCard extends StatelessWidget {
 }
 
 class TagChip extends StatelessWidget {
-  const TagChip({super.key, required this.label, this.compact = false});
+  const TagChip({
+    super.key,
+    required this.label,
+    this.compact = false,
+    this.onTap,
+  });
 
   final String label;
   final bool compact;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final chip = Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 8 : 10,
         vertical: compact ? 4 : 5,
@@ -223,6 +242,14 @@ class TagChip extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
+    );
+
+    if (onTap == null) return chip;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: chip,
     );
   }
 }

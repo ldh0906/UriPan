@@ -248,6 +248,58 @@ void main() {
     expect(find.text('Beta cleanup'), findsNothing);
   });
 
+  testWidgets(
+    'Tapping a tag filters the current tab and clearing restores it',
+    (tester) async {
+      final now = DateTime.now();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TodayBoardScreen(
+            items: [
+              BoardItem(
+                id: 'school-task',
+                type: BoardItemType.task,
+                title: 'Pack homework',
+                detail: '',
+                owner: 'Us',
+                timeLabel: 'Today',
+                dueAt: DateTime(now.year, now.month, now.day, 18),
+                tags: const ['School'],
+              ),
+              BoardItem(
+                id: 'home-task',
+                type: BoardItemType.task,
+                title: 'Fold laundry',
+                detail: '',
+                owner: 'Us',
+                timeLabel: 'Today',
+                dueAt: DateTime(now.year, now.month, now.day, 19),
+                tags: const ['Home'],
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('Pack homework'), findsOneWidget);
+      expect(find.text('Fold laundry'), findsOneWidget);
+
+      await tester.tap(find.text('#School'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pack homework'), findsOneWidget);
+      expect(find.text('Fold laundry'), findsNothing);
+      expect(find.text('#School'), findsWidgets);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pack homework'), findsOneWidget);
+      expect(find.text('Fold laundry'), findsOneWidget);
+    },
+  );
+
   testWidgets('Members tab shows invite code and copy action for admins', (
     tester,
   ) async {

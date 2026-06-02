@@ -83,6 +83,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   bool _isRefreshing = false;
   bool _isSearchVisible = false;
   String _searchQuery = '';
+  String? _activeTag;
   _TaskFilter _taskFilter = _TaskFilter.open;
   DateTime _selectedCalendarDate = DateTime.now();
 
@@ -126,23 +127,31 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     final todayItems = displayedItems
         .where((item) => item.isForDate(DateTime.now()))
         .toList(growable: false);
-    final todaySchedules = _itemsOfType(todayItems, BoardItemType.schedule);
-    final todayTasks = _itemsOfType(todayItems, BoardItemType.task);
-    final todayNotices = _sortedNotices(
-      _itemsOfType(todayItems, BoardItemType.notice),
+    final todaySchedules = _itemsWithActiveTag(
+      _itemsOfType(todayItems, BoardItemType.schedule),
     );
-    final schedules = _itemsOfType(displayedItems, BoardItemType.schedule);
-    final tasks = _itemsOfType(displayedItems, BoardItemType.task);
+    final todayTasks = _itemsWithActiveTag(
+      _itemsOfType(todayItems, BoardItemType.task),
+    );
+    final todayNotices = _sortedNotices(
+      _itemsWithActiveTag(_itemsOfType(todayItems, BoardItemType.notice)),
+    );
+    final schedules = _itemsWithActiveTag(
+      _itemsOfType(displayedItems, BoardItemType.schedule),
+    );
+    final tasks = _itemsWithActiveTag(
+      _itemsOfType(displayedItems, BoardItemType.task),
+    );
     final notices = _sortedNotices(
-      _itemsOfType(displayedItems, BoardItemType.notice),
+      _itemsWithActiveTag(_itemsOfType(displayedItems, BoardItemType.notice)),
     );
     final openTasks = todayTasks.where((item) => !item.isDone).length;
-    final attentionItems = _attentionItems(displayedItems);
+    final attentionItems = _itemsWithActiveTag(_attentionItems(displayedItems));
     final selectedTab = _effectiveSelectedTab;
     final trimmedSearchQuery = _searchQuery.trim();
     final isSearching = trimmedSearchQuery.isNotEmpty;
     final searchResults = isSearching
-        ? displayedItems
+        ? _itemsWithActiveTag(displayedItems)
               .where((item) => boardItemMatchesQuery(item, trimmedSearchQuery))
               .toList(growable: false)
         : const <BoardItem>[];
@@ -186,6 +195,13 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       ),
                       const SizedBox(height: 20),
                     ],
+                    if (_activeTag != null) ...[
+                      _ActiveTagFilterChip(
+                        tag: _activeTag!,
+                        onDeleted: _clearActiveTag,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     if (isSearching)
                       BoardItemSection(
                         title: '\uAC80\uC0C9 \uACB0\uACFC',
@@ -195,6 +211,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         icon: Icons.search_rounded,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                         emptyText:
                             '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
                       )
@@ -214,6 +231,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           icon: Icons.priority_high_rounded,
                           pendingTaskIds: _pendingTaskIds,
                           onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
                         ),
                       ],
                       const SizedBox(height: 24),
@@ -225,6 +243,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         icon: Icons.calendar_month_rounded,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                       ),
                       const SizedBox(height: 12),
                       BoardItemSection(
@@ -237,6 +256,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         onToggle: _toggleTask,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                       ),
                       const SizedBox(height: 12),
                       BoardItemSection(
@@ -247,6 +267,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         icon: Icons.campaign_rounded,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                       ),
                     ] else if (selectedTab == BoardTab.calendar) ...[
                       _CalendarWeekStrip(
@@ -275,6 +296,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         icon: Icons.calendar_month_rounded,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                         emptyText:
                             '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
                       ),
@@ -303,6 +325,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         onToggle: _toggleTask,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                         emptyText: _taskEmptyText,
                       ),
                     ] else if (selectedTab == BoardTab.notices)
@@ -314,6 +337,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         icon: Icons.campaign_rounded,
                         pendingTaskIds: _pendingTaskIds,
                         onItemTap: _showItemDetail,
+                        onTagTap: _setActiveTag,
                         emptyText:
                             '\uC77D\uC744 \uACF5\uC9C0\uAC00 \uC5C6\uC5B4\uC694.',
                       )
@@ -342,6 +366,22 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   List<BoardItem> _itemsOfType(List<BoardItem> items, BoardItemType type) {
     return items.where((item) => item.type == type).toList(growable: false);
+  }
+
+  List<BoardItem> _itemsWithActiveTag(List<BoardItem> items) {
+    final activeTag = _activeTag;
+    if (activeTag == null) return items;
+    return items
+        .where((item) => item.tags.contains(activeTag))
+        .toList(growable: false);
+  }
+
+  void _setActiveTag(String tag) {
+    setState(() => _activeTag = tag);
+  }
+
+  void _clearActiveTag() {
+    setState(() => _activeTag = null);
   }
 
   void _toggleSearch() {
@@ -615,6 +655,28 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           Navigator.pop(context);
           await _deleteItem(item);
         },
+      ),
+    );
+  }
+}
+
+class _ActiveTagFilterChip extends StatelessWidget {
+  const _ActiveTagFilterChip({required this.tag, required this.onDeleted});
+
+  final String tag;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputChip(
+      label: Text('#$tag'),
+      onDeleted: onDeleted,
+      deleteIcon: const Icon(Icons.close_rounded, size: 18),
+      backgroundColor: AppColors.primarySoft.withValues(alpha: 0.8),
+      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.18)),
+      labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: AppColors.primary,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
