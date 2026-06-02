@@ -21,7 +21,7 @@ migrate_working_dir/
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
-#.vscode/
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -32,11 +32,18 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+node_modules/
 
 # Local agent/session files
 .agents/
 memory.md
 skills-lock.json
+
+# Internal AI working docs (kept local, not published)
+/AGENTS.md
+/docs/claude_memory.md
+/docs/codex-tasks/
+/docs/superpowers/
 
 # Local secrets and environment overrides
 .env
@@ -53,3 +60,4 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+.gstack/

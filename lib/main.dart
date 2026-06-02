@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'data/seed_data.dart';
-import 'screens/today_board_screen.dart';
-import 'services/board_repository.dart';
-import 'theme/app_theme.dart';
+import 'app.dart';
+import 'services/app_config.dart';
+import 'services/session_preferences.dart';
 
-void main() {
-  runApp(const UriPanApp());
-}
+export 'app.dart';
 
-class UriPanApp extends StatelessWidget {
-  const UriPanApp({super.key, this.repository});
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  final BoardRepository? repository;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'UriPan',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      home: TodayBoardScreen(
-        repository: repository ?? MemoryBoardRepository(seedBoardItems),
-      ),
+  if (hasSupabaseConfig) {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabasePublishableKey,
     );
+
+    // Respect "stay signed in": when the user opted out, drop the persisted
+    // session on cold start so they have to log in again.
+    final keepSignedIn = await SessionPreferences().loadKeepSignedIn();
+    if (!keepSignedIn && Supabase.instance.client.auth.currentSession != null) {
+      try {
+        await Supabase.instance.client.auth.signOut();
+      } catch (_) {}
+    }
   }
+
+  runApp(const UriPanApp());
 }
