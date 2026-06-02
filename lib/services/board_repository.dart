@@ -43,6 +43,14 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<void> updateMemberRole(String boardId, String userId, String role) {
+    throw UnimplementedError();
+  }
+
+  Future<void> removeMember(String boardId, String userId) {
+    throw UnimplementedError();
+  }
+
   Future<List<BoardItem>> loadBoardItems({String? boardId});
   Future<BoardItem> createItem(String boardId, BoardItemDraft draft) {
     throw UnimplementedError();
@@ -195,6 +203,32 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> updateMemberRole(
+    String boardId,
+    String userId,
+    String role,
+  ) async {
+    final index = _members.indexWhere((member) => member.userId == userId);
+    if (index < 0) throw StateError('Member not found');
+    final old = _members[index];
+    _members[index] = BoardMember(
+      userId: old.userId,
+      displayName: old.displayName,
+      avatarColor: old.avatarColor,
+      role: role,
+      joinedAt: old.joinedAt,
+    );
+  }
+
+  @override
+  Future<void> removeMember(String boardId, String userId) async {
+    final before = _members.length;
+    _members.removeWhere((member) => member.userId == userId);
+    if (_members.length == before) throw StateError('Member not found');
+    _updateBoardMemberCount(boardId);
+  }
+
+  @override
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     return List.unmodifiable(_items);
   }
@@ -305,6 +339,19 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   String _two(int value) => value.toString().padLeft(2, '0');
+
+  void _updateBoardMemberCount(String boardId) {
+    final index = _boards.indexWhere((board) => board.id == boardId);
+    if (index < 0) return;
+    final old = _boards[index];
+    _boards[index] = BoardSummary(
+      id: old.id,
+      name: old.name,
+      role: old.role,
+      maxMembers: old.maxMembers,
+      memberCount: _members.length,
+    );
+  }
 }
 
 class SupabaseBoardRepository implements BoardRepository {
@@ -471,6 +518,28 @@ class SupabaseBoardRepository implements BoardRepository {
         .delete()
         .eq('board_id', boardId)
         .eq('user_id', _client.auth.currentUser!.id);
+  }
+
+  @override
+  Future<void> updateMemberRole(
+    String boardId,
+    String userId,
+    String role,
+  ) async {
+    await _client
+        .from('board_members')
+        .update({'role': role})
+        .eq('board_id', boardId)
+        .eq('user_id', userId);
+  }
+
+  @override
+  Future<void> removeMember(String boardId, String userId) async {
+    await _client
+        .from('board_members')
+        .delete()
+        .eq('board_id', boardId)
+        .eq('user_id', userId);
   }
 
   @override

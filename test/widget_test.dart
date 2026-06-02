@@ -1116,6 +1116,94 @@ void main() {
     expect(find.text('Joon'), findsOneWidget);
     expect(find.text('\uBA64\uBC84'), findsOneWidget);
   });
+
+  testWidgets('Admin viewer sees per-member action menu', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          selectedTab: BoardTab.members,
+          onTabSelected: (_) {},
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'admin',
+            maxMembers: 4,
+            memberCount: 2,
+          ),
+          currentUserId: 'user-1',
+          members: [
+            BoardMember(
+              userId: 'user-1',
+              displayName: 'Mina',
+              avatarColor: '#647D31',
+              role: 'admin',
+              joinedAt: DateTime(2026, 6),
+            ),
+            BoardMember(
+              userId: 'user-2',
+              displayName: 'Joon',
+              avatarColor: '#E7A14B',
+              role: 'member',
+              joinedAt: DateTime(2026, 6, 1, 1),
+            ),
+          ],
+          onUpdateMemberRole: (_, _) async {},
+          onRemoveMember: (_) async {},
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('\uAD00\uB9AC\uC790\uB85C'), findsOneWidget);
+    expect(find.text('\uB0B4\uBCF4\uB0B4\uAE30'), findsOneWidget);
+  });
+
+  testWidgets('Non-admin viewer does not see per-member action menu', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          selectedTab: BoardTab.members,
+          onTabSelected: (_) {},
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'member',
+            maxMembers: 4,
+            memberCount: 2,
+          ),
+          currentUserId: 'user-1',
+          members: [
+            BoardMember(
+              userId: 'user-1',
+              displayName: 'Mina',
+              avatarColor: '#647D31',
+              role: 'member',
+              joinedAt: DateTime(2026, 6),
+            ),
+            BoardMember(
+              userId: 'user-2',
+              displayName: 'Joon',
+              avatarColor: '#E7A14B',
+              role: 'admin',
+              joinedAt: DateTime(2026, 6, 1, 1),
+            ),
+          ],
+          onUpdateMemberRole: (_, _) async {},
+          onRemoveMember: (_) async {},
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.more_vert_rounded), findsNothing);
+  });
 }
 
 void _ignoreBoardTab(BoardTab tab) {}

@@ -164,6 +164,22 @@ class BoardSessionController extends ChangeNotifier {
     });
   }
 
+  Future<void> updateMemberRole(String userId, String role) async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.updateMemberRole(board.id, userId, role);
+      await load(preferredBoardId: board.id);
+    });
+  }
+
+  Future<void> removeMember(String userId) async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.removeMember(board.id, userId);
+      await load(preferredBoardId: board.id);
+    });
+  }
+
   Future<void> updateMyProfile({
     String? displayName,
     String? avatarColor,

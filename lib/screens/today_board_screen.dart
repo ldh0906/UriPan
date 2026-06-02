@@ -37,6 +37,8 @@ class TodayBoardScreen extends StatefulWidget {
     this.onRegenerateInvite,
     this.onRevokeInvite,
     this.onLeaveBoard,
+    this.onUpdateMemberRole,
+    this.onRemoveMember,
     this.onCompleteTask,
     this.onConfirmNotice,
     this.onEditItem,
@@ -62,6 +64,8 @@ class TodayBoardScreen extends StatefulWidget {
   final VoidCallback? onRegenerateInvite;
   final VoidCallback? onRevokeInvite;
   final Future<void> Function()? onLeaveBoard;
+  final Future<void> Function(String userId, String role)? onUpdateMemberRole;
+  final Future<void> Function(String userId)? onRemoveMember;
   final Future<void> Function(BoardItem item, bool isDone)? onCompleteTask;
   final Future<void> Function(BoardItem item, bool confirmed)? onConfirmNotice;
   final void Function(BoardItem item)? onEditItem;
@@ -279,11 +283,14 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       MembersPanel(
                         board: widget.board,
                         members: widget.members,
+                        currentUserId: widget.currentUserId,
                         activeInvite: widget.activeInvite,
                         onCreateInvite: widget.onCreateInvite,
                         onRegenerateInvite: widget.onRegenerateInvite,
                         onRevokeInvite: widget.onRevokeInvite,
                         onLeaveBoard: widget.onLeaveBoard,
+                        onUpdateMemberRole: widget.onUpdateMemberRole,
+                        onRemoveMember: widget.onRemoveMember,
                       ),
                   ],
                 ),

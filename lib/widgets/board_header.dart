@@ -135,20 +135,26 @@ class MembersPanel extends StatelessWidget {
     super.key,
     required this.board,
     this.members = const [],
+    this.currentUserId,
     this.activeInvite,
     this.onCreateInvite,
     this.onRegenerateInvite,
     this.onRevokeInvite,
     this.onLeaveBoard,
+    this.onUpdateMemberRole,
+    this.onRemoveMember,
   });
 
   final BoardSummary? board;
   final List<BoardMember> members;
+  final String? currentUserId;
   final BoardInvite? activeInvite;
   final VoidCallback? onCreateInvite;
   final VoidCallback? onRegenerateInvite;
   final VoidCallback? onRevokeInvite;
   final Future<void> Function()? onLeaveBoard;
+  final Future<void> Function(String userId, String role)? onUpdateMemberRole;
+  final Future<void> Function(String userId)? onRemoveMember;
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +193,21 @@ class MembersPanel extends StatelessWidget {
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
                 )
               else
-                ...members.map((member) => _MemberRow(member: member)),
+                ...members.map(
+                  (member) => _MemberRow(
+                    member: member,
+                    canManage:
+                        isAdmin &&
+                        member.userId != currentUserId &&
+                        (onUpdateMemberRole != null || onRemoveMember != null),
+                    onUpdateRole: onUpdateMemberRole == null
+                        ? null
+                        : (role) => onUpdateMemberRole!(member.userId, role),
+                    onRemove: onRemoveMember == null
+                        ? null
+                        : () => onRemoveMember!(member.userId),
+                  ),
+                ),
               if (isAdmin) ...[
                 const SizedBox(height: 14),
                 InviteCodePanel(
@@ -364,10 +384,20 @@ class InviteCodePanel extends StatelessWidget {
   String _two(int value) => value.toString().padLeft(2, '0');
 }
 
+enum _MemberAction { promote, demote, remove }
+
 class _MemberRow extends StatelessWidget {
-  const _MemberRow({required this.member});
+  const _MemberRow({
+    required this.member,
+    required this.canManage,
+    this.onUpdateRole,
+    this.onRemove,
+  });
 
   final BoardMember member;
+  final bool canManage;
+  final Future<void> Function(String role)? onUpdateRole;
+  final Future<void> Function()? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -390,8 +420,87 @@ class _MemberRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           RoleChip(role: member.role),
+          if (canManage) ...[
+            const SizedBox(width: 2),
+            PopupMenuButton<_MemberAction>(
+              icon: const Icon(Icons.more_vert_rounded),
+              tooltip: '\uBA64\uBC84 \uAD00\uB9AC',
+              onSelected: (action) => _handleAction(context, action),
+              itemBuilder: (context) => [
+                if (!member.isAdmin && onUpdateRole != null)
+                  const PopupMenuItem(
+                    value: _MemberAction.promote,
+                    child: Text('\uAD00\uB9AC\uC790\uB85C'),
+                  ),
+                if (member.isAdmin && onUpdateRole != null)
+                  const PopupMenuItem(
+                    value: _MemberAction.demote,
+                    child: Text('\uBA64\uBC84\uB85C'),
+                  ),
+                if (onRemove != null)
+                  const PopupMenuItem(
+                    value: _MemberAction.remove,
+                    child: Text('\uB0B4\uBCF4\uB0B4\uAE30'),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _handleAction(BuildContext context, _MemberAction action) async {
+    switch (action) {
+      case _MemberAction.promote:
+        await onUpdateRole?.call('admin');
+        return;
+      case _MemberAction.demote:
+        final confirmed = await _confirmMemberAction(
+          context,
+          title: '\uBA64\uBC84\uB85C \uBCC0\uACBD',
+          content:
+              '${member.displayName}\uB2D8\uC744 \uBA64\uBC84\uB85C \uBCC0\uACBD\uD560\uAE4C\uC694?',
+          actionLabel: '\uBCC0\uACBD',
+        );
+        if (confirmed) await onUpdateRole?.call('member');
+        return;
+      case _MemberAction.remove:
+        final confirmed = await _confirmMemberAction(
+          context,
+          title: '\uB0B4\uBCF4\uB0B4\uAE30',
+          content:
+              '${member.displayName}\uB2D8\uC744 \uBCF4\uB4DC\uC5D0\uC11C \uB0B4\uBCF4\uB0BC\uAE4C\uC694?',
+          actionLabel: '\uB0B4\uBCF4\uB0B4\uAE30',
+        );
+        if (confirmed) await onRemove?.call();
+        return;
+    }
+  }
+
+  Future<bool> _confirmMemberAction(
+    BuildContext context, {
+    required String title,
+    required String content,
+    required String actionLabel,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('\uCDE8\uC18C'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(actionLabel),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 }

@@ -113,6 +113,33 @@ void main() {
     expect(controller.members.first.isAdmin, isTrue);
   });
 
+  test('updateMemberRole changes a member role in memory', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.updateMemberRole('memory-user-2', 'admin');
+
+    final updated = controller.members.firstWhere(
+      (member) => member.userId == 'memory-user-2',
+    );
+    expect(updated.role, 'admin');
+    expect(updated.isAdmin, isTrue);
+  });
+
+  test('removeMember drops a member from memory', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.removeMember('memory-user-2');
+
+    expect(
+      controller.members.any((member) => member.userId == 'memory-user-2'),
+      isFalse,
+    );
+  });
+
   test('updateMyProfile changes and reloads the memory profile', () async {
     final repository = MemoryBoardRepository([]);
     final controller = BoardSessionController(repository);
@@ -542,6 +569,35 @@ class _FakeBoardRepository implements BoardRepository {
     itemsByBoard.remove(boardId);
     membersByBoard.remove(boardId);
     activeInvite = null;
+  }
+
+  @override
+  Future<void> updateMemberRole(
+    String boardId,
+    String userId,
+    String role,
+  ) async {
+    final members = membersByBoard[boardId];
+    if (members == null) throw StateError('Board not found');
+    final index = members.indexWhere((member) => member.userId == userId);
+    if (index < 0) throw StateError('Member not found');
+    final old = members[index];
+    members[index] = BoardMember(
+      userId: old.userId,
+      displayName: old.displayName,
+      avatarColor: old.avatarColor,
+      role: role,
+      joinedAt: old.joinedAt,
+    );
+  }
+
+  @override
+  Future<void> removeMember(String boardId, String userId) async {
+    final members = membersByBoard[boardId];
+    if (members == null) throw StateError('Board not found');
+    final before = members.length;
+    members.removeWhere((member) => member.userId == userId);
+    if (members.length == before) throw StateError('Member not found');
   }
 
   @override

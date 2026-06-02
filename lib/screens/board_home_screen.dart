@@ -277,6 +277,18 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _updateMemberRole(String userId, String role) async {
+    await _runAction(() async {
+      await _controller.updateMemberRole(userId, role);
+    });
+  }
+
+  Future<void> _removeMember(String userId) async {
+    await _runAction(() async {
+      await _controller.removeMember(userId);
+    });
+  }
+
   Future<void> _runAction(Future<void> Function() action) async {
     try {
       setState(() => _message = null);
@@ -310,10 +322,10 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       return '\uAD00\uB9AC\uC790\uB9CC \uD560 \uC218 \uC788\uC5B4\uC694.';
     }
     if (message.contains('creator_admin_required')) {
-      return '\uBCF4\uB4DC\uB97C \uB9CC\uB4E0 \uC0AC\uB78C\uC740 \uB098\uAC08 \uC218 \uC5C6\uC5B4\uC694.';
+      return '\uBCF4\uB4DC\uB97C \uB9CC\uB4E0 \uC0AC\uB78C\uC740 \uBC14\uAFC0 \uC218 \uC5C6\uC5B4\uC694.';
     }
     if (message.contains('last_admin_required')) {
-      return '\uB9C8\uC9C0\uB9C9 \uAD00\uB9AC\uC790\uB294 \uB098\uAC08 \uC218 \uC5C6\uC5B4\uC694.';
+      return '\uB9C8\uC9C0\uB9C9 \uAD00\uB9AC\uC790\uB294 \uBC14\uAFC0 \uC218 \uC5C6\uC5B4\uC694.';
     }
     if (message.contains('max_members_below_current_count')) {
       return '\uC815\uC6D0\uC740 \uD604\uC7AC \uC778\uC6D0\uBCF4\uB2E4 \uC801\uAC8C \uC124\uC815\uD560 \uC218 \uC5C6\uC5B4\uC694.';
@@ -395,6 +407,8 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onRegenerateInvite: _regenerateInvite,
               onRevokeInvite: _revokeInvite,
               onLeaveBoard: _leaveBoard,
+              onUpdateMemberRole: _updateMemberRole,
+              onRemoveMember: _removeMember,
               onCompleteTask: _completeTask,
               onConfirmNotice: _confirmNotice,
               onEditItem: _editItem,
