@@ -6,7 +6,7 @@
 > ✅ **마이그레이션 2개 원격 적용 확인됨 (2026-06-03)**: `20260602000000_add_item_comments.sql`, `20260603000000_add_leave_board_rpc.sql`.
 > REST로 검증: item_comments 테이블/컬럼 존재, leave_board RPC 존재, anon에 grant revoke까지 반영(42501). 더 이상 `supabase db push` 불필요.
 >
-> ⚠️ **신규 미적용 마이그레이션 1개 (2026-06-03)**: `20260603120000_add_board_member_nickname.sql` (board_members.nickname 컬럼 + set_board_nickname RPC). 원격 미적용 — 실기기에서 별명 저장 시 에러. 이 환경에선 DDL 푸시 불가(CLI/토큰/DB비번 없음, secret 키로도 DDL 불가). 대시보드 SQL 에디터로 적용 필요. MemoryRepository/테스트는 무관하게 동작.
+> ✅ **마이그레이션 3번째도 원격 적용 확인됨 (2026-06-03)**: `20260603120000_add_board_member_nickname.sql` (board_members.nickname 컬럼 + set_board_nickname RPC). node-pg 직접 연결로 적용(원격은 direct host 미해석 → **pooler `aws-1-ap-northeast-2`(서울), user `postgres.tbratsmwnjxiuvxjevwd`, port 5432, SSL**). 검증: nickname 컬럼(text) 존재, RPC 존재, anon revoke(REST 42501), PostgREST 스키마 캐시 리로드 확인. ⇒ **이 환경에서도 DB 비번만 있으면 node-pg로 DDL 적용 가능**(supabase CLI/MCP 없이).
 
 ## 1. 제품 한 줄
 가까운 사람들(가족·친구·룸메·스터디·팀플)이 **일정·할 일·공지**를 한 화면에서 함께 보는 공유 보드. 핵심 약속: *"말했잖아 / 언제? / 못 봤는데?"를 줄인다.* 자세한 비전은 `README.md`.
