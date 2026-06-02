@@ -43,14 +43,7 @@ class BoardItemSection extends StatelessWidget {
         SectionHeader(title: title, count: items.length),
         const SizedBox(height: 10),
         if (items.isEmpty)
-          SoftCard(
-            child: Text(
-              emptyText ?? '아직 항목이 없어요.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
-            ),
-          )
+          EmptyState(icon: icon, message: emptyText ?? '?꾩쭅 ??ぉ???놁뼱??')
         else
           ...items.map(
             (item) => BoardItemCard(
@@ -120,7 +113,7 @@ class BoardItemCard extends StatelessWidget {
                     height: 44,
                   ),
                   padding: EdgeInsets.zero,
-                  tooltip: item.isDone ? '완료 취소' : '완료',
+                  tooltip: item.isDone ? '?꾨즺 痍⑥냼' : '?꾨즺',
                   onPressed: onToggle == null || isPending
                       ? null
                       : () => onToggle!(item, !item.isDone),

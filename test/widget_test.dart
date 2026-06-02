@@ -244,6 +244,31 @@ void main() {
     expect(find.text('Today'), findsOneWidget);
   });
 
+  testWidgets('Empty board item section renders an EmptyState message', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemSection(
+            title: '\uD560 \uC77C',
+            items: const [],
+            accentColor: Colors.orange,
+            accentSoftColor: Colors.orangeAccent,
+            icon: Icons.check_rounded,
+            emptyText: '\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(EmptyState), findsOneWidget);
+    expect(
+      find.text('\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Today tab shows overdue tasks and unconfirmed notices', (
     tester,
   ) async {

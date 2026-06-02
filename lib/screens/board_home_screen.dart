@@ -364,9 +364,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       future: _initialLoad,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const _BoardInitialSkeleton();
         }
         if (snapshot.hasError) {
           return BoardLoadErrorScreen(
@@ -431,6 +429,78 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+class _BoardInitialSkeleton extends StatelessWidget {
+  const _BoardInitialSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              _SkeletonBar(width: 92, height: 16),
+              SizedBox(height: 8),
+              _SkeletonBar(width: 168, height: 28),
+              SizedBox(height: 22),
+              _SkeletonCard(lines: [0.42, 0.72, 0.54]),
+              SizedBox(height: 14),
+              _SkeletonCard(lines: [0.34, 0.88, 0.62]),
+              SizedBox(height: 14),
+              _SkeletonCard(lines: [0.3, 0.8, 0.48]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard({required this.lines});
+
+  final List<double> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final widthFactor in lines) ...[
+            FractionallySizedBox(
+              widthFactor: widthFactor,
+              child: const _SkeletonBar(height: 14),
+            ),
+            if (widthFactor != lines.last) const SizedBox(height: 10),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonBar extends StatelessWidget {
+  const _SkeletonBar({this.width, required this.height});
+
+  final double? width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.text.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+      ),
     );
   }
 }
