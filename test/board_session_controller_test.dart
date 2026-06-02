@@ -271,6 +271,41 @@ void main() {
     },
   );
 
+  test('updateItem persists task reassignment and clearing assignee', () async {
+    final repository = MemoryBoardRepository([
+      const BoardItem(
+        id: 'task-1',
+        type: BoardItemType.task,
+        title: 'Task',
+        detail: '',
+        owner: 'Us',
+        assignedToId: 'user-2',
+        timeLabel: 'Today',
+      ),
+    ]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.updateItem(
+      'task-1',
+      const BoardItemDraft(
+        type: BoardItemType.task,
+        title: 'Task',
+        detail: '',
+        assignedTo: 'user-1',
+      ),
+    );
+
+    expect(controller.items.single.assignedToId, 'user-1');
+
+    await controller.updateItem(
+      'task-1',
+      const BoardItemDraft(type: BoardItemType.task, title: 'Task', detail: ''),
+    );
+
+    expect(controller.items.single.assignedToId, isNull);
+  });
+
   test(
     'reconciles boards and items when membership changes through realtime',
     () async {
@@ -639,6 +674,7 @@ class _FakeBoardRepository implements BoardRepository {
           detail: draft.detail,
           startsAt: draft.startsAt,
           dueAt: draft.dueAt,
+          assignedToId: draft.assignedTo,
           isPinned: draft.isPinned,
           requiresConfirmation: draft.requiresConfirmation,
           tags: normalizeBoardItemTags(draft.tags),

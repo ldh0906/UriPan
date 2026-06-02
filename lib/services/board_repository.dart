@@ -278,6 +278,7 @@ class MemoryBoardRepository implements BoardRepository {
       timeLabel: _timeLabel(old.type, startsAt, dueAt),
       startsAt: startsAt,
       dueAt: dueAt,
+      assignedToId: draft.type == BoardItemType.task ? draft.assignedTo : null,
       isPinned: draft.isPinned,
       requiresConfirmation: draft.requiresConfirmation,
       tags: normalizeBoardItemTags(draft.tags),
@@ -640,6 +641,9 @@ class SupabaseBoardRepository implements BoardRepository {
           'detail': draft.detail,
           'starts_at': startsAt?.toIso8601String(),
           'due_at': dueAt?.toIso8601String(),
+          'assigned_to': draft.type == BoardItemType.task
+              ? draft.assignedTo
+              : null,
           'requires_confirmation': draft.requiresConfirmation,
           'is_pinned': draft.isPinned,
           'tags': normalizeBoardItemTags(draft.tags),
