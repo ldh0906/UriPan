@@ -279,13 +279,13 @@ class TagChip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.primarySoft.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
       ),
       child: Text(
         '#$label',
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: const Color(0xFF4F6328),
+          color: const Color(0xFF1A5FA8),
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -304,7 +304,7 @@ class TagChip extends StatelessWidget {
       onTap: onTap,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(8),
         child: ExcludeSemantics(child: chip),
       ),
     );
@@ -341,10 +341,10 @@ class _OverdueChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.warningSoft,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(7),
         border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.22)),
       ),
       child: Text(

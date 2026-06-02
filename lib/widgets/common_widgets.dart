@@ -79,15 +79,15 @@ class SoftCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: borderColor ?? AppColors.text.withValues(alpha: 0.04),
+          color: borderColor ?? AppColors.text.withValues(alpha: 0.05),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.text.withValues(alpha: 0.05),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -98,7 +98,7 @@ class SoftCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       child: card,
     );
   }
@@ -188,10 +188,7 @@ class AddItemFab extends StatelessWidget {
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.text, width: 2),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       icon: const Icon(Icons.add_rounded),
       label: const Text('\uCD94\uAC00'),
@@ -304,7 +301,7 @@ class _SmallPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(9),
       ),
       child: Text(
         label,
