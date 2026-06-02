@@ -39,6 +39,12 @@ node_modules/
 memory.md
 skills-lock.json
 
+# Internal AI working docs (kept local, not published)
+/AGENTS.md
+/docs/claude_memory.md
+/docs/codex-tasks/
+/docs/superpowers/
+
 # Local secrets and environment overrides
 .env
 .env.*
