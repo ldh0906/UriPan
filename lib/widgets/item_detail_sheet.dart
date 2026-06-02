@@ -263,14 +263,14 @@ class _RosterGroup extends StatelessWidget {
             child: Row(
               children: [
                 MemberAvatar(
-                  displayName: member.displayName,
+                  displayName: member.effectiveName,
                   avatarColor: member.avatarColor,
                   size: 32,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    member.displayName,
+                    member.effectiveName,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),

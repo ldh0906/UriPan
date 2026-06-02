@@ -1148,7 +1148,7 @@ void main() {
       ),
     );
 
-    expect(find.text('\uC77C\uC815 \uB0A0\uC9DC'), findsOneWidget);
+    expect(find.text('\uC2DC\uC791'), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
   });
@@ -1193,6 +1193,24 @@ void main() {
     expect(find.text('\uB9C8\uAC10 \uB0A0\uC9DC'), findsOneWidget);
     expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+  });
+
+  testWidgets('Add item sheet exposes optional end controls for schedules', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: AddItemSheet(initialType: BoardItemType.schedule)),
+      ),
+    );
+
+    expect(find.text('\uC2DC\uC791'), findsOneWidget);
+    expect(find.text('\uC885\uB8CC(\uC120\uD0DD)'), findsOneWidget);
+
+    await tester.tap(find.byType(SwitchListTile).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('\uC885\uB8CC(\uC120\uD0DD)'), findsNWidgets(2));
   });
 
   testWidgets('Add item sheet assigns a task to a selected member', (
@@ -1868,6 +1886,37 @@ void main() {
     expect(saved?.displayName, 'Nari');
     expect(saved?.avatarColor, '#647D31');
     expect(find.text('Nari'), findsNothing);
+  });
+
+  testWidgets('Board nickname edit sheet saves and clears nickname', (
+    tester,
+  ) async {
+    EditBoardNicknameResult? saved;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              saved = await showEditBoardNicknameSheet(
+                tester.element(find.byType(TextButton)),
+                nickname: 'Mina',
+              );
+            },
+            child: const Text('Open nickname'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open nickname'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+    await tester.pumpAndSettle();
+
+    expect(saved?.nickname, isNull);
   });
 
   testWidgets(

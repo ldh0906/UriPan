@@ -43,6 +43,10 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<void> setBoardNickname(String boardId, String? nickname) {
+    throw UnimplementedError();
+  }
+
   Future<void> updateMemberRole(String boardId, String userId, String role) {
     throw UnimplementedError();
   }
@@ -68,7 +72,10 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
-  Future<List<BoardComment>> loadComments(String itemId) async => const [];
+  Future<List<BoardComment>> loadComments(
+    String itemId, {
+    String? boardId,
+  }) async => const [];
   Future<BoardComment> addComment(String itemId, String body) {
     throw UnimplementedError();
   }
@@ -87,6 +94,8 @@ class MemoryBoardRepository implements BoardRepository {
 
   final List<BoardItem> _items;
   final List<BoardComment> _comments = [];
+  final Map<String, String> _itemBoardIds = {};
+  final Map<String, Map<String, String>> _nicknamesByBoard = {};
   BoardInvite? _activeInvite;
   final List<BoardSummary> _boards = [
     const BoardSummary(
@@ -135,12 +144,25 @@ class MemoryBoardRepository implements BoardRepository {
       displayName: displayName ?? _myProfile.displayName,
       avatarColor: avatarColor ?? _myProfile.avatarColor,
     );
+    _refreshMemoryNames();
     return _myProfile;
   }
 
   @override
   Future<List<BoardMember>> loadMembers(String boardId) async {
-    return List.unmodifiable(_members);
+    final nicknames = _nicknamesByBoard[boardId] ?? const {};
+    return List.unmodifiable(
+      _members.map((member) {
+        return BoardMember(
+          userId: member.userId,
+          displayName: member.displayName,
+          avatarColor: member.avatarColor,
+          role: member.role,
+          joinedAt: member.joinedAt,
+          nickname: nicknames[member.userId],
+        );
+      }),
+    );
   }
 
   @override
@@ -210,6 +232,22 @@ class MemoryBoardRepository implements BoardRepository {
     _boards.removeWhere((board) => board.id == boardId);
     _members.clear();
     _activeInvite = null;
+    _nicknamesByBoard.remove(boardId);
+  }
+
+  @override
+  Future<void> setBoardNickname(String boardId, String? nickname) async {
+    final trimmed = nickname?.trim();
+    if (trimmed != null && trimmed.length > 40) {
+      throw StateError('nickname_too_long');
+    }
+    final boardNicknames = _nicknamesByBoard.putIfAbsent(boardId, () => {});
+    if (trimmed == null || trimmed.isEmpty) {
+      boardNicknames.remove(_myProfile.id);
+    } else {
+      boardNicknames[_myProfile.id] = trimmed;
+    }
+    _refreshMemoryNames();
   }
 
   @override
@@ -227,6 +265,7 @@ class MemoryBoardRepository implements BoardRepository {
       avatarColor: old.avatarColor,
       role: role,
       joinedAt: old.joinedAt,
+      nickname: old.nickname,
     );
   }
 
@@ -257,8 +296,12 @@ class MemoryBoardRepository implements BoardRepository {
       type: draft.type,
       title: draft.title,
       detail: draft.detail,
-      owner: '\uC6B0\uB9AC',
+      owner: _effectiveName(boardId, _myProfile.id),
+      createdById: _myProfile.id,
       assignedToId: draft.assignedTo,
+      assigneeName: draft.assignedTo == null
+          ? null
+          : _effectiveName(boardId, draft.assignedTo!),
       timeLabel: _timeLabel(draft.type, startsAt, dueAt),
       startsAt: startsAt,
       dueAt: dueAt,
@@ -267,6 +310,7 @@ class MemoryBoardRepository implements BoardRepository {
       tags: normalizeBoardItemTags(draft.tags),
     );
     _items.add(item);
+    _itemBoardIds[item.id] = boardId;
     return item;
   }
 
@@ -282,6 +326,7 @@ class MemoryBoardRepository implements BoardRepository {
     final dueAt = draft.type == BoardItemType.task
         ? draft.dueAt ?? DateTime.now()
         : draft.dueAt;
+    final boardId = _itemBoardIds[itemId] ?? _firstBoardId;
     final updated = old.copyWith(
       title: draft.title,
       detail: draft.detail,
@@ -289,6 +334,12 @@ class MemoryBoardRepository implements BoardRepository {
       startsAt: startsAt,
       dueAt: dueAt,
       assignedToId: draft.type == BoardItemType.task ? draft.assignedTo : null,
+      assigneeName:
+          draft.type == BoardItemType.task &&
+              draft.assignedTo != null &&
+              boardId != null
+          ? _effectiveName(boardId, draft.assignedTo!)
+          : null,
       isPinned: draft.isPinned,
       requiresConfirmation: draft.requiresConfirmation,
       tags: normalizeBoardItemTags(draft.tags),
@@ -329,11 +380,28 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   @override
-  Future<List<BoardComment>> loadComments(String itemId) async {
+  Future<List<BoardComment>> loadComments(
+    String itemId, {
+    String? boardId,
+  }) async {
     final comments =
         _comments.where((comment) => comment.itemId == itemId).toList()
           ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return List.unmodifiable(comments);
+    final effectiveBoardId = boardId ?? _itemBoardIds[itemId];
+    if (effectiveBoardId == null) return List.unmodifiable(comments);
+    return List.unmodifiable(
+      comments.map(
+        (comment) => BoardComment(
+          id: comment.id,
+          itemId: comment.itemId,
+          authorId: comment.authorId,
+          authorName: _effectiveName(effectiveBoardId, comment.authorId),
+          authorAvatarColor: comment.authorAvatarColor,
+          body: comment.body,
+          createdAt: comment.createdAt,
+        ),
+      ),
+    );
   }
 
   @override
@@ -342,7 +410,10 @@ class MemoryBoardRepository implements BoardRepository {
       id: 'memory-comment-${_comments.length + 1}',
       itemId: itemId,
       authorId: _myProfile.id,
-      authorName: _myProfile.displayName,
+      authorName: _effectiveName(
+        _itemBoardIds[itemId] ?? _firstBoardId ?? 'memory-board',
+        _myProfile.id,
+      ),
       authorAvatarColor: _myProfile.avatarColor,
       body: body,
       createdAt: DateTime.now(),
@@ -367,6 +438,7 @@ class MemoryBoardRepository implements BoardRepository {
     _items.removeWhere((item) => item.id == itemId);
     if (_items.length == before) throw StateError('Item not found');
     _comments.removeWhere((comment) => comment.itemId == itemId);
+    _itemBoardIds.remove(itemId);
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
@@ -404,13 +476,41 @@ class MemoryBoardRepository implements BoardRepository {
     final count = _comments.where((comment) => comment.itemId == itemId).length;
     _items[index] = _items[index].copyWith(commentCount: count);
   }
+
+  String _effectiveName(String boardId, String userId) {
+    final nickname = _nicknamesByBoard[boardId]?[userId]?.trim();
+    if (nickname != null && nickname.isNotEmpty) return nickname;
+    if (userId == _myProfile.id) return _myProfile.displayName;
+    for (final member in _members) {
+      if (member.userId == userId) return member.displayName;
+    }
+    return userId;
+  }
+
+  void _refreshMemoryNames() {
+    for (var index = 0; index < _items.length; index += 1) {
+      final item = _items[index];
+      final boardId = _itemBoardIds[item.id] ?? _firstBoardId;
+      if (boardId == null) continue;
+      _items[index] = item.copyWith(
+        owner: item.createdById == null
+            ? item.owner
+            : _effectiveName(boardId, item.createdById!),
+        assigneeName: item.assignedToId == null
+            ? null
+            : _effectiveName(boardId, item.assignedToId!),
+      );
+    }
+  }
+
+  String? get _firstBoardId => _boards.isEmpty ? null : _boards.first.id;
 }
 
 class SupabaseBoardRepository implements BoardRepository {
   const SupabaseBoardRepository(this._client);
 
   static const _itemSelectColumns =
-      'id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, created_by, assigned_to, item_confirmations(user_id), item_comments(count)';
+      'id, board_id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, created_by, assigned_to, item_confirmations(user_id), item_comments(count)';
 
   final SupabaseClient _client;
 
@@ -572,6 +672,14 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> setBoardNickname(String boardId, String? nickname) async {
+    await _client.rpc<void>(
+      'set_board_nickname',
+      params: {'target_board_id': boardId, 'new_nickname': nickname},
+    );
+  }
+
+  @override
   Future<void> updateMemberRole(
     String boardId,
     String userId,
@@ -604,7 +712,7 @@ class SupabaseBoardRepository implements BoardRepository {
         .order('is_pinned', ascending: false)
         .order('created_at', ascending: false);
 
-    final names = await _displayNames(_userIdsFromRows(rows));
+    final names = await _displayNames(_userIdsFromRows(rows), boardId: boardId);
     return rows
         .map<BoardItem>((row) => _itemFromRow(row, names))
         .toList(growable: false);
@@ -614,7 +722,7 @@ class SupabaseBoardRepository implements BoardRepository {
   Future<List<BoardMember>> loadMembers(String boardId) async {
     final memberRows = await _client
         .from('board_members')
-        .select('user_id, role, joined_at')
+        .select('user_id, role, joined_at, nickname')
         .eq('board_id', boardId);
     final userIds = memberRows
         .map<String?>((row) => row['user_id'] as String?)
@@ -631,6 +739,7 @@ class SupabaseBoardRepository implements BoardRepository {
             avatarColor: profile?.avatarColor ?? '#647D31',
             role: row['role'] as String,
             joinedAt: DateTime.parse(row['joined_at'] as String),
+            nickname: row['nickname'] as String?,
           );
         })
         .toList(growable: false);
@@ -670,7 +779,7 @@ class SupabaseBoardRepository implements BoardRepository {
         .select(_itemSelectColumns)
         .single();
 
-    final names = await _displayNames(_userIdsFromRow(row));
+    final names = await _displayNames(_userIdsFromRow(row), boardId: boardId);
     return _itemFromRow(row, names);
   }
 
@@ -702,7 +811,11 @@ class SupabaseBoardRepository implements BoardRepository {
         .select(_itemSelectColumns)
         .single();
 
-    final names = await _displayNames(_userIdsFromRow(row));
+    final rowBoardId = row['board_id'] as String?;
+    final names = await _displayNames(
+      _userIdsFromRow(row),
+      boardId: rowBoardId,
+    );
     return _itemFromRow(row, names);
   }
 
@@ -713,7 +826,11 @@ class SupabaseBoardRepository implements BoardRepository {
       params: {'target_item_id': itemId, 'completed': isDone},
     );
 
-    final names = await _displayNames(_userIdsFromRow(row));
+    final rowBoardId = row['board_id'] as String?;
+    final names = await _displayNames(
+      _userIdsFromRow(row),
+      boardId: rowBoardId,
+    );
     return _itemFromRow(row, names);
   }
 
@@ -736,7 +853,10 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
-  Future<List<BoardComment>> loadComments(String itemId) async {
+  Future<List<BoardComment>> loadComments(
+    String itemId, {
+    String? boardId,
+  }) async {
     final rows = await _client
         .from('item_comments')
         .select('id, item_id, author_id, body, created_at')
@@ -746,9 +866,12 @@ class SupabaseBoardRepository implements BoardRepository {
         .map<Map<String, dynamic>>((row) => Map<String, dynamic>.from(row))
         .toList(growable: false);
     final profiles = await _profiles(_commentAuthorIds(comments));
+    final nicknames = boardId == null
+        ? const <String, String>{}
+        : await _boardNicknames(boardId);
 
     return comments
-        .map<BoardComment>((row) => _commentFromRow(row, profiles))
+        .map<BoardComment>((row) => _commentFromRow(row, profiles, nicknames))
         .toList(growable: false);
   }
 
@@ -763,7 +886,7 @@ class SupabaseBoardRepository implements BoardRepository {
     final commentRow = Map<String, dynamic>.from(row);
     final profiles = await _profiles(_commentAuthorIds([commentRow]));
 
-    return _commentFromRow(commentRow, profiles);
+    return _commentFromRow(commentRow, profiles, const {});
   }
 
   @override
@@ -788,7 +911,10 @@ class SupabaseBoardRepository implements BoardRepository {
     );
   }
 
-  Future<Map<String, String>> _displayNames(Set<String> userIds) async {
+  Future<Map<String, String>> _displayNames(
+    Set<String> userIds, {
+    String? boardId,
+  }) async {
     if (userIds.isEmpty) return const {};
 
     final rows = await _client
@@ -796,10 +922,34 @@ class SupabaseBoardRepository implements BoardRepository {
         .select('id, display_name')
         .inFilter('id', userIds.toList());
 
-    return {
+    final names = {
       for (final row in rows)
         if (row['id'] is String && row['display_name'] is String)
           row['id'] as String: row['display_name'] as String,
+    };
+    if (boardId == null) return names;
+
+    final nicknames = await _boardNicknames(boardId);
+    return {
+      ...names,
+      for (final entry in nicknames.entries)
+        if (userIds.contains(entry.key)) entry.key: entry.value,
+    };
+  }
+
+  Future<Map<String, String>> _boardNicknames(String boardId) async {
+    final rows = await _client
+        .from('board_members')
+        .select('user_id, nickname')
+        .eq('board_id', boardId)
+        .filter('nickname', 'not.is', null);
+
+    return {
+      for (final row in rows)
+        if (row['user_id'] is String &&
+            row['nickname'] is String &&
+            (row['nickname'] as String).trim().isNotEmpty)
+          row['user_id'] as String: row['nickname'] as String,
     };
   }
 
@@ -886,6 +1036,7 @@ class SupabaseBoardRepository implements BoardRepository {
   BoardComment _commentFromRow(
     Map<String, dynamic> row,
     Map<String, _ProfileRow> profiles,
+    Map<String, String> nicknames,
   ) {
     final authorId = row['author_id'] as String;
     final profile = profiles[authorId];
@@ -893,7 +1044,7 @@ class SupabaseBoardRepository implements BoardRepository {
       id: row['id'] as String,
       itemId: row['item_id'] as String,
       authorId: authorId,
-      authorName: profile?.displayName ?? authorId,
+      authorName: nicknames[authorId] ?? profile?.displayName ?? authorId,
       authorAvatarColor: profile?.avatarColor ?? '#647D31',
       body: row['body'] as String,
       createdAt: DateTime.parse(row['created_at'] as String),

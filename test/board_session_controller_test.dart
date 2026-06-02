@@ -160,6 +160,39 @@ void main() {
     expect(reloaded.myProfile?.avatarColor, '#4B7BE7');
   });
 
+  test(
+    'setBoardNickname reloads active board members and item names',
+    () async {
+      final repository = MemoryBoardRepository([]);
+      final controller = BoardSessionController(repository);
+      await controller.load();
+
+      await controller.createItem(
+        const BoardItemDraft(
+          type: BoardItemType.task,
+          title: 'Buy milk',
+          detail: '',
+        ),
+      );
+      await controller.setBoardNickname('\uC9D1\uC9C0\uC6B0');
+
+      expect(controller.members.first.effectiveName, '\uC9D1\uC9C0\uC6B0');
+      expect(controller.items.single.owner, '\uC9D1\uC9C0\uC6B0');
+    },
+  );
+
+  test('setBoardNickname clears blank nickname values', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.setBoardNickname('\uC9D1\uC9C0\uC6B0');
+    await controller.setBoardNickname('');
+
+    expect(controller.members.first.nickname, isNull);
+    expect(controller.members.first.effectiveName, '\uC9C0\uC6B0');
+  });
+
   test('updateBoard changes name and maxMembers on the active board', () async {
     final repository = MemoryBoardRepository([]);
     final controller = BoardSessionController(repository);
@@ -607,6 +640,9 @@ class _FakeBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> setBoardNickname(String boardId, String? nickname) async {}
+
+  @override
   Future<void> updateMemberRole(
     String boardId,
     String userId,
@@ -623,6 +659,7 @@ class _FakeBoardRepository implements BoardRepository {
       avatarColor: old.avatarColor,
       role: role,
       joinedAt: old.joinedAt,
+      nickname: old.nickname,
     );
   }
 
@@ -717,7 +754,10 @@ class _FakeBoardRepository implements BoardRepository {
   }
 
   @override
-  Future<List<BoardComment>> loadComments(String itemId) async => const [];
+  Future<List<BoardComment>> loadComments(
+    String itemId, {
+    String? boardId,
+  }) async => const [];
 
   @override
   Future<BoardComment> addComment(String itemId, String body) {

@@ -134,6 +134,9 @@ class _AddItemSheetState extends State<AddItemSheet> {
   final _tagController = TextEditingController();
   late DateTime _selectedDate;
   late TimeOfDay _selectedTime;
+  late DateTime _endDate;
+  late TimeOfDay _endTime;
+  bool _hasEndDate = false;
   bool _isPinned = false;
   bool _requiresConfirmation = true;
   String? _assignedToId;
@@ -154,6 +157,12 @@ class _AddItemSheetState extends State<AddItemSheet> {
         DateTime.now();
     _selectedDate = dateTime;
     _selectedTime = TimeOfDay.fromDateTime(dateTime);
+    final endDateTime = initialItem?.type == BoardItemType.schedule
+        ? initialItem?.dueAt
+        : null;
+    _hasEndDate = endDateTime != null;
+    _endDate = endDateTime ?? dateTime;
+    _endTime = TimeOfDay.fromDateTime(endDateTime ?? dateTime);
 
     if (initialItem != null) {
       _titleController.text = initialItem.title;
@@ -208,6 +217,10 @@ class _AddItemSheetState extends State<AddItemSheet> {
                         setState(() {
                           _type = values.single;
                           _dateTimeError = null;
+                          if (_type == BoardItemType.schedule && !_hasEndDate) {
+                            _endDate = _selectedDate;
+                            _endTime = _selectedTime;
+                          }
                         });
                       },
               ),
@@ -216,13 +229,41 @@ class _AddItemSheetState extends State<AddItemSheet> {
                   _type == BoardItemType.task) ...[
                 _DateTimePickerRow(
                   label: _type == BoardItemType.schedule
-                      ? '\uC77C\uC815 \uB0A0\uC9DC'
+                      ? '\uC2DC\uC791'
                       : '\uB9C8\uAC10 \uB0A0\uC9DC',
                   date: _selectedDate,
                   time: _selectedTime,
                   onPickDate: _pickDate,
                   onPickTime: _pickTime,
                 ),
+                if (_type == BoardItemType.schedule) ...[
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _hasEndDate,
+                    onChanged: (value) {
+                      setState(() {
+                        _hasEndDate = value;
+                        _dateTimeError = null;
+                        if (value) {
+                          _endDate = _selectedDate;
+                          _endTime = _selectedTime;
+                        }
+                      });
+                    },
+                    title: const Text('\uC885\uB8CC(\uC120\uD0DD)'),
+                  ),
+                  if (_hasEndDate) ...[
+                    const SizedBox(height: 8),
+                    _DateTimePickerRow(
+                      label: '\uC885\uB8CC(\uC120\uD0DD)',
+                      date: _endDate,
+                      time: _endTime,
+                      onPickDate: _pickEndDate,
+                      onPickTime: _pickEndTime,
+                    ),
+                  ],
+                ],
                 if (_dateTimeError != null) ...[
                   const SizedBox(height: 6),
                   Text(
@@ -248,7 +289,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
                     ...widget.members.map(
                       (member) => DropdownMenuItem(
                         value: member.userId,
-                        child: Text(member.displayName),
+                        child: Text(member.effectiveName),
                       ),
                     ),
                   ],
@@ -349,6 +390,22 @@ class _AddItemSheetState extends State<AddItemSheet> {
       _selectedTime.hour,
       _selectedTime.minute,
     );
+    final endDateTime = DateTime(
+      _endDate.year,
+      _endDate.month,
+      _endDate.day,
+      _endTime.hour,
+      _endTime.minute,
+    );
+    if (_type == BoardItemType.schedule &&
+        _hasEndDate &&
+        endDateTime.isBefore(selectedDateTime)) {
+      setState(
+        () => _dateTimeError =
+            '\uC885\uB8CC\uB294 \uC2DC\uC791\uBCF4\uB2E4 \uBE60\uB97C \uC218 \uC5C6\uC5B4\uC694.',
+      );
+      return;
+    }
     if (!_isEditing &&
         (_type == BoardItemType.schedule || _type == BoardItemType.task) &&
         selectedDateTime.isBefore(
@@ -368,7 +425,11 @@ class _AddItemSheetState extends State<AddItemSheet> {
         title: title,
         detail: _detailController.text.trim(),
         startsAt: _type == BoardItemType.schedule ? selectedDateTime : null,
-        dueAt: _type == BoardItemType.task ? selectedDateTime : null,
+        dueAt: _type == BoardItemType.task
+            ? selectedDateTime
+            : _type == BoardItemType.schedule && _hasEndDate
+            ? endDateTime
+            : null,
         assignedTo: _type == BoardItemType.task ? _assignedToId : null,
         requiresConfirmation:
             _type == BoardItemType.notice && _requiresConfirmation,
@@ -410,6 +471,9 @@ class _AddItemSheetState extends State<AddItemSheet> {
     setState(() {
       _selectedDate = picked;
       _dateTimeError = null;
+      if (_type == BoardItemType.schedule && !_hasEndDate) {
+        _endDate = picked;
+      }
     });
   }
 
@@ -421,6 +485,35 @@ class _AddItemSheetState extends State<AddItemSheet> {
     if (picked == null || !mounted) return;
     setState(() {
       _selectedTime = picked;
+      _dateTimeError = null;
+      if (_type == BoardItemType.schedule && !_hasEndDate) {
+        _endTime = picked;
+      }
+    });
+  }
+
+  Future<void> _pickEndDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _endDate = picked;
+      _dateTimeError = null;
+    });
+  }
+
+  Future<void> _pickEndTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _endTime,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _endTime = picked;
       _dateTimeError = null;
     });
   }

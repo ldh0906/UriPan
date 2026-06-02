@@ -1,10 +1,12 @@
 # UriPan — Claude/Codex 러닝 메모리
 
 > 세션이 바뀌어도 컨텍스트를 잃지 않기 위한 in-repo 메모리. 새 세션/Codex 단독 실행 전에 먼저 읽기.
-> 마지막 갱신: 2026-06-03 (Warm Stone 디자인 오버홀 + 모바일 QA 블로커 픽스 + 로그인/댓글 UI 고도화 + 로그인 상태 유지)
+> 마지막 갱신: 2026-06-03 (+ 달력 고도화[멀티데이·월간뷰·타입색점] + 보드별 별명)
 
 > ✅ **마이그레이션 2개 원격 적용 확인됨 (2026-06-03)**: `20260602000000_add_item_comments.sql`, `20260603000000_add_leave_board_rpc.sql`.
 > REST로 검증: item_comments 테이블/컬럼 존재, leave_board RPC 존재, anon에 grant revoke까지 반영(42501). 더 이상 `supabase db push` 불필요.
+>
+> ⚠️ **신규 미적용 마이그레이션 1개 (2026-06-03)**: `20260603120000_add_board_member_nickname.sql` (board_members.nickname 컬럼 + set_board_nickname RPC). 원격 미적용 — 실기기에서 별명 저장 시 에러. 이 환경에선 DDL 푸시 불가(CLI/토큰/DB비번 없음, secret 키로도 DDL 불가). 대시보드 SQL 에디터로 적용 필요. MemoryRepository/테스트는 무관하게 동작.
 
 ## 1. 제품 한 줄
 가까운 사람들(가족·친구·룸메·스터디·팀플)이 **일정·할 일·공지**를 한 화면에서 함께 보는 공유 보드. 핵심 약속: *"말했잖아 / 언제? / 못 봤는데?"를 줄인다.* 자세한 비전은 `README.md`.
@@ -45,6 +47,7 @@
 - **디자인 오버홀 (2026-06-02, 커밋 18440b4)**: **Warm Stone** 테마 + **Pretendard** 폰트로 전면 리디자인. 토큰은 `lib/theme/app_theme.dart`의 `AppColors`(primary `#3B82C4` 블루, background `#F8F6F3` 스톤). 보드 카드/헤더/a11y 대비 다듬음. (구 `docs/DESIGN.md`는 이 오버홀로 무효화돼 삭제됨.)
 - **모바일 QA 블로커 픽스 (2026-06-03, 커밋 dccbb68, Codex)**: AndroidManifest에 **INTERNET 권한** 추가(이게 없어 백엔드 연결 불가였음), 상세시트 수정/삭제 권한 게이트(`canManageItem`), `leaveBoard`를 `leave_board` RPC로 전환(+신규 마이그레이션), 헤더 단순화(초대 버튼 멤버 탭으로), item_comments 실시간 구독 추가. 테스트 100→105.
 - **UI/UX 고도화 (2026-06-03, 이번 세션, 커밋 61ce5b2)**: **댓글창 채팅 버블형 재디자인**(사용자가 "댓글창 못생김" 지적 → 본인/상대 정렬, 작성자+시각 헤더, 카운트 배지, 빈상태, 라운드 컴포저). **로그인 화면 고도화**(브랜드 마크 카드, 비번 표시 토글, 에러/성공 배너) + **"로그인 상태 유지" 체크박스**(SessionPreferences, OFF면 콜드 스타트에 signOut). 테스트 105→110, analyze 무이슈. (검증: analyze/test green. 실기기 비주얼은 미확인 — flutter run 필요.)
+- **달력 고도화 + 보드별 별명 (2026-06-03, Codex 구현·Claude 검증)**: 스펙 `docs/codex-tasks/01-calendar-and-board-nickname.md`. **(A) 달력**: `isForDate` 멀티데이 범위 지원(일정의 종료일로 `due_at` 재사용 → 스키마 무수정), 추가/수정 시트에 일정 "종료일(선택)" 필드, 월간 확장형 달력(상단 날짜범위 탭→월간 펼침/접힘), 타입별 색 점(일정🔵`primary`·할일🟠`tertiary`, 공지 미표시), "오늘로" 점프, 멀티데이 막대(주 경계 안). **(B) 보드별 별명**: `BoardMember.nickname`+`effectiveName`, repo 이름해석을 보드-aware로(댓글/담당자/확인자/멤버 전부 `nickname ?? display_name`), `set_board_nickname` RPC, 설정창 "이 보드에서 내 별명" 편집. 결정: 별명 효과범위=보드 안 모든 곳, 점 색은 기존 accent 재사용(새 색 0). 테스트 110→120, analyze 무이슈. ⚠️ nickname 마이그레이션 원격 미적용(위 경고 참조).
 
 ## 5. 다음 방향 (gstack 패널 결론, 2026-06-02)
 판정: **"잘 만든 공유 보드"는 맞지만 아직 "가족 데일리 드라이버"는 아님.** 결정적 공백 순서:

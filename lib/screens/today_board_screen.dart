@@ -97,6 +97,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   String? _activeTag;
   _TaskFilter _taskFilter = _TaskFilter.open;
   late DateTime _selectedCalendarDate;
+  bool _isCalendarExpanded = false;
 
   @override
   void initState() {
@@ -298,19 +299,44 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           onTagTap: _setActiveTag,
                         ),
                       ] else if (selectedTab == BoardTab.calendar) ...[
-                        _CalendarWeekStrip(
+                        _CalendarPanel(
                           selectedDate: _selectedCalendarDate,
                           today: widget.now(),
-                          onDateSelected: (date) =>
-                              setState(() => _selectedCalendarDate = date),
-                          onPreviousWeek: () => setState(
-                            () => _selectedCalendarDate = _selectedCalendarDate
-                                .subtract(const Duration(days: 7)),
+                          items: [...schedules, ...tasks],
+                          isExpanded: _isCalendarExpanded,
+                          onDateSelected: (date) => setState(() {
+                            _selectedCalendarDate = date;
+                            _isCalendarExpanded = false;
+                          }),
+                          onPrevious: () => setState(() {
+                            _selectedCalendarDate = _isCalendarExpanded
+                                ? DateTime(
+                                    _selectedCalendarDate.year,
+                                    _selectedCalendarDate.month - 1,
+                                    _selectedCalendarDate.day,
+                                  )
+                                : _selectedCalendarDate.subtract(
+                                    const Duration(days: 7),
+                                  );
+                          }),
+                          onNext: () => setState(() {
+                            _selectedCalendarDate = _isCalendarExpanded
+                                ? DateTime(
+                                    _selectedCalendarDate.year,
+                                    _selectedCalendarDate.month + 1,
+                                    _selectedCalendarDate.day,
+                                  )
+                                : _selectedCalendarDate.add(
+                                    const Duration(days: 7),
+                                  );
+                          }),
+                          onToggleExpanded: () => setState(
+                            () => _isCalendarExpanded = !_isCalendarExpanded,
                           ),
-                          onNextWeek: () => setState(
-                            () => _selectedCalendarDate = _selectedCalendarDate
-                                .add(const Duration(days: 7)),
-                          ),
+                          onToday: () => setState(() {
+                            _selectedCalendarDate = widget.now();
+                            _isCalendarExpanded = false;
+                          }),
                         ),
                         const SizedBox(height: 16),
                         BoardItemSection(
@@ -695,7 +721,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
     final repository = widget.repository;
     if (repository == null) return const [];
-    return repository.loadComments(item.id);
+    return repository.loadComments(item.id, boardId: widget.board?.id);
   }
 
   Future<void> _addComment(BoardItem item, String body) async {
@@ -835,20 +861,28 @@ class _SearchField extends StatelessWidget {
   }
 }
 
-class _CalendarWeekStrip extends StatelessWidget {
-  const _CalendarWeekStrip({
+class _CalendarPanel extends StatelessWidget {
+  const _CalendarPanel({
     required this.selectedDate,
     required this.today,
+    required this.items,
+    required this.isExpanded,
     required this.onDateSelected,
-    required this.onPreviousWeek,
-    required this.onNextWeek,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onToggleExpanded,
+    required this.onToday,
   });
 
   final DateTime selectedDate;
   final DateTime today;
+  final List<BoardItem> items;
+  final bool isExpanded;
   final ValueChanged<DateTime> onDateSelected;
-  final VoidCallback onPreviousWeek;
-  final VoidCallback onNextWeek;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onToggleExpanded;
+  final VoidCallback onToday;
 
   static const _weekdayLabels = [
     '\uC6D4',
@@ -862,11 +896,14 @@ class _CalendarWeekStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final weekStart = _startOfWeek(selectedDate);
-    final days = List.generate(
-      7,
-      (index) => weekStart.add(Duration(days: index)),
+    final visibleStart = isExpanded
+        ? _startOfWeek(DateTime(selectedDate.year, selectedDate.month))
+        : _startOfWeek(selectedDate);
+    final visibleDays = List.generate(
+      isExpanded ? 42 : 7,
+      (index) => visibleStart.add(Duration(days: index)),
     );
+    final rangeEnd = visibleDays.last;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -874,45 +911,173 @@ class _CalendarWeekStrip extends StatelessWidget {
         Row(
           children: [
             IconButton.filledTonal(
-              onPressed: onPreviousWeek,
-              tooltip: '\uC774\uC804 \uC8FC',
+              onPressed: onPrevious,
+              tooltip: isExpanded
+                  ? '\uC774\uC804 \uB2EC'
+                  : '\uC774\uC804 \uC8FC',
               icon: const Icon(Icons.chevron_left_rounded),
             ),
             Expanded(
               child: Center(
-                child: Text(
-                  '${weekStart.month}.${weekStart.day} - '
-                  '${days.last.month}.${days.last.day}',
-                  style: Theme.of(context).textTheme.titleSmall,
+                child: TextButton.icon(
+                  onPressed: onToggleExpanded,
+                  icon: Icon(
+                    isExpanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                  ),
+                  label: Text(
+                    '${visibleStart.month}.${visibleStart.day} - '
+                    '${rangeEnd.month}.${rangeEnd.day}',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                 ),
               ),
             ),
+            TextButton(
+              onPressed: onToday,
+              child: const Text('\uC624\uB298\uB85C'),
+            ),
             IconButton.filledTonal(
-              onPressed: onNextWeek,
-              tooltip: '\uB2E4\uC74C \uC8FC',
+              onPressed: onNext,
+              tooltip: isExpanded
+                  ? '\uB2E4\uC74C \uB2EC'
+                  : '\uB2E4\uC74C \uC8FC',
               icon: const Icon(Icons.chevron_right_rounded),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            for (final day in days) ...[
-              Expanded(
-                child: _CalendarDayCell(
-                  date: day,
-                  weekdayLabel: _weekdayLabels[day.weekday - 1],
-                  isSelected: _isSameDay(day, selectedDate),
-                  isToday: _isSameDay(day, today),
-                  onTap: () => onDateSelected(day),
-                ),
-              ),
-              if (day != days.last) const SizedBox(width: 6),
-            ],
-          ],
-        ),
+        if (isExpanded)
+          _buildMonthGrid(visibleDays)
+        else
+          _buildWeek(visibleDays),
       ],
     );
+  }
+
+  Widget _buildWeek(List<DateTime> days) {
+    return Row(
+      children: [
+        for (final day in days) ...[
+          Expanded(
+            child: _CalendarDayCell(
+              date: day,
+              weekdayLabel: _weekdayLabels[day.weekday - 1],
+              isSelected: _isSameDay(day, selectedDate),
+              isToday: _isSameDay(day, today),
+              indicators: _indicatorsForDay(day),
+              bars: const [],
+              isOutsideMonth: false,
+              onTap: () => onDateSelected(day),
+            ),
+          ),
+          if (day != days.last) const SizedBox(width: 6),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMonthGrid(List<DateTime> days) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            for (final label in _weekdayLabels)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.mutedText,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        for (var row = 0; row < 6; row += 1) ...[
+          Row(
+            children: [
+              for (var column = 0; column < 7; column += 1) ...[
+                Expanded(
+                  child: _CalendarDayCell(
+                    date: days[row * 7 + column],
+                    weekdayLabel: '',
+                    isSelected: _isSameDay(
+                      days[row * 7 + column],
+                      selectedDate,
+                    ),
+                    isToday: _isSameDay(days[row * 7 + column], today),
+                    indicators: _indicatorsForDay(days[row * 7 + column]),
+                    bars: _barsForDay(days[row * 7 + column]),
+                    isOutsideMonth:
+                        days[row * 7 + column].month != selectedDate.month,
+                    isCompact: true,
+                    onTap: () => onDateSelected(days[row * 7 + column]),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (row < 5) const SizedBox(height: 4),
+        ],
+      ],
+    );
+  }
+
+  List<_CalendarIndicator> _indicatorsForDay(DateTime day) {
+    final schedules = items
+        .where(
+          (item) => item.type == BoardItemType.schedule && item.isForDate(day),
+        )
+        .length;
+    final tasks = items
+        .where((item) => item.type == BoardItemType.task && item.isForDate(day))
+        .length;
+    final indicators = <_CalendarIndicator>[
+      if (schedules > 0)
+        _CalendarIndicator(color: AppColors.primary, extraCount: schedules - 1),
+      if (tasks > 0)
+        _CalendarIndicator(color: AppColors.tertiary, extraCount: tasks - 1),
+    ];
+    return indicators.take(2).toList(growable: false);
+  }
+
+  List<_CalendarBar> _barsForDay(DateTime day) {
+    return items
+        .where((item) {
+          if (item.type != BoardItemType.schedule || !item.isForDate(day)) {
+            return false;
+          }
+          final start = item.startsAt;
+          final end = item.dueAt;
+          if (start == null || end == null) return false;
+          return !_isSameDay(start, end);
+        })
+        .take(2)
+        .map((item) {
+          final start = _dateOnly(item.startsAt!);
+          final end = _dateOnly(item.dueAt!);
+          final current = _dateOnly(day);
+          return _CalendarBar(
+            color: AppColors.primary,
+            startsHere:
+                _isSameDay(current, start) ||
+                current.weekday == DateTime.monday,
+            endsHere:
+                _isSameDay(current, end) || current.weekday == DateTime.sunday,
+          );
+        })
+        .toList(growable: false);
+  }
+
+  DateTime _dateOnly(DateTime value) {
+    final local = value.toLocal();
+    return DateTime(local.year, local.month, local.day);
   }
 
   DateTime _startOfWeek(DateTime date) {
@@ -927,20 +1092,47 @@ class _CalendarWeekStrip extends StatelessWidget {
   }
 }
 
+class _CalendarIndicator {
+  const _CalendarIndicator({required this.color, required this.extraCount});
+
+  final Color color;
+  final int extraCount;
+}
+
+class _CalendarBar {
+  const _CalendarBar({
+    required this.color,
+    required this.startsHere,
+    required this.endsHere,
+  });
+
+  final Color color;
+  final bool startsHere;
+  final bool endsHere;
+}
+
 class _CalendarDayCell extends StatelessWidget {
   const _CalendarDayCell({
     required this.date,
     required this.weekdayLabel,
     required this.isSelected,
     required this.isToday,
+    required this.indicators,
+    required this.bars,
+    required this.isOutsideMonth,
     required this.onTap,
+    this.isCompact = false,
   });
 
   final DateTime date;
   final String weekdayLabel;
   final bool isSelected;
   final bool isToday;
+  final List<_CalendarIndicator> indicators;
+  final List<_CalendarBar> bars;
+  final bool isOutsideMonth;
   final VoidCallback onTap;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
@@ -956,11 +1148,18 @@ class _CalendarDayCell extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: ExcludeSemantics(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
+            constraints: BoxConstraints(minHeight: isCompact ? 72 : 58),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 0 : 2,
+                vertical: isCompact ? 7 : 10,
+              ),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.primarySoft,
+                color: isSelected
+                    ? AppColors.primary
+                    : isOutsideMonth
+                    ? AppColors.surfaceVariant.withValues(alpha: 0.5)
+                    : AppColors.primarySoft,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isSelected
@@ -980,7 +1179,7 @@ class _CalendarDayCell extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  if (weekdayLabel.isNotEmpty) const SizedBox(height: 4),
                   Text(
                     date.day.toString(),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -990,20 +1189,39 @@ class _CalendarDayCell extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   SizedBox(
-                    height: 4,
-                    child: isToday
-                        ? Container(
-                            key: const ValueKey('calendar-today-dot'),
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? colors.onPrimary
-                                  : AppColors.primary,
-                              shape: BoxShape.circle,
+                    height: isCompact ? 28 : 12,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (bars.isNotEmpty) ...[
+                          for (final bar in bars)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? colors.onPrimary
+                                      : bar.color.withValues(alpha: 0.72),
+                                  borderRadius: BorderRadius.horizontal(
+                                    left: bar.startsHere
+                                        ? const Radius.circular(999)
+                                        : Radius.zero,
+                                    right: bar.endsHere
+                                        ? const Radius.circular(999)
+                                        : Radius.zero,
+                                  ),
+                                ),
+                              ),
                             ),
-                          )
-                        : null,
+                        ],
+                        _CalendarIndicatorsRow(
+                          indicators: indicators,
+                          isToday: isToday,
+                          isSelected: isSelected,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1037,5 +1255,68 @@ class _CalendarDayCell extends StatelessWidget {
       default:
         return '';
     }
+  }
+}
+
+class _CalendarIndicatorsRow extends StatelessWidget {
+  const _CalendarIndicatorsRow({
+    required this.indicators,
+    required this.isToday,
+    required this.isSelected,
+  });
+
+  final List<_CalendarIndicator> indicators;
+  final bool isToday;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final dotColor = isSelected
+        ? Theme.of(context).colorScheme.onPrimary
+        : AppColors.primary;
+    final extraCount = indicators.fold<int>(
+      0,
+      (sum, indicator) => sum + indicator.extraCount,
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isToday)
+          Container(
+            key: const ValueKey('calendar-today-dot'),
+            width: 4,
+            height: 4,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+          ),
+        for (final indicator in indicators)
+          Container(
+            width: 5,
+            height: 5,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : indicator.color,
+              shape: BoxShape.circle,
+            ),
+          ),
+        if (extraCount > 0) ...[
+          const SizedBox(width: 2),
+          Text(
+            '+$extraCount',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : AppColors.mutedText,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }

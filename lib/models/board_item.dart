@@ -134,10 +134,24 @@ class BoardItem {
 
   bool isForDate(DateTime date) {
     final target = DateTime(date.year, date.month, date.day);
-    final value = type == BoardItemType.schedule ? startsAt : dueAt;
-    if (value == null) return type == BoardItemType.notice;
-    final local = value.toLocal();
-    return DateTime(local.year, local.month, local.day) == target;
+    if (type == BoardItemType.notice) return true;
+
+    if (type == BoardItemType.task) {
+      final value = dueAt;
+      if (value == null) return false;
+      final local = value.toLocal();
+      return DateTime(local.year, local.month, local.day) == target;
+    }
+
+    final startValue = startsAt;
+    if (startValue == null) return false;
+    final localStart = startValue.toLocal();
+    final start = DateTime(localStart.year, localStart.month, localStart.day);
+    final endValue = dueAt ?? startsAt;
+    final localEnd = endValue!.toLocal();
+    final end = DateTime(localEnd.year, localEnd.month, localEnd.day);
+    final effectiveEnd = end.isBefore(start) ? start : end;
+    return !target.isBefore(start) && !target.isAfter(effectiveEnd);
   }
 }
 
@@ -211,6 +225,7 @@ class BoardMember {
     required this.avatarColor,
     required this.role,
     required this.joinedAt,
+    this.nickname,
   });
 
   final String userId;
@@ -218,8 +233,13 @@ class BoardMember {
   final String avatarColor;
   final String role;
   final DateTime joinedAt;
+  final String? nickname;
 
   bool get isAdmin => role == 'admin';
+  String get effectiveName {
+    final value = nickname?.trim();
+    return value == null || value.isEmpty ? displayName : value;
+  }
 }
 
 class BoardInvite {

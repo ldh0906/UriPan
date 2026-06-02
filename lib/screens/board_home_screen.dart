@@ -172,8 +172,10 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       activeBoardId: board.id,
       onSelectBoard: (id) => _runAction(() => _controller.switchBoard(id)),
       myProfile: _controller.myProfile,
+      currentBoardMember: _currentBoardMember(),
       remindersEnabled: _remindersEnabled,
       onRemindersEnabledChanged: _setRemindersEnabled,
+      onSetBoardNickname: _setBoardNickname,
       onEditProfile: () {
         Navigator.pop(context);
         unawaited(_editProfile());
@@ -335,7 +337,16 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _setBoardNickname(String? nickname) async {
+    await _runAction(() async {
+      await _controller.setBoardNickname(nickname);
+    });
+  }
+
   String? _currentUserDisplayName() {
+    final currentMember = _currentBoardMember();
+    if (currentMember != null) return currentMember.effectiveName;
+
     final profileName = _controller.myProfile?.displayName;
     if (profileName != null && profileName.trim().isNotEmpty) {
       return profileName;
@@ -351,9 +362,18 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (currentUserId == null) return null;
 
     for (final member in _controller.members) {
-      if (member.userId == currentUserId) return member.displayName;
+      if (member.userId == currentUserId) return member.effectiveName;
     }
 
+    return null;
+  }
+
+  BoardMember? _currentBoardMember() {
+    final currentUserId = widget.client.auth.currentUser?.id;
+    if (currentUserId == null) return null;
+    for (final member in _controller.members) {
+      if (member.userId == currentUserId) return member;
+    }
     return null;
   }
 
@@ -521,6 +541,15 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     }
     if (message.contains('max_members_below_current_count')) {
       return '\uC815\uC6D0\uC740 \uD604\uC7AC \uC778\uC6D0\uBCF4\uB2E4 \uC801\uAC8C \uC124\uC815\uD560 \uC218 \uC5C6\uC5B4\uC694.';
+    }
+    if (message.contains('membership_required')) {
+      return '\uBCF4\uB4DC \uBA64\uBC84\uB9CC \uD560 \uC218 \uC788\uC5B4\uC694.';
+    }
+    if (message.contains('authentication_required')) {
+      return '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD574\uC694.';
+    }
+    if (message.contains('nickname_too_long')) {
+      return '\uBCC4\uBA85\uC740 40\uC790 \uC774\uD558\uC5EC\uC57C \uD574\uC694.';
     }
     return message;
   }

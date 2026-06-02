@@ -164,6 +164,14 @@ class BoardSessionController extends ChangeNotifier {
     });
   }
 
+  Future<void> setBoardNickname(String? nickname) async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.setBoardNickname(board.id, nickname);
+      await load(preferredBoardId: board.id);
+    });
+  }
+
   Future<void> updateMemberRole(String userId, String role) async {
     final board = _requireActiveBoard();
     await _runAction(() async {
@@ -303,7 +311,7 @@ class BoardSessionController extends ChangeNotifier {
   }
 
   Future<List<BoardComment>> loadComments(String itemId) {
-    return _repository.loadComments(itemId);
+    return _repository.loadComments(itemId, boardId: _activeBoard?.id);
   }
 
   Future<void> addComment(String itemId, String body) async {

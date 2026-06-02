@@ -59,6 +59,57 @@ void main() {
       expect(await repository.loadComments('item-2'), isEmpty);
     });
   });
+
+  group('MemoryBoardRepository board nicknames', () {
+    test('setBoardNickname changes member, item, and comment names', () async {
+      final repository = MemoryBoardRepository([]);
+      await repository.setBoardNickname('memory-board', '\uC9D1\uC9C0\uC6B0');
+
+      final item = await repository.createItem(
+        'memory-board',
+        const BoardItemDraft(
+          type: BoardItemType.task,
+          title: 'Pack bag',
+          detail: '',
+        ),
+      );
+      await repository.addComment(item.id, 'Done');
+
+      final members = await repository.loadMembers('memory-board');
+      final items = await repository.loadBoardItems(boardId: 'memory-board');
+      final comments = await repository.loadComments(
+        item.id,
+        boardId: 'memory-board',
+      );
+
+      expect(members.first.effectiveName, '\uC9D1\uC9C0\uC6B0');
+      expect(items.single.owner, '\uC9D1\uC9C0\uC6B0');
+      expect(comments.single.authorName, '\uC9D1\uC9C0\uC6B0');
+    });
+
+    test('empty nickname clears the board override', () async {
+      final repository = MemoryBoardRepository([]);
+      await repository.setBoardNickname('memory-board', '\uC9D1\uC9C0\uC6B0');
+      await repository.setBoardNickname('memory-board', '   ');
+
+      final members = await repository.loadMembers('memory-board');
+
+      expect(members.first.effectiveName, '\uC9C0\uC6B0');
+      expect(members.first.nickname, isNull);
+    });
+
+    test('nickname is scoped to one board', () async {
+      final repository = MemoryBoardRepository([]);
+      final second = await repository.createBoard('Second', 4);
+      await repository.setBoardNickname(second.id, '\uB2E4\uB978\uC9C0\uC6B0');
+
+      final defaultMembers = await repository.loadMembers('memory-board');
+      final secondMembers = await repository.loadMembers(second.id);
+
+      expect(defaultMembers.first.effectiveName, '\uC9C0\uC6B0');
+      expect(secondMembers.first.effectiveName, '\uB2E4\uB978\uC9C0\uC6B0');
+    });
+  });
 }
 
 BoardItem _item({required String id}) {

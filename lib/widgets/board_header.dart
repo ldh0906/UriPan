@@ -410,13 +410,13 @@ class _MemberRow extends StatelessWidget {
       child: Row(
         children: [
           MemberAvatar(
-            displayName: member.displayName,
+            displayName: member.effectiveName,
             avatarColor: member.avatarColor,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              member.displayName,
+              member.effectiveName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleSmall,
@@ -468,7 +468,7 @@ class _MemberRow extends StatelessWidget {
           context,
           title: '\uBA64\uBC84\uB85C \uBCC0\uACBD',
           content:
-              '${member.displayName}\uB2D8\uC744 \uBA64\uBC84\uB85C \uBCC0\uACBD\uD560\uAE4C\uC694?',
+              '${member.effectiveName}\uB2D8\uC744 \uBA64\uBC84\uB85C \uBCC0\uACBD\uD560\uAE4C\uC694?',
           actionLabel: '\uBCC0\uACBD',
         );
         if (confirmed) await onUpdateRole?.call('member');
@@ -478,7 +478,7 @@ class _MemberRow extends StatelessWidget {
           context,
           title: '\uB0B4\uBCF4\uB0B4\uAE30',
           content:
-              '${member.displayName}\uB2D8\uC744 \uBCF4\uB4DC\uC5D0\uC11C \uB0B4\uBCF4\uB0BC\uAE4C\uC694?',
+              '${member.effectiveName}\uB2D8\uC744 \uBCF4\uB4DC\uC5D0\uC11C \uB0B4\uBCF4\uB0BC\uAE4C\uC694?',
           actionLabel: '\uB0B4\uBCF4\uB0B4\uAE30',
         );
         if (confirmed) await onRemove?.call();

@@ -15,8 +15,10 @@ class BoardSettingsSheet extends StatefulWidget {
     this.activeBoardId,
     this.onSelectBoard,
     this.myProfile,
+    this.currentBoardMember,
     this.remindersEnabled = true,
     this.onRemindersEnabledChanged,
+    this.onSetBoardNickname,
     this.onEditProfile,
     this.onEditBoard,
     required this.onSignOut,
@@ -28,8 +30,10 @@ class BoardSettingsSheet extends StatefulWidget {
   final String? activeBoardId;
   final ValueChanged<String>? onSelectBoard;
   final UserProfile? myProfile;
+  final BoardMember? currentBoardMember;
   final bool remindersEnabled;
   final Future<void> Function(bool enabled)? onRemindersEnabledChanged;
+  final Future<void> Function(String? nickname)? onSetBoardNickname;
   final VoidCallback? onEditProfile;
   final VoidCallback? onEditBoard;
   final VoidCallback onSignOut;
@@ -122,6 +126,19 @@ class _BoardSettingsSheetState extends State<BoardSettingsSheet> {
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: widget.onEditProfile,
                 ),
+                if (widget.onSetBoardNickname != null) ...[
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.badge_outlined),
+                    title: const Text(
+                      '\uC774 \uBCF4\uB4DC\uC5D0\uC11C \uB0B4 \uBCC4\uBA85',
+                    ),
+                    subtitle: Text(_nicknameSubtitle),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: _editBoardNickname,
+                  ),
+                ],
               ],
               if (_activeBoard?.isAdmin == true &&
                   widget.onEditBoard != null) ...[
@@ -154,6 +171,23 @@ class _BoardSettingsSheetState extends State<BoardSettingsSheet> {
     }
     return null;
   }
+
+  String get _nicknameSubtitle {
+    final nickname = widget.currentBoardMember?.nickname?.trim();
+    if (nickname == null || nickname.isEmpty) {
+      return '\uBCC4\uBA85 \uC5C6\uC74C';
+    }
+    return widget.currentBoardMember?.effectiveName ?? nickname;
+  }
+
+  Future<void> _editBoardNickname() async {
+    final result = await showEditBoardNicknameSheet(
+      context,
+      nickname: widget.currentBoardMember?.nickname,
+    );
+    if (result == null || !mounted) return;
+    await widget.onSetBoardNickname?.call(result.nickname);
+  }
 }
 
 class EditBoardSettingsResult {
@@ -161,6 +195,97 @@ class EditBoardSettingsResult {
 
   final String name;
   final int maxMembers;
+}
+
+class EditBoardNicknameResult {
+  const EditBoardNicknameResult(this.nickname);
+
+  final String? nickname;
+}
+
+class EditBoardNicknameSheet extends StatefulWidget {
+  const EditBoardNicknameSheet({super.key, this.nickname});
+
+  final String? nickname;
+
+  @override
+  State<EditBoardNicknameSheet> createState() => _EditBoardNicknameSheetState();
+}
+
+class _EditBoardNicknameSheetState extends State<EditBoardNicknameSheet> {
+  late final TextEditingController _nicknameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nicknameController = TextEditingController(text: widget.nickname ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final nickname = _nicknameController.text.trim();
+    Navigator.pop(
+      context,
+      EditBoardNicknameResult(nickname.isEmpty ? null : nickname),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          8,
+          20,
+          24 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '\uC774 \uBCF4\uB4DC\uC5D0\uC11C \uB0B4 \uBCC4\uBA85',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: _nicknameController,
+              maxLength: 40,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: '\uBCC4\uBA85',
+                hintText:
+                    '\uBE44\uC6B0\uBA74 \uAE30\uBCF8 \uC774\uB984\uC744 \uC368\uC694',
+                counterText: '',
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('\uCDE8\uC18C'),
+                ),
+                const SizedBox(width: 10),
+                FilledButton(
+                  onPressed: _save,
+                  child: const Text('\uC800\uC7A5'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class EditBoardSettingsSheet extends StatefulWidget {
@@ -618,8 +743,10 @@ Future<void> showBoardSettingsSheet(
   String? activeBoardId,
   ValueChanged<String>? onSelectBoard,
   UserProfile? myProfile,
+  BoardMember? currentBoardMember,
   bool remindersEnabled = true,
   Future<void> Function(bool enabled)? onRemindersEnabledChanged,
+  Future<void> Function(String? nickname)? onSetBoardNickname,
   VoidCallback? onEditProfile,
   VoidCallback? onEditBoard,
   required VoidCallback onSignOut,
@@ -634,8 +761,10 @@ Future<void> showBoardSettingsSheet(
       activeBoardId: activeBoardId,
       onSelectBoard: onSelectBoard,
       myProfile: myProfile,
+      currentBoardMember: currentBoardMember,
       remindersEnabled: remindersEnabled,
       onRemindersEnabledChanged: onRemindersEnabledChanged,
+      onSetBoardNickname: onSetBoardNickname,
       onEditProfile: onEditProfile,
       onEditBoard: onEditBoard,
       onSignOut: onSignOut,
@@ -664,5 +793,17 @@ Future<EditBoardSettingsResult?> showEditBoardSettingsSheet(
     isScrollControlled: true,
     showDragHandle: true,
     builder: (context) => EditBoardSettingsSheet(board: board),
+  );
+}
+
+Future<EditBoardNicknameResult?> showEditBoardNicknameSheet(
+  BuildContext context, {
+  String? nickname,
+}) {
+  return showModalBottomSheet<EditBoardNicknameResult>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) => EditBoardNicknameSheet(nickname: nickname),
   );
 }
