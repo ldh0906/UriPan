@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uripan/main.dart';
 import 'package:uripan/models/board_item.dart';
+import 'package:uripan/screens/board_home_screen.dart';
 import 'package:uripan/screens/today_board_screen.dart';
 import 'package:uripan/services/auth_error_messages.dart';
 import 'package:uripan/services/auth_input_validator.dart';
+import 'package:uripan/services/board_repository.dart';
+import 'package:uripan/services/notifications/reminder_planner.dart';
+import 'package:uripan/services/notifications/reminder_scheduler.dart';
 import 'package:uripan/widgets/board_action_sheets.dart';
 import 'package:uripan/widgets/board_item_card.dart';
 import 'package:uripan/widgets/board_settings_sheet.dart';
 import 'package:uripan/widgets/common_widgets.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('UriPan shows the Today board sections', (tester) async {
     await tester.pumpWidget(const UriPanApp());
     await tester.pumpAndSettle();
@@ -280,6 +290,93 @@ void main() {
     expect(find.text('\uC624\uB298'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
   });
+
+  testWidgets('BoardHomeScreen syncs reminders when loaded items change', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final repository = _FakeBoardRepository(items: const []);
+    final scheduler = _RecordingReminderScheduler();
+    final client = _testSupabaseClient();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BoardHomeScreen(
+          client: client,
+          repository: repository,
+          scheduler: scheduler,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    repository.items = [
+      BoardItem(
+        id: 'schedule-1',
+        type: BoardItemType.schedule,
+        title: 'Family dinner',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Later',
+        startsAt: now.add(const Duration(hours: 2)),
+      ),
+    ];
+
+    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    await tester.pumpAndSettle();
+
+    final expected = buildReminderPlan(
+      items: repository.items,
+      currentUserId: client.auth.currentUser?.id,
+      now: DateTime.now(),
+    );
+    expect(scheduler.syncCalls.last, hasLength(expected.length));
+  });
+
+  testWidgets(
+    'BoardHomeScreen reminder toggle cancels and re-syncs reminders',
+    (tester) async {
+      final repository = _FakeBoardRepository(
+        items: [
+          BoardItem(
+            id: 'schedule-1',
+            type: BoardItemType.schedule,
+            title: 'Family dinner',
+            detail: '',
+            owner: 'Us',
+            timeLabel: 'Later',
+            startsAt: DateTime.now().add(const Duration(hours: 2)),
+          ),
+        ],
+      );
+      final scheduler = _RecordingReminderScheduler();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BoardHomeScreen(
+            client: _testSupabaseClient(),
+            repository: repository,
+            scheduler: scheduler,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(scheduler.syncCalls.last, isNotEmpty);
+
+      await tester.tap(find.bySemanticsLabel('\uC124\uC815'));
+      await tester.pumpAndSettle();
+      expect(find.text('\uC54C\uB9BC'), findsOneWidget);
+
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pumpAndSettle();
+      expect(scheduler.syncCalls.last, isEmpty);
+
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pumpAndSettle();
+      expect(scheduler.syncCalls.last, isNotEmpty);
+    },
+  );
 
   testWidgets('Empty board item section renders an EmptyState message', (
     tester,
@@ -1652,6 +1749,80 @@ void main() {
 }
 
 void _ignoreBoardTab(BoardTab tab) {}
+
+SupabaseClient _testSupabaseClient() {
+  final client = SupabaseClient('https://example.supabase.co', 'test-anon-key');
+  client.auth.stopAutoRefresh();
+  return client;
+}
+
+class _FakeBoardRepository extends BoardRepository {
+  _FakeBoardRepository({required this.items});
+
+  List<BoardItem> items;
+
+  @override
+  Future<List<BoardSummary>> loadBoards() async {
+    return const [
+      BoardSummary(
+        id: 'board-1',
+        name: 'Home',
+        role: 'member',
+        maxMembers: 4,
+        memberCount: 1,
+      ),
+    ];
+  }
+
+  @override
+  Future<UserProfile?> loadMyProfile() async {
+    return const UserProfile(
+      id: 'user-1',
+      displayName: 'Mina',
+      avatarColor: '#647D31',
+    );
+  }
+
+  @override
+  Future<List<BoardMember>> loadMembers(String boardId) async {
+    return [
+      BoardMember(
+        userId: 'user-1',
+        displayName: 'Mina',
+        avatarColor: '#647D31',
+        role: 'member',
+        joinedAt: DateTime(2026, 6),
+      ),
+    ];
+  }
+
+  @override
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
+    return items;
+  }
+}
+
+class _RecordingReminderScheduler implements ReminderScheduler {
+  var initCount = 0;
+  var permissionRequestCount = 0;
+  final syncCalls = <List<ScheduledReminder>>[];
+
+  @override
+  Future<void> init() async {
+    initCount += 1;
+  }
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequestCount += 1;
+    return true;
+  }
+
+  @override
+  Future<void> sync(List<ScheduledReminder> reminders) async {
+    syncCalls.add(List<ScheduledReminder>.of(reminders));
+  }
+}
 
 class _ResultObserver<T> extends NavigatorObserver {
   _ResultObserver({required this.onPopped});

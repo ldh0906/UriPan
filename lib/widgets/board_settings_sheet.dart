@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
 import '../theme/app_theme.dart';
 import 'common_widgets.dart';
 
-class BoardSettingsSheet extends StatelessWidget {
+class BoardSettingsSheet extends StatefulWidget {
   const BoardSettingsSheet({
     super.key,
     required this.boardName,
@@ -13,6 +15,8 @@ class BoardSettingsSheet extends StatelessWidget {
     this.activeBoardId,
     this.onSelectBoard,
     this.myProfile,
+    this.remindersEnabled = true,
+    this.onRemindersEnabledChanged,
     this.onEditProfile,
     this.onEditBoard,
     required this.onSignOut,
@@ -24,93 +28,129 @@ class BoardSettingsSheet extends StatelessWidget {
   final String? activeBoardId;
   final ValueChanged<String>? onSelectBoard;
   final UserProfile? myProfile;
+  final bool remindersEnabled;
+  final Future<void> Function(bool enabled)? onRemindersEnabledChanged;
   final VoidCallback? onEditProfile;
   final VoidCallback? onEditBoard;
   final VoidCallback onSignOut;
 
   @override
+  State<BoardSettingsSheet> createState() => _BoardSettingsSheetState();
+}
+
+class _BoardSettingsSheetState extends State<BoardSettingsSheet> {
+  late bool _remindersEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _remindersEnabled = widget.remindersEnabled;
+  }
+
+  Future<void> _setRemindersEnabled(bool enabled) async {
+    setState(() => _remindersEnabled = enabled);
+    await widget.onRemindersEnabledChanged?.call(enabled);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final userName = this.userName;
+    final userName = widget.userName;
 
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(boardName, style: Theme.of(context).textTheme.titleLarge),
-            if (userName != null && userName.trim().isNotEmpty) ...[
-              const SizedBox(height: 4),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                userName,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+                widget.boardName,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-            ],
-            if (boards.length > 1) ...[
-              const SizedBox(height: 18),
-              Text(
-                '\uBCF4\uB4DC \uBC14\uAFB8\uAE30',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 10),
-              ...boards.map((board) {
-                final isActive = board.id == activeBoardId;
-                return _BoardSwitcherRow(
-                  board: board,
-                  isActive: isActive,
-                  onTap: isActive || onSelectBoard == null
-                      ? null
-                      : () {
-                          Navigator.pop(context);
-                          onSelectBoard!(board.id);
-                        },
-                );
-              }),
-            ],
-            if (myProfile != null && onEditProfile != null) ...[
-              const SizedBox(height: 18),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: MemberAvatar(
-                  displayName: myProfile!.displayName,
-                  avatarColor: myProfile!.avatarColor,
+              if (userName != null && userName.trim().isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  userName,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
                 ),
-                title: const Text('\uB0B4 \uC815\uBCF4'),
-                subtitle: Text(myProfile!.displayName),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: onEditProfile,
+              ],
+              if (widget.boards.length > 1) ...[
+                const SizedBox(height: 18),
+                Text(
+                  '\uBCF4\uB4DC \uBC14\uAFB8\uAE30',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 10),
+                ...widget.boards.map((board) {
+                  final isActive = board.id == widget.activeBoardId;
+                  return _BoardSwitcherRow(
+                    board: board,
+                    isActive: isActive,
+                    onTap: isActive || widget.onSelectBoard == null
+                        ? null
+                        : () {
+                            Navigator.pop(context);
+                            widget.onSelectBoard!(board.id);
+                          },
+                  );
+                }),
+              ],
+              const SizedBox(height: 18),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.notifications_active_rounded),
+                title: const Text('\uC54C\uB9BC'),
+                value: _remindersEnabled,
+                onChanged: widget.onRemindersEnabledChanged == null
+                    ? null
+                    : (enabled) => unawaited(_setRemindersEnabled(enabled)),
               ),
-            ],
-            if (_activeBoard?.isAdmin == true && onEditBoard != null) ...[
-              const SizedBox(height: 8),
+              if (widget.myProfile != null && widget.onEditProfile != null) ...[
+                const SizedBox(height: 18),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: MemberAvatar(
+                    displayName: widget.myProfile!.displayName,
+                    avatarColor: widget.myProfile!.avatarColor,
+                  ),
+                  title: const Text('\uB0B4 \uC815\uBCF4'),
+                  subtitle: Text(widget.myProfile!.displayName),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: widget.onEditProfile,
+                ),
+              ],
+              if (_activeBoard?.isAdmin == true &&
+                  widget.onEditBoard != null) ...[
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.tune_rounded),
+                  title: const Text('\uBCF4\uB4DC \uC124\uC815'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: widget.onEditBoard,
+                ),
+              ],
+              const SizedBox(height: 18),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.tune_rounded),
-                title: const Text('\uBCF4\uB4DC \uC124\uC815'),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: onEditBoard,
+                leading: const Icon(Icons.logout_rounded),
+                title: const Text('\uB85C\uADF8\uC544\uC6C3'),
+                onTap: widget.onSignOut,
               ),
             ],
-            const SizedBox(height: 18),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.logout_rounded),
-              title: const Text('\uB85C\uADF8\uC544\uC6C3'),
-              onTap: onSignOut,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   BoardSummary? get _activeBoard {
-    for (final board in boards) {
-      if (board.id == activeBoardId) return board;
+    for (final board in widget.boards) {
+      if (board.id == widget.activeBoardId) return board;
     }
     return null;
   }
@@ -578,6 +618,8 @@ Future<void> showBoardSettingsSheet(
   String? activeBoardId,
   ValueChanged<String>? onSelectBoard,
   UserProfile? myProfile,
+  bool remindersEnabled = true,
+  Future<void> Function(bool enabled)? onRemindersEnabledChanged,
   VoidCallback? onEditProfile,
   VoidCallback? onEditBoard,
   required VoidCallback onSignOut,
@@ -592,6 +634,8 @@ Future<void> showBoardSettingsSheet(
       activeBoardId: activeBoardId,
       onSelectBoard: onSelectBoard,
       myProfile: myProfile,
+      remindersEnabled: remindersEnabled,
+      onRemindersEnabledChanged: onRemindersEnabledChanged,
       onEditProfile: onEditProfile,
       onEditBoard: onEditBoard,
       onSignOut: onSignOut,

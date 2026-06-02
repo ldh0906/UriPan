@@ -7,6 +7,9 @@ import '../models/board_item.dart';
 import '../services/board_realtime_subscription.dart';
 import '../services/board_repository.dart';
 import '../services/board_session_controller.dart';
+import '../services/notifications/reminder_planner.dart';
+import '../services/notifications/reminder_preferences.dart';
+import '../services/notifications/reminder_scheduler.dart';
 import '../theme/app_theme.dart';
 import '../widgets/board_action_sheets.dart';
 import '../widgets/board_settings_sheet.dart';
@@ -15,14 +18,18 @@ import '../widgets/common_widgets.dart';
 import 'today_board_screen.dart';
 
 class BoardHomeScreen extends StatefulWidget {
-  const BoardHomeScreen({
+  BoardHomeScreen({
     super.key,
     required this.client,
     required this.repository,
-  });
+    this.scheduler = const NoopReminderScheduler(),
+    ReminderPreferences? reminderPreferences,
+  }) : reminderPreferences = reminderPreferences ?? ReminderPreferences();
 
   final SupabaseClient client;
   final BoardRepository repository;
+  final ReminderScheduler scheduler;
+  final ReminderPreferences reminderPreferences;
 
   @override
   State<BoardHomeScreen> createState() => _BoardHomeScreenState();
@@ -34,6 +41,13 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   late Future<void> _initialLoad;
   BoardTab _selectedTab = BoardTab.today;
   String? _message;
+  bool _remindersEnabled = true;
+  bool _reminderPreferencesLoaded = false;
+  bool _schedulerInitialized = false;
+  bool _permissionRequested = false;
+  bool _isSyncingReminders = false;
+  bool _syncRemindersAgain = false;
+  String? _lastReminderPlanSignature;
 
   @override
   void initState() {
@@ -41,7 +55,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     _controller = BoardSessionController(widget.repository)
       ..addListener(_handleControllerChanged);
     _realtimeSubscription = BoardRealtimeSubscription(widget.client);
-    _initialLoad = _controller.load();
+    _initialLoad = _loadInitialBoard();
   }
 
   @override
@@ -62,6 +76,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
         if (mounted) unawaited(_controller.handleBoardMembershipChanged());
       },
     );
+    unawaited(_syncRemindersIfNeeded());
     if (mounted) setState(() {});
   }
 
@@ -157,6 +172,8 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       activeBoardId: board.id,
       onSelectBoard: (id) => _runAction(() => _controller.switchBoard(id)),
       myProfile: _controller.myProfile,
+      remindersEnabled: _remindersEnabled,
+      onRemindersEnabledChanged: _setRemindersEnabled,
       onEditProfile: () {
         Navigator.pop(context);
         unawaited(_editProfile());
@@ -172,6 +189,120 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
         unawaited(widget.client.auth.signOut());
       },
     );
+  }
+
+  Future<void> _loadInitialBoard() async {
+    await _loadReminderPreferences();
+    await _controller.load();
+    await _ensureSchedulerReady();
+    await _syncRemindersIfNeeded(force: true);
+  }
+
+  Future<void> _loadReminderPreferences() async {
+    try {
+      _remindersEnabled = await widget.reminderPreferences.loadEnabled();
+    } catch (_) {
+      _remindersEnabled = true;
+    } finally {
+      _reminderPreferencesLoaded = true;
+    }
+  }
+
+  Future<void> _setRemindersEnabled(bool enabled) async {
+    if (_remindersEnabled == enabled) return;
+    setState(() => _remindersEnabled = enabled);
+
+    try {
+      await widget.reminderPreferences.saveEnabled(enabled);
+    } catch (_) {}
+
+    if (!enabled) {
+      _lastReminderPlanSignature = null;
+      await _guardSchedulerCall(() => widget.scheduler.sync(const []));
+      return;
+    }
+
+    await _ensureSchedulerReady();
+    await _syncRemindersIfNeeded(force: true);
+  }
+
+  Future<void> _ensureSchedulerReady() async {
+    if (!_reminderPreferencesLoaded || _schedulerInitialized) {
+      return;
+    }
+
+    final initialized = await _guardSchedulerCall(
+      () => widget.scheduler.init(),
+    );
+    if (!initialized) return;
+    _schedulerInitialized = true;
+
+    if (_remindersEnabled && !_permissionRequested) {
+      _permissionRequested = true;
+      await _guardSchedulerCall(() async {
+        await widget.scheduler.requestPermission();
+      });
+    }
+  }
+
+  Future<void> _syncRemindersIfNeeded({bool force = false}) async {
+    if (!_reminderPreferencesLoaded ||
+        _controller.isLoading ||
+        _controller.activeBoard == null) {
+      return;
+    }
+
+    if (_isSyncingReminders) {
+      _syncRemindersAgain = true;
+      return;
+    }
+
+    _isSyncingReminders = true;
+    try {
+      do {
+        _syncRemindersAgain = false;
+        await _ensureSchedulerReady();
+
+        final plan = buildReminderPlan(
+          items: _controller.items,
+          currentUserId: widget.client.auth.currentUser?.id,
+          now: DateTime.now(),
+          settings: ReminderSettings(enabled: _remindersEnabled),
+        );
+        final signature = _reminderPlanSignature(plan);
+        if (force || signature != _lastReminderPlanSignature) {
+          final synced = await _guardSchedulerCall(
+            () => widget.scheduler.sync(plan),
+          );
+          if (synced) _lastReminderPlanSignature = signature;
+        }
+        force = false;
+      } while (_syncRemindersAgain);
+    } finally {
+      _isSyncingReminders = false;
+    }
+  }
+
+  String _reminderPlanSignature(List<ScheduledReminder> plan) {
+    return plan
+        .map(
+          (reminder) => [
+            reminder.id,
+            reminder.title,
+            reminder.body,
+            reminder.scheduledAt.microsecondsSinceEpoch,
+          ].join('|'),
+        )
+        .join('\n');
+  }
+
+  Future<bool> _guardSchedulerCall(Future<void> Function() action) async {
+    try {
+      await action();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _editProfile() async {
