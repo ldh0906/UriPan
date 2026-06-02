@@ -855,6 +855,64 @@ void main() {
     expect(confirmedValue, isTrue);
   });
 
+  testWidgets('Notice detail sheet lists confirmation roster', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [
+            BoardItem(
+              id: 'roster-notice',
+              type: BoardItemType.notice,
+              title: 'Roster notice',
+              detail: 'Please read',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+              confirmationCount: 1,
+              confirmedUserIds: ['user-1'],
+            ),
+          ],
+          members: [
+            BoardMember(
+              userId: 'user-1',
+              displayName: 'Mina',
+              avatarColor: '#647D31',
+              role: 'admin',
+              joinedAt: DateTime(2026, 6),
+            ),
+            BoardMember(
+              userId: 'user-2',
+              displayName: 'Joon',
+              avatarColor: '#E7A14B',
+              role: 'member',
+              joinedAt: DateTime(2026, 6, 1),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Roster notice').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('\uD655\uC778\uD568'), findsOneWidget);
+    expect(find.text('\uBBF8\uD655\uC778'), findsOneWidget);
+    expect(find.text('Mina'), findsOneWidget);
+    expect(find.text('Joon'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Mina')).dy,
+      greaterThan(tester.getTopLeft(find.text('\uD655\uC778\uD568')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Mina')).dy,
+      lessThan(tester.getTopLeft(find.text('\uBBF8\uD655\uC778')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Joon')).dy,
+      greaterThan(tester.getTopLeft(find.text('\uBBF8\uD655\uC778')).dy),
+    );
+  });
+
   testWidgets('Tapping edit in a task detail sheet opens edit sheet', (
     tester,
   ) async {

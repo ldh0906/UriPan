@@ -751,6 +751,13 @@ class SupabaseBoardRepository implements BoardRepository {
     final startsAt = DateTime.tryParse((row['starts_at'] as String?) ?? '');
     final dueAt = DateTime.tryParse((row['due_at'] as String?) ?? '');
     final confirmations = (row['item_confirmations'] as List?) ?? const [];
+    final confirmedUserIds = confirmations
+        .map<String?>((confirmation) {
+          if (confirmation is! Map) return null;
+          return confirmation['user_id'] as String?;
+        })
+        .whereType<String>()
+        .toList(growable: false);
     final currentUserId = _client.auth.currentUser?.id;
     final createdById = row['created_by'] as String?;
     final assignedToId = row['assigned_to'] as String?;
@@ -771,6 +778,7 @@ class SupabaseBoardRepository implements BoardRepository {
       isPinned: (row['is_pinned'] as bool?) ?? false,
       requiresConfirmation: (row['requires_confirmation'] as bool?) ?? false,
       confirmationCount: confirmations.length,
+      confirmedUserIds: confirmedUserIds,
       isConfirmedByMe:
           currentUserId != null &&
           confirmations.any((confirmation) {

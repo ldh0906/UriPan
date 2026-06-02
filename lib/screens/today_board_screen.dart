@@ -537,6 +537,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
       builder: (context) => ItemDetailSheet(
         item: item,
         isPending: _pendingTaskIds.contains(item.id),
+        members: widget.members,
         onToggle: item.type == BoardItemType.task
             ? (isDone) async {
                 Navigator.pop(context);

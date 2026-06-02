@@ -55,6 +55,7 @@ class BoardItem {
     this.requiresConfirmation = false,
     this.confirmationCount = 0,
     this.isConfirmedByMe = false,
+    this.confirmedUserIds = const [],
     this.tags = const [],
   });
 
@@ -76,6 +77,7 @@ class BoardItem {
   final bool requiresConfirmation;
   final int confirmationCount;
   final bool isConfirmedByMe;
+  final List<String> confirmedUserIds;
   final List<String> tags;
 
   BoardItem copyWith({
@@ -95,6 +97,7 @@ class BoardItem {
     bool? requiresConfirmation,
     int? confirmationCount,
     bool? isConfirmedByMe,
+    List<String>? confirmedUserIds,
     List<String>? tags,
   }) {
     return BoardItem(
@@ -120,6 +123,7 @@ class BoardItem {
       requiresConfirmation: requiresConfirmation ?? this.requiresConfirmation,
       confirmationCount: confirmationCount ?? this.confirmationCount,
       isConfirmedByMe: isConfirmedByMe ?? this.isConfirmedByMe,
+      confirmedUserIds: confirmedUserIds ?? this.confirmedUserIds,
       tags: tags ?? this.tags,
     );
   }

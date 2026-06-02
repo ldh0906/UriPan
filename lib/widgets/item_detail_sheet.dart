@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/board_item.dart';
 import '../theme/app_theme.dart';
 import 'board_item_card.dart';
+import 'common_widgets.dart';
 
 class ItemDetailSheet extends StatelessWidget {
   const ItemDetailSheet({
@@ -13,6 +14,7 @@ class ItemDetailSheet extends StatelessWidget {
     this.onConfirm,
     this.onEdit,
     this.onDelete,
+    this.members = const [],
   });
 
   final BoardItem item;
@@ -21,6 +23,7 @@ class ItemDetailSheet extends StatelessWidget {
   final Future<void> Function(bool confirmed)? onConfirm;
   final Future<void> Function()? onEdit;
   final Future<void> Function()? onDelete;
+  final List<BoardMember> members;
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +132,10 @@ class ItemDetailSheet extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (members.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _ConfirmationRoster(item: item, members: members),
+                ],
               ],
               if (onEdit != null) ...[
                 const SizedBox(height: 10),
@@ -160,5 +167,76 @@ class ItemDetailSheet extends StatelessWidget {
     if (value == null) return null;
     final local = value.toLocal();
     return '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class _ConfirmationRoster extends StatelessWidget {
+  const _ConfirmationRoster({required this.item, required this.members});
+
+  final BoardItem item;
+  final List<BoardMember> members;
+
+  @override
+  Widget build(BuildContext context) {
+    final confirmedIds = item.confirmedUserIds.toSet();
+    final confirmedMembers = members
+        .where((member) => confirmedIds.contains(member.userId))
+        .toList(growable: false);
+    final unconfirmedMembers = members
+        .where((member) => !confirmedIds.contains(member.userId))
+        .toList(growable: false);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _RosterGroup(title: '\uD655\uC778\uD568', members: confirmedMembers),
+        const SizedBox(height: 12),
+        _RosterGroup(title: '\uBBF8\uD655\uC778', members: unconfirmedMembers),
+      ],
+    );
+  }
+}
+
+class _RosterGroup extends StatelessWidget {
+  const _RosterGroup({required this.title, required this.members});
+
+  final String title;
+  final List<BoardMember> members;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        ...members.map(
+          (member) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                MemberAvatar(
+                  displayName: member.displayName,
+                  avatarColor: member.avatarColor,
+                  size: 32,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    member.displayName,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
