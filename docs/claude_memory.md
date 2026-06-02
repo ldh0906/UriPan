@@ -1,0 +1,61 @@
+# UriPan — Claude/Codex 러닝 메모리
+
+> 세션이 바뀌어도 컨텍스트를 잃지 않기 위한 in-repo 메모리. 새 세션/Codex 단독 실행 전에 먼저 읽기.
+> 마지막 갱신: 2026-06-02
+
+## 1. 제품 한 줄
+가까운 사람들(가족·친구·룸메·스터디·팀플)이 **일정·할 일·공지**를 한 화면에서 함께 보는 공유 보드. 핵심 약속: *"말했잖아 / 언제? / 못 봤는데?"를 줄인다.* 자세한 비전은 `README.md`.
+
+## 2. 스택 & 아키텍처
+- **Flutter** 앱 + **Supabase**(Auth / Postgres / Realtime). Supabase 미설정 시 인메모리 샘플로 구동.
+- 인증: 아이디/비밀번호 → 내부적으로 `id@auth.uripan.app` 합성 이메일. email confirmation off 전제.
+- 레이어:
+  - `lib/services/board_repository.dart` — `BoardRepository`(추상) + `MemoryBoardRepository` + `SupabaseBoardRepository`. 모든 데이터 접근의 단일 통로.
+  - `lib/services/board_session_controller.dart` — `BoardSessionController`(ChangeNotifier). 상태/액션, `_runAction`로 에러 래핑, stale-request 가드.
+  - `lib/screens/board_home_screen.dart` — 컨트롤러 연결, `_friendlyDatabaseError`(트리거 코드→한국어), `_runAction`→`_message` 배너.
+  - `lib/screens/today_board_screen.dart` — 탭(오늘/일정/할일/공지/가족), 컨트롤드 렌더, 콜백 주입.
+  - 위젯: `board_header.dart`(헤더·MembersPanel·InviteCodePanel), `board_settings_sheet.dart`(설정/보드전환/프로필), `board_item_card.dart`, `item_detail_sheet.dart`, `common_widgets.dart`(AppBottomNav·BoardTab·EmptyState 등), `board_action_sheets.dart`(추가/수정 시트).
+  - 모델: `lib/models/board_item.dart` — BoardItem/BoardItemDraft/BoardSummary/BoardMember/BoardInvite/UserProfile, `isForDate`, `boardItemMatchesQuery`, `normalizeBoardItemTags`.
+  - `lib/services/friendly_date.dart` — `friendlyDayLabel`(오늘/내일/N일 지남/요일).
+- **백엔드 스키마**: `supabase/migrations/` (family_board_schema 등).
+  - 테이블: profiles, boards, board_members, board_invites, board_items, item_confirmations.
+  - RPC: create_family_board, create_board_invite, revoke_board_invite, join_board_with_invite, complete_task, is_board_member/admin.
+  - 트리거 에러코드(→ 한국어 매핑 대상): creator_admin_required, last_admin_required, max_members_below_current_count, board_full, invalid/expired/revoked_invite, already_joined, admin_required.
+  - RLS: 멤버/관리자 기준. profiles 본인 수정 허용. Realtime publication: board_members, board_items, item_confirmations.
+
+## 3. 작업 방식 (역할 분담)
+- **Claude = PM/QA**: 설계·QA·검증·커밋/푸시. Codex 산출물을 라인 단위로 검증.
+- **Codex = dev**: 실제 구현. 호출 경로:
+  - MCP: `mcp__codex__codex` (sandbox=`danger-full-access`, approval-policy=`never`, cwd=`C:\UriPan`).
+  - 또는 PowerShell: `Get-Content docs\codex-tasks\NN-*.md -Raw | codex exec --dangerously-bypass-approvals-and-sandbox -o .codex_last.txt -`
+- **검증**: `dart format lib test` → `C:\Users\a3030\development\flutter\bin\flutter.bat analyze` → `... test`. (이 세션에선 flutter 직접 실행이 권한 차단될 수 있음 — Codex가 실행/보고.)
+- **규칙**: 태스크당 커밋+푸시(확인 없이 — 사용자 지침). Korean UI text는 `.dart`에서 `\u` 이스케이프. Phase 2까지는 **client-side Dart only**(스키마 무수정). 파괴적 관리 동작엔 확인 다이얼로그 + 트리거 에러 한국어 매핑.
+- 현재 브랜치: `codex/rebuild-uripan` (main으로 PR 예정).
+
+## 4. 진행 상황
+- **Phase 1**: 코어(보드/항목 CRUD/완료·확인/태그/실시간/담당자/멤버목록). 완료.
+- **Phase 2 (15태스크)**: 설정·로그아웃 / 보드전환 / 프로필편집 / 보드설정 / 멤버관리 / 담당자버그수정 / 확인자명단 / 검색 / 태그필터 / 친절한날짜 / 네비배지 / 빠른완료·지남표시 / 당겨서새로고침 / 빈·로딩상태 / 접근성. **전부 출시, 테스트 40→73, analyze 무이슈.** 큐는 소진 후 삭제됨.
+
+## 5. 다음 방향 (gstack 패널 결론, 2026-06-02)
+판정: **"잘 만든 공유 보드"는 맞지만 아직 "가족 데일리 드라이버"는 아님.** 결정적 공백 순서:
+1. **알림/리마인더** ← 다음 페이즈로 선택됨. (앱의 존재 이유와 직결: 안 열면 아무 일도 안 일어남)
+2. 계정 복구(비번 재설정) + 배포(가족 폰 설치)
+3. 반복 일정/할 일
+4. 코멘트/가벼운 소통
+보조: 첨부·사진, 올데이/종료시간, 오프라인 내성.
+
+### 알림 설계 — 선택: **C. 로컬 먼저 → FCM 나중**
+- **Phase A (로컬 리마인더, client-side)**: `flutter_local_notifications`+`timezone`+`flutter_timezone`. 구성: ① 패키지/플랫폼 권한 셋업 ② `NotificationService`(플랫폼 래퍼, 얇게) ③ 순수 `buildReminderPlan({items,currentUserId,now,settings})`(테스트 가능, 30일/iOS 64개 상한) ④ 코디네이터(items 변경 시 재계산→sync, 첫 진입 권한요청) ⑤ 설정 토글+리드타임.
+  - 주의: Supabase는 OS 푸시를 못 보냄 → 로컬은 *시간기반 리마인더*만. "새 공지 즉시 푸시"는 Phase B.
+- **Phase B (FCM/APNs, 나중)**: 토큰 테이블 + Edge Function/트리거로 새 공지·새 배정 즉시 푸시. Firebase/APNs 셋업 필요(코드 밖).
+
+### 확정된 결정 (2026-06-02)
+- **D1 ✅** 정책: 일정=전 멤버 알림 / 할 일=담당자(없으면 생성자) 알림.
+- **D2 ✅** 리드타임: 일정 "시작 정시 + 1시간 전", **할 일 "마감 10분 전"**.
+- **D3 ✅** 설정 토글 저장에 `shared_preferences` 사용 (이미 pubspec 의존성에 존재).
+- 추가 필요 패키지: `flutter_local_notifications`, `timezone`, `flutter_timezone`.
+→ `docs/codex-tasks/`에 로컬 리마인더 태스크 3개(01 셋업/Scheduler · 02 순수 planner+settings · 03 코디네이터 wiring+토글) 작성됨.
+
+## 6. 참고
+- 검증용 RLS 체크: `docs/supabase/rls-checks.sql`
+- 디자인 토큰/시스템: `lib/theme/app_theme.dart`(AppColors), 관련 docs.
