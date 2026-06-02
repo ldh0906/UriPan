@@ -160,31 +160,52 @@ class _CommentThreadState extends State<CommentThread> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '\uB313\uAE00',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        Row(
+          children: [
+            Text(
+              '\uB313\uAE00',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            if (!_isLoading && _comments.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${_comments.length}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         if (_isLoading)
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
+            padding: EdgeInsets.symmetric(vertical: 18),
+            child: Center(
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
             ),
           )
         else if (_comments.isEmpty)
-          const EmptyState(
-            icon: Icons.mode_comment_outlined,
-            message: '\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694',
-          )
+          const _CommentEmptyState()
         else
           ..._comments.map(
-            (comment) => _CommentRow(
+            (comment) => _CommentBubble(
               comment: comment,
+              isOwn: widget.currentUserId == comment.authorId,
               canDelete:
                   widget.currentUserId == comment.authorId || widget.isAdmin,
               onDelete: () => _confirmDelete(comment),
@@ -192,44 +213,26 @@ class _CommentThreadState extends State<CommentThread> {
           ),
         if (_errorMessage != null) ...[
           const SizedBox(height: 10),
-          Text(
-            _errorMessage!,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.error),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.dangerSoft,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _errorMessage!,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.error),
+            ),
           ),
         ],
-        const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                maxLength: 1000,
-                minLines: 1,
-                maxLines: 4,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _sendComment(),
-                decoration: const InputDecoration(
-                  hintText: '\uB313\uAE00\uC744 \uC785\uB825',
-                  counterText: '',
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: _isSending ? null : _sendComment,
-              icon: _isSending
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send_rounded),
-              tooltip: '\uBCF4\uB0B4\uAE30',
-            ),
-          ],
+        const SizedBox(height: 16),
+        _CommentComposer(
+          controller: _controller,
+          isSending: _isSending,
+          onSend: _sendComment,
         ),
       ],
     );
@@ -252,72 +255,215 @@ class _CommentThreadState extends State<CommentThread> {
   }
 }
 
-class _CommentRow extends StatelessWidget {
-  const _CommentRow({
+class _CommentEmptyState extends StatelessWidget {
+  const _CommentEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.mode_comment_outlined,
+            size: 26,
+            color: AppColors.mutedText,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '\uCC98\uC74C \uB313\uAE00\uC744 \uB0A8\uACA8\uBCF4\uC138\uC694',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.mutedText.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommentBubble extends StatelessWidget {
+  const _CommentBubble({
     required this.comment,
+    required this.isOwn,
     required this.canDelete,
     required this.onDelete,
   });
 
   final BoardComment comment;
+  final bool isOwn;
   final bool canDelete;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bubble = Container(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      decoration: BoxDecoration(
+        color: isOwn ? AppColors.primarySoft : AppColors.surfaceVariant,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(isOwn ? 16 : 5),
+          topRight: Radius.circular(isOwn ? 5 : 16),
+          bottomLeft: const Radius.circular(16),
+          bottomRight: const Radius.circular(16),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isOwn) ...[
+                Flexible(
+                  child: Text(
+                    comment.authorName,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                friendlyRelativeTime(comment.createdAt),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: AppColors.mutedText,
+                ),
+              ),
+              if (canDelete) ...[
+                const SizedBox(width: 4),
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: IconButton(
+                    constraints: const BoxConstraints.tightFor(
+                      width: 24,
+                      height: 24,
+                    ),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onDelete,
+                    icon: Icon(
+                      Icons.delete_outline_rounded,
+                      size: 16,
+                      color: AppColors.mutedText,
+                    ),
+                    tooltip: '\uC0AD\uC81C',
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            comment.body,
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+          ),
+        ],
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: isOwn
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
-          MemberAvatar(
-            displayName: comment.authorName,
-            avatarColor: comment.authorAvatarColor,
-            size: 34,
-          ),
-          const SizedBox(width: 10),
+          if (!isOwn) ...[
+            MemberAvatar(
+              displayName: comment.authorName,
+              avatarColor: comment.authorAvatarColor,
+              size: 34,
+            ),
+            const SizedBox(width: 10),
+          ],
+          Flexible(child: bubble),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommentComposer extends StatelessWidget {
+  const _CommentComposer({
+    required this.controller,
+    required this.isSending,
+    required this.onSend,
+  });
+
+  final TextEditingController controller;
+  final bool isSending;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 4, 6, 4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        comment.authorName,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+            child: TextField(
+              controller: controller,
+              maxLength: 1000,
+              minLines: 1,
+              maxLines: 4,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => onSend(),
+              decoration: const InputDecoration(
+                isCollapsed: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                hintText: '\uB313\uAE00\uC744 \uC785\uB825',
+                counterText: '',
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: IconButton.filled(
+              onPressed: isSending ? null : onSend,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              icon: isSending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
                       ),
-                    ),
-                    Text(
-                      friendlyRelativeTime(comment.createdAt),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.mutedText,
-                      ),
-                    ),
-                    if (canDelete)
-                      IconButton(
-                        constraints: const BoxConstraints.tightFor(
-                          width: 32,
-                          height: 32,
-                        ),
-                        padding: EdgeInsets.zero,
-                        onPressed: onDelete,
-                        icon: const Icon(
-                          Icons.delete_outline_rounded,
-                          size: 18,
-                        ),
-                        tooltip: '\uC0AD\uC81C',
-                      ),
-                  ],
-                ),
-                Text(
-                  comment.body,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
+                    )
+                  : const Icon(Icons.send_rounded),
+              tooltip: '\uBCF4\uB0B4\uAE30',
             ),
           ),
         ],
