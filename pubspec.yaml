@@ -28,8 +28,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_local_notifications: ^21.0.0
+  flutter_timezone: ^5.1.0
   shared_preferences: ^2.2.3
   supabase_flutter: ^2.12.4
+  timezone: ^0.11.0
 
 dev_dependencies:
   flutter_test:
