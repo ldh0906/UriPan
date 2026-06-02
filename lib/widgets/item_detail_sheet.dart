@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
+import '../services/friendly_date.dart';
 import '../theme/app_theme.dart';
 import 'board_item_card.dart';
 import 'common_widgets.dart';
@@ -166,7 +167,11 @@ class ItemDetailSheet extends StatelessWidget {
         : item.dueAt;
     if (value == null) return null;
     final local = value.toLocal();
-    return '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    final absoluteLabel =
+        '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    final friendlyLabel = friendlyDayLabel(value);
+    if (friendlyLabel == null) return absoluteLabel;
+    return '$friendlyLabel \u00B7 $absoluteLabel';
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:uripan/screens/today_board_screen.dart';
 import 'package:uripan/services/auth_error_messages.dart';
 import 'package:uripan/services/auth_input_validator.dart';
 import 'package:uripan/widgets/board_action_sheets.dart';
+import 'package:uripan/widgets/board_item_card.dart';
 import 'package:uripan/widgets/board_settings_sheet.dart';
 import 'package:uripan/widgets/common_widgets.dart';
 
@@ -122,6 +123,36 @@ void main() {
     expect(find.text('Today schedule'), findsOneWidget);
     expect(find.text('Today task'), findsOneWidget);
     expect(find.text('Future schedule'), findsNothing);
+  });
+
+  testWidgets('Board item card derives a friendly due date chip', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemCard(
+            item: BoardItem(
+              id: 'today-task',
+              type: BoardItemType.task,
+              title: 'Today task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(now.year, now.month, now.day, 18),
+            ),
+            accentColor: Colors.blue,
+            accentSoftColor: Colors.blue.shade50,
+            icon: Icons.check_rounded,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('\uC624\uB298'), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
   });
 
   testWidgets('Today tab shows overdue tasks and unconfirmed notices', (

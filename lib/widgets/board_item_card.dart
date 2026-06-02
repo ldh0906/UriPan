@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
+import '../services/friendly_date.dart';
 import '../theme/app_theme.dart';
 import 'common_widgets.dart';
 
@@ -93,6 +94,10 @@ class BoardItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final friendlyDateLabel = item.type == BoardItemType.notice
+        ? null
+        : friendlyDayLabel(item.startsAt ?? item.dueAt);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: SoftCard(
@@ -180,6 +185,8 @@ class BoardItemCard extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 6,
                     children: [
+                      if (friendlyDateLabel != null)
+                        InfoChip(label: friendlyDateLabel),
                       InfoChip(label: item.timeLabel),
                       InfoChip(label: item.owner),
                       if (item.type == BoardItemType.notice &&
