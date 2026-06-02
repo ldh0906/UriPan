@@ -199,7 +199,6 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                     children: [
                       BoardHeader(
                         board: widget.board,
-                        onCreateInvite: widget.onCreateInvite,
                         onOpenSettings: widget.onOpenSettings,
                         onRefresh: widget.onRefresh == null ? null : _refresh,
                         isRefreshing: _isRefreshing,
@@ -734,6 +733,10 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
         widget.onDeleteComment != null;
     final canShowComments =
         hasInjectedCommentCallbacks || widget.repository != null;
+    final canManageItem =
+        widget.board?.isAdmin == true ||
+        (widget.currentUserId != null &&
+            item.createdById == widget.currentUserId);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -754,14 +757,18 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                 await _confirmNotice(item, confirmed);
               }
             : null,
-        onEdit: () async {
-          Navigator.pop(context);
-          await _editItem(item);
-        },
-        onDelete: () async {
-          Navigator.pop(context);
-          await _deleteItem(item);
-        },
+        onEdit: canManageItem
+            ? () async {
+                Navigator.pop(context);
+                await _editItem(item);
+              }
+            : null,
+        onDelete: canManageItem
+            ? () async {
+                Navigator.pop(context);
+                await _deleteItem(item);
+              }
+            : null,
         loadComments: canShowComments ? () => _loadComments(item) : null,
         onAddComment: canShowComments
             ? (body) => _addComment(item, body)

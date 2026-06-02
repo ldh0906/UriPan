@@ -140,16 +140,10 @@ class EmptyState extends StatelessWidget {
 }
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({
-    super.key,
-    required this.title,
-    required this.count,
-    this.actionLabel = '\uC804\uCCB4 \uBCF4\uAE30',
-  });
+  const SectionHeader({super.key, required this.title, required this.count});
 
   final String title;
   final int count;
-  final String actionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -160,13 +154,6 @@ class SectionHeader extends StatelessWidget {
         ),
         Text(
           '$count\uAC1C',
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(color: AppColors.primary),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          actionLabel,
           style: Theme.of(
             context,
           ).textTheme.labelMedium?.copyWith(color: AppColors.primary),

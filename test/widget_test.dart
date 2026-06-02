@@ -27,12 +27,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('\uC6B0\uB9AC\uC9D1'), findsOneWidget);
-    expect(find.text('\uC624\uB298 \uBCF4\uB4DC'), findsOneWidget);
+    expect(find.text('\uC624\uB298 \uBCF4\uB4DC'), findsNothing);
     expect(find.text('\uC624\uB298\uC758 \uC0C1\uD669'), findsOneWidget);
     expect(find.text('\uC624\uB298 \uC77C\uC815'), findsOneWidget);
     expect(find.text('\uD560 \uC77C'), findsWidgets);
     expect(find.text('\uACF5\uC9C0'), findsWidgets);
-    expect(find.text('\uCD94\uAC00'), findsOneWidget);
+    expect(find.byTooltip('\uCD94\uAC00'), findsOneWidget);
+    expect(find.byIcon(Icons.add_rounded), findsOneWidget);
   });
 
   testWidgets('Today board shows notice count badges only when present', (
@@ -1240,6 +1241,9 @@ void main() {
       find.widgetWithText(TextField, '\uC81C\uBAA9'),
       'Buy milk',
     );
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uCD94\uAC00'),
+    );
     await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
     await tester.pumpAndSettle();
 
@@ -1450,6 +1454,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TodayBoardScreen(
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'admin',
+            maxMembers: 4,
+            memberCount: 1,
+          ),
+          selectedTab: BoardTab.notices,
+          onTabSelected: _ignoreBoardTab,
           items: const [
             BoardItem(
               id: 'delete-me',
@@ -1475,6 +1488,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(deletedItemId, 'delete-me');
+  });
+
+  testWidgets('Detail sheet hides edit and delete for non-owner members', (
+    tester,
+  ) async {
+    var editOpened = false;
+    var deletedItemId = '';
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'member',
+            maxMembers: 4,
+            memberCount: 2,
+          ),
+          currentUserId: 'member-1',
+          items: const [
+            BoardItem(
+              id: 'other-notice',
+              type: BoardItemType.notice,
+              title: 'Other notice',
+              detail: 'Not mine',
+              owner: 'Admin',
+              createdById: 'admin-1',
+              timeLabel: 'Read',
+            ),
+          ],
+          onEditItem: (_) => editOpened = true,
+          onDeleteItem: (item) async {
+            deletedItemId = item.id;
+          },
+        ),
+      ),
+    );
+
+    final otherCard = find.byType(BoardItemCard).first;
+    await tester.ensureVisible(otherCard);
+    await tester.tapAt(tester.getTopLeft(otherCard) + const Offset(24, 24));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(OutlinedButton, '\uC218\uC815'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '\uC0AD\uC81C'), findsNothing);
+    expect(editOpened, isFalse);
+    expect(deletedItemId, isEmpty);
   });
 
   testWidgets('Notice detail sheet confirms required notices', (tester) async {
@@ -1586,6 +1646,7 @@ void main() {
         navigatorKey: navigatorKey,
         home: TodayBoardScreen(
           now: () => now,
+          currentUserId: 'user-1',
           items: [
             BoardItem(
               id: 'edit-me',
@@ -1593,6 +1654,7 @@ void main() {
               title: 'Edit this task',
               detail: 'Existing memo',
               owner: 'Us',
+              createdById: 'user-1',
               timeLabel: 'Today',
               dueAt: DateTime(now.year, now.month, now.day, 18),
             ),
@@ -1680,6 +1742,32 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(settingsOpened, isTrue);
+  });
+
+  testWidgets('Header hides invite action outside the members tab', (
+    tester,
+  ) async {
+    var inviteOpened = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          board: const BoardSummary(
+            id: 'board-1',
+            name: 'Home',
+            role: 'member',
+            maxMembers: 4,
+            memberCount: 2,
+          ),
+          items: const [],
+          onCreateInvite: () => inviteOpened = true,
+        ),
+      ),
+    );
+
+    expect(find.byTooltip('\uCD08\uB300\uCF54\uB4DC'), findsNothing);
+    expect(find.byIcon(Icons.ios_share_rounded), findsNothing);
+    expect(inviteOpened, isFalse);
   });
 
   testWidgets('Board settings sheet calls sign out callback', (tester) async {

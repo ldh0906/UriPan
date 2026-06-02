@@ -565,11 +565,10 @@ class SupabaseBoardRepository implements BoardRepository {
 
   @override
   Future<void> leaveBoard(String boardId) async {
-    await _client
-        .from('board_members')
-        .delete()
-        .eq('board_id', boardId)
-        .eq('user_id', _client.auth.currentUser!.id);
+    await _client.rpc<void>(
+      'leave_board',
+      params: {'target_board_id': boardId},
+    );
   }
 
   @override

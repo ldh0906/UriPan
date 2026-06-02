@@ -46,6 +46,12 @@ class BoardRealtimeSubscription {
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
+          table: 'item_comments',
+          callback: (_) => onItemsChanged(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
           table: 'board_members',
           filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,

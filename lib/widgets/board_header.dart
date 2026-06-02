@@ -10,7 +10,6 @@ class BoardHeader extends StatelessWidget {
     super.key,
     required this.board,
     required this.isRefreshing,
-    this.onCreateInvite,
     this.onRefresh,
     this.onAddItem,
     this.onOpenSettings,
@@ -19,7 +18,6 @@ class BoardHeader extends StatelessWidget {
 
   final BoardSummary? board;
   final bool isRefreshing;
-  final VoidCallback? onCreateInvite;
   final VoidCallback? onRefresh;
   final VoidCallback? onAddItem;
   final VoidCallback? onOpenSettings;
@@ -28,26 +26,17 @@ class BoardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                board?.name ?? '\uC6B0\uB9AC\uC9D1',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '\uC624\uB298 \uBCF4\uB4DC',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.mutedText,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+          child: Text(
+            board?.name ?? '\uC6B0\uB9AC\uC9D1',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
         ),
+        const SizedBox(width: 8),
         IconButton(
           onPressed: isRefreshing ? null : onRefresh,
           style: IconButton.styleFrom(foregroundColor: AppColors.mutedText),
@@ -59,21 +48,7 @@ class BoardHeader extends StatelessWidget {
                 )
               : const Icon(Icons.refresh_rounded),
         ),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: onCreateInvite,
-          style: IconButton.styleFrom(foregroundColor: AppColors.mutedText),
-          tooltip: board?.isAdmin == true
-              ? '\uCD08\uB300\uCF54\uB4DC'
-              : '\uAC00\uC871',
-          icon: Icon(
-            board?.isAdmin == true
-                ? Icons.ios_share_rounded
-                : Icons.group_outlined,
-          ),
-        ),
-        const SizedBox(width: 8),
-        if (onOpenSettings != null) ...[
+        if (onOpenSettings != null)
           Semantics(
             button: true,
             label: '\uC124\uC815',
@@ -85,8 +60,6 @@ class BoardHeader extends StatelessWidget {
               icon: const Icon(Icons.settings_outlined),
             ),
           ),
-          const SizedBox(width: 8),
-        ],
         Semantics(
           button: true,
           label: '\uAC80\uC0C9',
@@ -98,8 +71,12 @@ class BoardHeader extends StatelessWidget {
             icon: const Icon(Icons.search_rounded),
           ),
         ),
-        const SizedBox(width: 8),
-        AddItemFab(onPressed: onAddItem),
+        IconButton.filled(
+          onPressed: onAddItem,
+          style: IconButton.styleFrom(backgroundColor: AppColors.primary),
+          tooltip: '\uCD94\uAC00',
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+        ),
       ],
     );
   }
