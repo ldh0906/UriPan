@@ -9,6 +9,7 @@ import '../services/board_repository.dart';
 import '../services/board_session_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/board_action_sheets.dart';
+import '../widgets/board_settings_sheet.dart';
 import '../widgets/board_state_screens.dart';
 import '../widgets/common_widgets.dart';
 import 'today_board_screen.dart';
@@ -142,6 +143,38 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     await _runAction(() async {
       await _controller.leaveBoard();
     });
+  }
+
+  void _openSettings() {
+    final board = _controller.activeBoard;
+    if (board == null) return;
+
+    showBoardSettingsSheet(
+      context,
+      boardName: board.name,
+      userName: _currentUserDisplayName(),
+      onSignOut: () {
+        Navigator.pop(context);
+        unawaited(widget.client.auth.signOut());
+      },
+    );
+  }
+
+  String? _currentUserDisplayName() {
+    final metadataName =
+        widget.client.auth.currentUser?.userMetadata?['display_name'];
+    if (metadataName is String && metadataName.trim().isNotEmpty) {
+      return metadataName;
+    }
+
+    final currentUserId = widget.client.auth.currentUser?.id;
+    if (currentUserId == null) return null;
+
+    for (final member in _controller.members) {
+      if (member.userId == currentUserId) return member.displayName;
+    }
+
+    return null;
   }
 
   Future<void> _addItem([
@@ -306,6 +339,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onAddItem: _addItem,
               activeInvite: _controller.activeInvite,
               onCreateInvite: _createInvite,
+              onOpenSettings: _openSettings,
               onRegenerateInvite: _regenerateInvite,
               onRevokeInvite: _revokeInvite,
               onLeaveBoard: _leaveBoard,

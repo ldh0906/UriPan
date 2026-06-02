@@ -33,6 +33,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.onAddItem,
     this.activeInvite,
     this.onCreateInvite,
+    this.onOpenSettings,
     this.onRegenerateInvite,
     this.onRevokeInvite,
     this.onLeaveBoard,
@@ -57,6 +58,7 @@ class TodayBoardScreen extends StatefulWidget {
   onAddItem;
   final BoardInvite? activeInvite;
   final VoidCallback? onCreateInvite;
+  final VoidCallback? onOpenSettings;
   final VoidCallback? onRegenerateInvite;
   final VoidCallback? onRevokeInvite;
   final Future<void> Function()? onLeaveBoard;
@@ -143,6 +145,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                     BoardHeader(
                       board: widget.board,
                       onCreateInvite: widget.onCreateInvite,
+                      onOpenSettings: widget.onOpenSettings,
                       onRefresh: widget.onRefresh == null ? null : _refresh,
                       isRefreshing: _isRefreshing,
                       onAddItem: selectedTab == BoardTab.members

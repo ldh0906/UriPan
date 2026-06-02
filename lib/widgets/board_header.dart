@@ -13,6 +13,7 @@ class BoardHeader extends StatelessWidget {
     this.onCreateInvite,
     this.onRefresh,
     this.onAddItem,
+    this.onOpenSettings,
   });
 
   final BoardSummary? board;
@@ -20,6 +21,7 @@ class BoardHeader extends StatelessWidget {
   final VoidCallback? onCreateInvite;
   final VoidCallback? onRefresh;
   final VoidCallback? onAddItem;
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +67,14 @@ class BoardHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
+        if (onOpenSettings != null) ...[
+          IconButton.filledTonal(
+            onPressed: onOpenSettings,
+            tooltip: '\uC124\uC815',
+            icon: const Icon(Icons.settings_outlined),
+          ),
+          const SizedBox(width: 8),
+        ],
         AddItemFab(onPressed: onAddItem),
       ],
     );

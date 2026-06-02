@@ -6,6 +6,7 @@ import 'package:uripan/screens/today_board_screen.dart';
 import 'package:uripan/services/auth_error_messages.dart';
 import 'package:uripan/services/auth_input_validator.dart';
 import 'package:uripan/widgets/board_action_sheets.dart';
+import 'package:uripan/widgets/board_settings_sheet.dart';
 import 'package:uripan/widgets/common_widgets.dart';
 
 void main() {
@@ -911,6 +912,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(refreshCount, 1);
+  });
+
+  testWidgets('Settings button calls the open settings callback', (
+    tester,
+  ) async {
+    var settingsOpened = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          onOpenSettings: () => settingsOpened = true,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('\uC124\uC815'));
+    await tester.pumpAndSettle();
+
+    expect(settingsOpened, isTrue);
+  });
+
+  testWidgets('Board settings sheet calls sign out callback', (tester) async {
+    var signedOut = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardSettingsSheet(
+            boardName: 'Home',
+            userName: 'Mina',
+            onSignOut: () => signedOut = true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uB85C\uADF8\uC544\uC6C3'));
+    await tester.pumpAndSettle();
+
+    expect(signedOut, isTrue);
   });
 
   testWidgets('Members tab shows member names and roles', (tester) async {
