@@ -133,6 +133,23 @@ void main() {
     expect(reloaded.myProfile?.avatarColor, '#4B7BE7');
   });
 
+  test('updateBoard changes name and maxMembers on the active board', () async {
+    final repository = MemoryBoardRepository([]);
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.updateBoard(name: 'New home', maxMembers: 6);
+
+    expect(controller.activeBoard?.name, 'New home');
+    expect(controller.activeBoard?.maxMembers, 6);
+
+    final reloaded = BoardSessionController(repository);
+    await reloaded.load();
+
+    expect(reloaded.activeBoard?.name, 'New home');
+    expect(reloaded.activeBoard?.maxMembers, 6);
+  });
+
   test('load populates the active invite for admin boards', () async {
     final repository = _FakeBoardRepository(
       boards: [_adminBoard],
@@ -474,6 +491,27 @@ class _FakeBoardRepository implements BoardRepository {
     boards.add(board);
     itemsByBoard[board.id] = [];
     return board;
+  }
+
+  @override
+  Future<BoardSummary> updateBoard(
+    String boardId, {
+    String? name,
+    int? maxMembers,
+  }) async {
+    final index = boards.indexWhere((board) => board.id == boardId);
+    if (index < 0) throw StateError('Board not found');
+
+    final old = boards[index];
+    final updated = BoardSummary(
+      id: old.id,
+      name: name ?? old.name,
+      role: old.role,
+      maxMembers: maxMembers ?? old.maxMembers,
+      memberCount: old.memberCount,
+    );
+    boards[index] = updated;
+    return updated;
   }
 
   @override

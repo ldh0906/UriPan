@@ -1034,6 +1034,49 @@ void main() {
     expect(find.text('Nari'), findsNothing);
   });
 
+  testWidgets(
+    'Board settings edit sheet shows current name and saves new one',
+    (tester) async {
+      EditBoardSettingsResult? saved;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TextButton(
+              onPressed: () async {
+                saved = await showEditBoardSettingsSheet(
+                  tester.element(find.byType(TextButton)),
+                  board: const BoardSummary(
+                    id: 'board-1',
+                    name: 'Home',
+                    role: 'admin',
+                    maxMembers: 4,
+                    memberCount: 2,
+                  ),
+                );
+              },
+              child: const Text('Open board settings'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open board settings'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('\uBCF4\uB4DC \uC124\uC815'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'New home');
+      await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+      await tester.pumpAndSettle();
+
+      expect(saved?.name, 'New home');
+      expect(saved?.maxMembers, 4);
+      expect(find.text('New home'), findsNothing);
+    },
+  );
+
   testWidgets('Members tab shows member names and roles', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

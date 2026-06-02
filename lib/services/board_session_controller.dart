@@ -105,6 +105,18 @@ class BoardSessionController extends ChangeNotifier {
     return created;
   }
 
+  Future<void> updateBoard({String? name, int? maxMembers}) async {
+    final board = _requireActiveBoard();
+    await _runAction(() async {
+      await _repository.updateBoard(
+        board.id,
+        name: name,
+        maxMembers: maxMembers,
+      );
+      await load(preferredBoardId: board.id);
+    });
+  }
+
   Future<BoardInvite> createInvite() async {
     return regenerateInvite();
   }

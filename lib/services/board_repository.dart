@@ -10,6 +10,14 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<BoardSummary> updateBoard(
+    String boardId, {
+    String? name,
+    int? maxMembers,
+  }) {
+    throw UnimplementedError();
+  }
+
   Future<UserProfile> updateMyProfile({
     String? displayName,
     String? avatarColor,
@@ -128,6 +136,27 @@ class MemoryBoardRepository implements BoardRepository {
     );
     _boards.add(board);
     return board;
+  }
+
+  @override
+  Future<BoardSummary> updateBoard(
+    String boardId, {
+    String? name,
+    int? maxMembers,
+  }) async {
+    final index = _boards.indexWhere((board) => board.id == boardId);
+    if (index < 0) throw StateError('Board not found');
+
+    final old = _boards[index];
+    final updated = BoardSummary(
+      id: old.id,
+      name: name ?? old.name,
+      role: old.role,
+      maxMembers: maxMembers ?? old.maxMembers,
+      memberCount: old.memberCount,
+    );
+    _boards[index] = updated;
+    return updated;
   }
 
   @override
@@ -294,17 +323,7 @@ class SupabaseBoardRepository implements BoardRepository {
         .order('joined_at');
 
     return rows
-        .map<BoardSummary>((row) {
-          final board = Map<String, dynamic>.from(row['boards'] as Map);
-          final members = (board['board_members'] as List?) ?? const [];
-          return BoardSummary(
-            id: board['id'] as String,
-            name: board['name'] as String,
-            role: row['role'] as String,
-            maxMembers: board['max_members'] as int,
-            memberCount: members.length,
-          );
-        })
+        .map<BoardSummary>(_boardSummaryFromMembershipRow)
         .toList(growable: false);
   }
 
@@ -356,6 +375,32 @@ class SupabaseBoardRepository implements BoardRepository {
       role: 'admin',
       maxMembers: row['max_members'] as int,
       memberCount: 1,
+    );
+  }
+
+  @override
+  Future<BoardSummary> updateBoard(
+    String boardId, {
+    String? name,
+    int? maxMembers,
+  }) async {
+    final values = <String, dynamic>{};
+    if (name != null) values['name'] = name;
+    if (maxMembers != null) values['max_members'] = maxMembers;
+    if (values.isNotEmpty) {
+      await _client.from('boards').update(values).eq('id', boardId);
+    }
+
+    final rows = await _client
+        .from('board_members')
+        .select('role, boards(id, name, max_members, board_members(user_id))')
+        .eq('board_id', boardId)
+        .eq('user_id', _client.auth.currentUser!.id)
+        .limit(1);
+
+    if (rows.isEmpty) throw StateError('Board not found');
+    return _boardSummaryFromMembershipRow(
+      Map<String, dynamic>.from(rows.first as Map),
     );
   }
 
@@ -570,6 +615,18 @@ class SupabaseBoardRepository implements BoardRepository {
   @override
   Future<void> deleteItem(String itemId) async {
     await _client.from('board_items').delete().eq('id', itemId);
+  }
+
+  BoardSummary _boardSummaryFromMembershipRow(Map<String, dynamic> row) {
+    final board = Map<String, dynamic>.from(row['boards'] as Map);
+    final members = (board['board_members'] as List?) ?? const [];
+    return BoardSummary(
+      id: board['id'] as String,
+      name: board['name'] as String,
+      role: row['role'] as String,
+      maxMembers: board['max_members'] as int,
+      memberCount: members.length,
+    );
   }
 
   Future<Map<String, String>> _displayNames(Set<String> userIds) async {

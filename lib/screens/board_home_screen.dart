@@ -161,6 +161,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
         Navigator.pop(context);
         unawaited(_editProfile());
       },
+      onEditBoard: board.isAdmin
+          ? () {
+              Navigator.pop(context);
+              unawaited(_editBoard());
+            }
+          : null,
       onSignOut: () {
         Navigator.pop(context);
         unawaited(widget.client.auth.signOut());
@@ -179,6 +185,21 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       await _controller.updateMyProfile(
         displayName: result.displayName,
         avatarColor: result.avatarColor,
+      );
+    });
+  }
+
+  Future<void> _editBoard() async {
+    final board = _controller.activeBoard;
+    if (board == null || !board.isAdmin) return;
+
+    final result = await showEditBoardSettingsSheet(context, board: board);
+    if (result == null) return;
+
+    await _runAction(() async {
+      await _controller.updateBoard(
+        name: result.name,
+        maxMembers: result.maxMembers,
       );
     });
   }
@@ -293,6 +314,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     }
     if (message.contains('last_admin_required')) {
       return '\uB9C8\uC9C0\uB9C9 \uAD00\uB9AC\uC790\uB294 \uB098\uAC08 \uC218 \uC5C6\uC5B4\uC694.';
+    }
+    if (message.contains('max_members_below_current_count')) {
+      return '\uC815\uC6D0\uC740 \uD604\uC7AC \uC778\uC6D0\uBCF4\uB2E4 \uC801\uAC8C \uC124\uC815\uD560 \uC218 \uC5C6\uC5B4\uC694.';
     }
     return message;
   }
