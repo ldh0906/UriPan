@@ -291,6 +291,54 @@ void main() {
     expect(find.text('Future task'), findsNothing);
   });
 
+  testWidgets('Attention block lets overdue tasks be completed', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    BoardItem? completedItem;
+    bool? completedIsDone;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'overdue-task',
+              type: BoardItemType.task,
+              title: 'Overdue task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Yesterday',
+              dueAt: now.subtract(const Duration(days: 1)),
+            ),
+            const BoardItem(
+              id: 'required-notice',
+              type: BoardItemType.notice,
+              title: 'Required notice',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Read',
+              requiresConfirmation: true,
+            ),
+          ],
+          onCompleteTask: (item, isDone) async {
+            completedItem = item;
+            completedIsDone = isDone;
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694'), findsOneWidget);
+    expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.radio_button_unchecked_rounded));
+    await tester.pump();
+
+    expect(completedItem?.id, 'overdue-task');
+    expect(completedIsDone, isTrue);
+  });
+
   testWidgets('Today tab hides attention block when nothing needs attention', (
     tester,
   ) async {
@@ -607,6 +655,43 @@ void main() {
     expect(find.text('Open mine task'), findsNothing);
     expect(find.text('Done mine task'), findsOneWidget);
     expect(find.text('Done other task'), findsOneWidget);
+  });
+
+  testWidgets('Tasks tab flags overdue tasks', (tester) async {
+    final now = DateTime.now();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'overdue-task',
+              type: BoardItemType.task,
+              title: 'Overdue task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Yesterday',
+              dueAt: now.subtract(const Duration(days: 1)),
+            ),
+            BoardItem(
+              id: 'future-task',
+              type: BoardItemType.task,
+              title: 'Future task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Tomorrow',
+              dueAt: now.add(const Duration(days: 1)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Overdue task'), findsOneWidget);
+    expect(find.text('Future task'), findsOneWidget);
+    expect(find.text('\uC9C0\uB0A8'), findsOneWidget);
   });
 
   testWidgets('Tasks tab empty copy follows mine and done filters', (

@@ -17,6 +17,7 @@ class BoardItemSection extends StatelessWidget {
     this.onToggle,
     this.emptyText,
     this.pendingTaskIds = const {},
+    this.isOverdue,
     this.onItemTap,
     this.onTagTap,
   });
@@ -30,6 +31,7 @@ class BoardItemSection extends StatelessWidget {
   final Future<void> Function(BoardItem item, bool isDone)? onToggle;
   final String? emptyText;
   final Set<String> pendingTaskIds;
+  final bool Function(BoardItem item)? isOverdue;
   final ValueChanged<BoardItem>? onItemTap;
   final ValueChanged<String>? onTagTap;
 
@@ -59,6 +61,7 @@ class BoardItemSection extends StatelessWidget {
               showCheckbox: showCheckbox,
               onToggle: onToggle,
               isPending: pendingTaskIds.contains(item.id),
+              isOverdue: isOverdue?.call(item) ?? false,
               onTap: onItemTap == null ? null : () => onItemTap!(item),
               onTagTap: onTagTap,
             ),
@@ -78,6 +81,7 @@ class BoardItemCard extends StatelessWidget {
     this.showCheckbox = false,
     this.onToggle,
     this.isPending = false,
+    this.isOverdue = false,
     this.onTap,
     this.onTagTap,
   });
@@ -89,6 +93,7 @@ class BoardItemCard extends StatelessWidget {
   final bool showCheckbox;
   final Future<void> Function(BoardItem item, bool isDone)? onToggle;
   final bool isPending;
+  final bool isOverdue;
   final VoidCallback? onTap;
   final ValueChanged<String>? onTagTap;
 
@@ -106,7 +111,7 @@ class BoardItemCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (showCheckbox) ...[
+            if (showCheckbox && item.type == BoardItemType.task) ...[
               Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: IconButton(
@@ -187,6 +192,7 @@ class BoardItemCard extends StatelessWidget {
                     children: [
                       if (friendlyDateLabel != null)
                         InfoChip(label: friendlyDateLabel),
+                      if (isOverdue) const _OverdueChip(),
                       InfoChip(label: item.timeLabel),
                       InfoChip(label: item.owner),
                       if (item.type == BoardItemType.notice &&
@@ -257,6 +263,29 @@ class TagChip extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
       child: chip,
+    );
+  }
+}
+
+class _OverdueChip extends StatelessWidget {
+  const _OverdueChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.warningSoft,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        '\uC9C0\uB0A8',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: AppColors.tertiary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
     );
   }
 }

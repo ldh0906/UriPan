@@ -235,7 +235,10 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           accentColor: AppColors.tertiary,
                           accentSoftColor: AppColors.warningSoft,
                           icon: Icons.priority_high_rounded,
+                          showCheckbox: true,
+                          onToggle: _toggleTask,
                           pendingTaskIds: _pendingTaskIds,
+                          isOverdue: _isOverdueTask,
                           onItemTap: _showItemDetail,
                           onTagTap: _setActiveTag,
                         ),
@@ -330,6 +333,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         showCheckbox: true,
                         onToggle: _toggleTask,
                         pendingTaskIds: _pendingTaskIds,
+                        isOverdue: _isOverdueTask,
                         onItemTap: _showItemDetail,
                         onTagTap: _setActiveTag,
                         emptyText: _taskEmptyText,
@@ -423,6 +427,14 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           return false;
         })
         .toList(growable: false);
+  }
+
+  bool _isOverdueTask(BoardItem item) {
+    final dueAt = item.dueAt;
+    return item.type == BoardItemType.task &&
+        !item.isDone &&
+        dueAt != null &&
+        dueAt.isBefore(DateTime.now());
   }
 
   int _noticeBadgeCount(List<BoardItem> items) {
