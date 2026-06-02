@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../widgets/board_action_sheets.dart';
 import '../widgets/board_header.dart';
 import '../widgets/board_item_card.dart';
+import '../widgets/comment_thread.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/item_detail_sheet.dart';
 
@@ -44,6 +45,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.loadComments,
     this.onAddComment,
     this.onDeleteComment,
+    this.subscribeComments,
     this.onEditItem,
     this.onDeleteItem,
     this.now = DateTime.now,
@@ -75,6 +77,7 @@ class TodayBoardScreen extends StatefulWidget {
   final Future<List<BoardComment>> Function(BoardItem item)? loadComments;
   final Future<void> Function(BoardItem item, String body)? onAddComment;
   final Future<void> Function(BoardComment comment)? onDeleteComment;
+  final CommentSubscription? subscribeComments;
   final void Function(BoardItem item)? onEditItem;
   final Future<void> Function(BoardItem item)? onDeleteItem;
   final DateTime Function() now;
@@ -765,6 +768,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
             : null,
         onDeleteComment: canShowComments ? _deleteComment : null,
         currentUserId: widget.currentUserId,
+        subscribeComments: widget.subscribeComments,
         isAdmin: widget.board?.isAdmin == true,
       ),
     );

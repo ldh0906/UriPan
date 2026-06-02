@@ -438,6 +438,37 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (actionError != null) throw actionError!;
   }
 
+  void Function() _subscribeComments(String itemId, void Function() onChanged) {
+    try {
+      final channel = widget.client
+          .channel('item-comments:$itemId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'item_comments',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'item_id',
+              value: itemId,
+            ),
+            callback: (_) {
+              try {
+                onChanged();
+              } catch (_) {}
+            },
+          )
+          .subscribe();
+
+      return () {
+        try {
+          widget.client.removeChannel(channel);
+        } catch (_) {}
+      };
+    } catch (_) {
+      return () {};
+    }
+  }
+
   Future<void> _updateMemberRole(String userId, String role) async {
     await _runAction(() async {
       await _controller.updateMemberRole(userId, role);
@@ -573,6 +604,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               loadComments: _loadComments,
               onAddComment: _addComment,
               onDeleteComment: _deleteComment,
+              subscribeComments: _subscribeComments,
               onEditItem: _editItem,
               onDeleteItem: _deleteItem,
             ),

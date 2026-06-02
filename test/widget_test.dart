@@ -401,6 +401,47 @@ void main() {
     );
   });
 
+  testWidgets('CommentThread reloads on realtime changes and disposes', (
+    tester,
+  ) async {
+    VoidCallback? onChanged;
+    var loadCount = 0;
+    var didDispose = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommentThread(
+            itemId: 'item-1',
+            loadComments: () async {
+              loadCount += 1;
+              return const [];
+            },
+            onAddComment: (_) async {},
+            onDeleteComment: (_) async {},
+            currentUserId: 'user-1',
+            subscribeComments: (itemId, callback) {
+              expect(itemId, 'item-1');
+              onChanged = callback;
+              return () => didDispose = true;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(loadCount, 1);
+    onChanged!();
+    await tester.pumpAndSettle();
+
+    expect(loadCount, 2);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    expect(didDispose, isTrue);
+  });
+
   testWidgets('CommentThread confirms before deleting author comment', (
     tester,
   ) async {

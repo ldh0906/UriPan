@@ -5,20 +5,27 @@ import '../services/friendly_date.dart';
 import '../theme/app_theme.dart';
 import 'common_widgets.dart';
 
+typedef CommentSubscription =
+    void Function() Function(String itemId, void Function() onChanged);
+
 class CommentThread extends StatefulWidget {
   const CommentThread({
     super.key,
+    this.itemId,
     required this.loadComments,
     required this.onAddComment,
     required this.onDeleteComment,
     required this.currentUserId,
+    this.subscribeComments,
     this.isAdmin = false,
   });
 
+  final String? itemId;
   final Future<List<BoardComment>> Function() loadComments;
   final Future<void> Function(String body) onAddComment;
   final Future<void> Function(BoardComment comment) onDeleteComment;
   final String? currentUserId;
+  final CommentSubscription? subscribeComments;
   final bool isAdmin;
 
   @override
@@ -31,17 +38,35 @@ class _CommentThreadState extends State<CommentThread> {
   bool _isLoading = true;
   bool _isSending = false;
   String? _errorMessage;
+  VoidCallback? _disposeCommentSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadComments();
+    _subscribeToComments();
   }
 
   @override
   void dispose() {
+    _disposeCommentSubscription?.call();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _subscribeToComments() {
+    final subscribeComments = widget.subscribeComments;
+    final itemId = widget.itemId;
+    if (subscribeComments == null || itemId == null) return;
+
+    try {
+      _disposeCommentSubscription = subscribeComments(itemId, () {
+        if (!mounted) return;
+        _loadComments();
+      });
+    } catch (_) {
+      _disposeCommentSubscription = null;
+    }
   }
 
   Future<void> _loadComments() async {

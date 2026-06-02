@@ -20,6 +20,7 @@ class ItemDetailSheet extends StatelessWidget {
     this.onAddComment,
     this.onDeleteComment,
     this.currentUserId,
+    this.subscribeComments,
     this.isAdmin = false,
     this.members = const [],
   });
@@ -34,6 +35,7 @@ class ItemDetailSheet extends StatelessWidget {
   final Future<void> Function(String body)? onAddComment;
   final Future<void> Function(BoardComment comment)? onDeleteComment;
   final String? currentUserId;
+  final CommentSubscription? subscribeComments;
   final bool isAdmin;
   final List<BoardMember> members;
 
@@ -170,10 +172,12 @@ class ItemDetailSheet extends StatelessWidget {
                   onDeleteComment != null) ...[
                 const SizedBox(height: 24),
                 CommentThread(
+                  itemId: item.id,
                   loadComments: loadComments!,
                   onAddComment: onAddComment!,
                   onDeleteComment: onDeleteComment!,
                   currentUserId: currentUserId,
+                  subscribeComments: subscribeComments,
                   isAdmin: isAdmin,
                 ),
               ],
