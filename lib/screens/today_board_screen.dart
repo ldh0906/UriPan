@@ -1325,7 +1325,6 @@ class _CalendarDayCell extends StatelessWidget {
                   _CalendarIndicatorsRow(
                     indicators: indicators,
                     isToday: isToday,
-                    isSelected: isSelected,
                   ),
                 ],
               ),
@@ -1366,18 +1365,17 @@ class _CalendarIndicatorsRow extends StatelessWidget {
   const _CalendarIndicatorsRow({
     required this.indicators,
     required this.isToday,
-    required this.isSelected,
   });
 
   final List<_CalendarIndicator> indicators;
   final bool isToday;
-  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
-    final dotColor = isSelected
-        ? Theme.of(context).colorScheme.onPrimary
-        : AppColors.primary;
+    // Dots sit in their own row below the day number, on the grid
+    // background -- never on the selected blue circle -- so they always
+    // keep their natural colors regardless of selection.
+    const dotColor = AppColors.primary;
     final extraCount = indicators.fold<int>(
       0,
       (sum, indicator) => sum + indicator.extraCount,
@@ -1401,9 +1399,7 @@ class _CalendarIndicatorsRow extends StatelessWidget {
             height: 5,
             margin: const EdgeInsets.symmetric(horizontal: 1),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : indicator.color,
+              color: indicator.color,
               shape: BoxShape.circle,
             ),
           ),
@@ -1412,9 +1408,7 @@ class _CalendarIndicatorsRow extends StatelessWidget {
           Text(
             '+$extraCount',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : AppColors.mutedText,
+              color: AppColors.mutedText,
               fontSize: 9,
               fontWeight: FontWeight.w800,
             ),
