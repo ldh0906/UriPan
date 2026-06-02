@@ -949,6 +949,39 @@ void main() {
     expect(find.byKey(const ValueKey('calendar-today-dot')), findsOneWidget);
   });
 
+  testWidgets('Calendar tab renders a multiday schedule as a week bar', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 6, 2, 12);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          now: () => now,
+          items: [
+            BoardItem(
+              id: 'family-trip',
+              type: BoardItemType.schedule,
+              title: 'Family trip',
+              detail: '',
+              owner: 'Us',
+              timeLabel: '09:00',
+              startsAt: DateTime(2026, 6, 2, 9),
+              dueAt: DateTime(2026, 6, 4, 18),
+            ),
+          ],
+          selectedTab: BoardTab.calendar,
+          onTabSelected: _ignoreBoardTab,
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('calendar-bar-family-trip-0-1-3')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Tasks tab filters open, mine, and done tasks', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

@@ -20,6 +20,113 @@ enum _TaskFilter {
   final String label;
 }
 
+class CalendarBarSegment {
+  const CalendarBarSegment({
+    required this.itemId,
+    required this.lane,
+    required this.startColumn,
+    required this.endColumn,
+    required this.roundedLeft,
+    required this.roundedRight,
+  });
+
+  final String itemId;
+  final int lane;
+  final int startColumn;
+  final int endColumn;
+  final bool roundedLeft;
+  final bool roundedRight;
+}
+
+List<CalendarBarSegment> calendarWeekBars({
+  required List<BoardItem> schedules,
+  required DateTime weekStart,
+}) {
+  final week = _calendarDateOnly(weekStart);
+  final weekEnd = week.add(const Duration(days: 6));
+  final candidates = <_CalendarBarCandidate>[];
+
+  for (final schedule in schedules) {
+    if (schedule.type != BoardItemType.schedule) continue;
+    final startsAt = schedule.startsAt;
+    if (startsAt == null) continue;
+
+    final start = _calendarDateOnly(startsAt);
+    final rawEnd = _calendarDateOnly(schedule.dueAt ?? startsAt);
+    final end = rawEnd.isBefore(start) ? start : rawEnd;
+    if (end.isBefore(week) || start.isAfter(weekEnd)) continue;
+
+    final segmentStart = start.isBefore(week) ? week : start;
+    final segmentEnd = end.isAfter(weekEnd) ? weekEnd : end;
+    candidates.add(
+      _CalendarBarCandidate(
+        itemId: schedule.id,
+        start: start,
+        end: end,
+        startColumn: segmentStart.difference(week).inDays,
+        endColumn: segmentEnd.difference(week).inDays,
+      ),
+    );
+  }
+
+  candidates.sort((left, right) {
+    final startCompare = left.start.compareTo(right.start);
+    if (startCompare != 0) return startCompare;
+    final endCompare = left.end.compareTo(right.end);
+    if (endCompare != 0) return endCompare;
+    return left.itemId.compareTo(right.itemId);
+  });
+
+  final laneEndColumns = <int>[];
+  final segments = <CalendarBarSegment>[];
+  for (final candidate in candidates) {
+    var lane = 0;
+    while (lane < laneEndColumns.length &&
+        candidate.startColumn <= laneEndColumns[lane]) {
+      lane += 1;
+    }
+    if (lane >= 3) continue;
+    if (lane == laneEndColumns.length) {
+      laneEndColumns.add(candidate.endColumn);
+    } else {
+      laneEndColumns[lane] = candidate.endColumn;
+    }
+    segments.add(
+      CalendarBarSegment(
+        itemId: candidate.itemId,
+        lane: lane,
+        startColumn: candidate.startColumn,
+        endColumn: candidate.endColumn,
+        roundedLeft: !candidate.start.isBefore(week),
+        roundedRight: !candidate.end.isAfter(weekEnd),
+      ),
+    );
+  }
+
+  return List.unmodifiable(segments);
+}
+
+DateTime _calendarDateOnly(DateTime value) {
+  final local = value.toLocal();
+  return DateTime(local.year, local.month, local.day);
+}
+
+class _CalendarBarCandidate {
+  const _CalendarBarCandidate({
+    required this.itemId,
+    required this.start,
+    required this.end,
+    required this.startColumn,
+    required this.endColumn,
+  });
+
+  final String itemId;
+  final DateTime start;
+  final DateTime end;
+  final int startColumn;
+  final int endColumn;
+}
+
 class TodayBoardScreen extends StatefulWidget {
   const TodayBoardScreen({
     super.key,
@@ -957,23 +1064,25 @@ class _CalendarPanel extends StatelessWidget {
   }
 
   Widget _buildWeek(List<DateTime> days) {
-    return Row(
+    return Column(
       children: [
-        for (final day in days) ...[
-          Expanded(
-            child: _CalendarDayCell(
-              date: day,
-              weekdayLabel: _weekdayLabels[day.weekday - 1],
-              isSelected: _isSameDay(day, selectedDate),
-              isToday: _isSameDay(day, today),
-              indicators: _indicatorsForDay(day),
-              bars: const [],
-              isOutsideMonth: false,
-              onTap: () => onDateSelected(day),
-            ),
-          ),
-          if (day != days.last) const SizedBox(width: 6),
-        ],
+        Row(
+          children: [
+            for (final day in days)
+              Expanded(
+                child: _CalendarDayCell(
+                  date: day,
+                  weekdayLabel: _weekdayLabels[day.weekday - 1],
+                  isSelected: _isSameDay(day, selectedDate),
+                  isToday: _isSameDay(day, today),
+                  indicators: _indicatorsForDay(day),
+                  isOutsideMonth: false,
+                  onTap: () => onDateSelected(day),
+                ),
+              ),
+          ],
+        ),
+        _CalendarWeekBarsRow(segments: _barsForWeek(days.first)),
       ],
     );
   }
@@ -1000,27 +1109,30 @@ class _CalendarPanel extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         for (var row = 0; row < 6; row += 1) ...[
-          Row(
+          Column(
             children: [
-              for (var column = 0; column < 7; column += 1) ...[
-                Expanded(
-                  child: _CalendarDayCell(
-                    date: days[row * 7 + column],
-                    weekdayLabel: '',
-                    isSelected: _isSameDay(
-                      days[row * 7 + column],
-                      selectedDate,
+              Row(
+                children: [
+                  for (var column = 0; column < 7; column += 1)
+                    Expanded(
+                      child: _CalendarDayCell(
+                        date: days[row * 7 + column],
+                        weekdayLabel: '',
+                        isSelected: _isSameDay(
+                          days[row * 7 + column],
+                          selectedDate,
+                        ),
+                        isToday: _isSameDay(days[row * 7 + column], today),
+                        indicators: _indicatorsForDay(days[row * 7 + column]),
+                        isOutsideMonth:
+                            days[row * 7 + column].month != selectedDate.month,
+                        isCompact: true,
+                        onTap: () => onDateSelected(days[row * 7 + column]),
+                      ),
                     ),
-                    isToday: _isSameDay(days[row * 7 + column], today),
-                    indicators: _indicatorsForDay(days[row * 7 + column]),
-                    bars: _barsForDay(days[row * 7 + column]),
-                    isOutsideMonth:
-                        days[row * 7 + column].month != selectedDate.month,
-                    isCompact: true,
-                    onTap: () => onDateSelected(days[row * 7 + column]),
-                  ),
-                ),
-              ],
+                ],
+              ),
+              _CalendarWeekBarsRow(segments: _barsForWeek(days[row * 7])),
             ],
           ),
           if (row < 5) const SizedBox(height: 4),
@@ -1030,54 +1142,18 @@ class _CalendarPanel extends StatelessWidget {
   }
 
   List<_CalendarIndicator> _indicatorsForDay(DateTime day) {
-    final schedules = items
-        .where(
-          (item) => item.type == BoardItemType.schedule && item.isForDate(day),
-        )
-        .length;
     final tasks = items
         .where((item) => item.type == BoardItemType.task && item.isForDate(day))
         .length;
     final indicators = <_CalendarIndicator>[
-      if (schedules > 0)
-        _CalendarIndicator(color: AppColors.primary, extraCount: schedules - 1),
       if (tasks > 0)
         _CalendarIndicator(color: AppColors.tertiary, extraCount: tasks - 1),
     ];
-    return indicators.take(2).toList(growable: false);
+    return indicators;
   }
 
-  List<_CalendarBar> _barsForDay(DateTime day) {
-    return items
-        .where((item) {
-          if (item.type != BoardItemType.schedule || !item.isForDate(day)) {
-            return false;
-          }
-          final start = item.startsAt;
-          final end = item.dueAt;
-          if (start == null || end == null) return false;
-          return !_isSameDay(start, end);
-        })
-        .take(2)
-        .map((item) {
-          final start = _dateOnly(item.startsAt!);
-          final end = _dateOnly(item.dueAt!);
-          final current = _dateOnly(day);
-          return _CalendarBar(
-            color: AppColors.primary,
-            startsHere:
-                _isSameDay(current, start) ||
-                current.weekday == DateTime.monday,
-            endsHere:
-                _isSameDay(current, end) || current.weekday == DateTime.sunday,
-          );
-        })
-        .toList(growable: false);
-  }
-
-  DateTime _dateOnly(DateTime value) {
-    final local = value.toLocal();
-    return DateTime(local.year, local.month, local.day);
+  List<CalendarBarSegment> _barsForWeek(DateTime weekStart) {
+    return calendarWeekBars(schedules: items, weekStart: weekStart);
   }
 
   DateTime _startOfWeek(DateTime date) {
@@ -1099,16 +1175,71 @@ class _CalendarIndicator {
   final int extraCount;
 }
 
-class _CalendarBar {
-  const _CalendarBar({
-    required this.color,
-    required this.startsHere,
-    required this.endsHere,
-  });
+class _CalendarWeekBarsRow extends StatelessWidget {
+  const _CalendarWeekBarsRow({required this.segments});
 
-  final Color color;
-  final bool startsHere;
-  final bool endsHere;
+  final List<CalendarBarSegment> segments;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 21,
+      child: Column(
+        children: [
+          for (var lane = 0; lane < 3; lane += 1) ...[
+            SizedBox(
+              height: 5,
+              child: Row(
+                children: [
+                  for (var column = 0; column < 7; column += 1)
+                    Expanded(child: _buildCell(lane, column)),
+                ],
+              ),
+            ),
+            if (lane < 2) const SizedBox(height: 3),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCell(int lane, int column) {
+    final segment = _segmentAt(lane, column);
+    if (segment == null) return const SizedBox.expand();
+
+    final isStart = column == segment.startColumn;
+    final isEnd = column == segment.endColumn;
+    return Container(
+      key: isStart
+          ? ValueKey(
+              'calendar-bar-${segment.itemId}-${segment.lane}-'
+              '${segment.startColumn}-${segment.endColumn}',
+            )
+          : null,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.horizontal(
+          left: isStart && segment.roundedLeft
+              ? const Radius.circular(999)
+              : Radius.zero,
+          right: isEnd && segment.roundedRight
+              ? const Radius.circular(999)
+              : Radius.zero,
+        ),
+      ),
+    );
+  }
+
+  CalendarBarSegment? _segmentAt(int lane, int column) {
+    for (final segment in segments) {
+      if (segment.lane == lane &&
+          column >= segment.startColumn &&
+          column <= segment.endColumn) {
+        return segment;
+      }
+    }
+    return null;
+  }
 }
 
 class _CalendarDayCell extends StatelessWidget {
@@ -1118,7 +1249,6 @@ class _CalendarDayCell extends StatelessWidget {
     required this.isSelected,
     required this.isToday,
     required this.indicators,
-    required this.bars,
     required this.isOutsideMonth,
     required this.onTap,
     this.isCompact = false,
@@ -1129,7 +1259,6 @@ class _CalendarDayCell extends StatelessWidget {
   final bool isSelected;
   final bool isToday;
   final List<_CalendarIndicator> indicators;
-  final List<_CalendarBar> bars;
   final bool isOutsideMonth;
   final VoidCallback onTap;
   final bool isCompact;
@@ -1137,6 +1266,13 @@ class _CalendarDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final textColor = isSelected
+        ? colors.onPrimary
+        : isOutsideMonth
+        ? AppColors.mutedText
+        : isToday
+        ? AppColors.primary
+        : AppColors.text;
     return Semantics(
       button: true,
       selected: isSelected,
@@ -1145,83 +1281,51 @@ class _CalendarDayCell extends StatelessWidget {
       child: InkWell(
         key: ValueKey('calendar-day-${date.year}-${date.month}-${date.day}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         child: ExcludeSemantics(
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: isCompact ? 72 : 58),
-            child: Container(
+            constraints: BoxConstraints(minHeight: isCompact ? 42 : 58),
+            child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isCompact ? 0 : 2,
-                vertical: isCompact ? 7 : 10,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : isOutsideMonth
-                    ? AppColors.surfaceVariant.withValues(alpha: 0.5)
-                    : AppColors.primarySoft,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : AppColors.primary.withValues(alpha: 0.14),
-                ),
+                horizontal: isCompact ? 0 : 1,
+                vertical: isCompact ? 4 : 8,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    weekdayLabel,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: isSelected
-                          ? colors.onPrimary
-                          : AppColors.mutedText,
-                      fontWeight: FontWeight.w700,
+                  if (weekdayLabel.isNotEmpty) ...[
+                    Text(
+                      weekdayLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.mutedText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                  Container(
+                    width: isCompact ? 24 : 28,
+                    height: isCompact ? 24 : 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : null,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      date.day.toString(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: textColor,
+                        fontWeight: isToday || isSelected
+                            ? FontWeight.w900
+                            : FontWeight.w800,
+                      ),
                     ),
                   ),
-                  if (weekdayLabel.isNotEmpty) const SizedBox(height: 4),
-                  Text(
-                    date.day.toString(),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: isSelected ? colors.onPrimary : null,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  SizedBox(
-                    height: isCompact ? 28 : 12,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (bars.isNotEmpty) ...[
-                          for (final bar in bars)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Container(
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? colors.onPrimary
-                                      : bar.color.withValues(alpha: 0.72),
-                                  borderRadius: BorderRadius.horizontal(
-                                    left: bar.startsHere
-                                        ? const Radius.circular(999)
-                                        : Radius.zero,
-                                    right: bar.endsHere
-                                        ? const Radius.circular(999)
-                                        : Radius.zero,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                        _CalendarIndicatorsRow(
-                          indicators: indicators,
-                          isToday: isToday,
-                          isSelected: isSelected,
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 2),
+                  _CalendarIndicatorsRow(
+                    indicators: indicators,
+                    isToday: isToday,
+                    isSelected: isSelected,
                   ),
                 ],
               ),
