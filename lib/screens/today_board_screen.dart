@@ -867,59 +867,97 @@ class _CalendarDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return InkWell(
-      key: ValueKey('calendar-day-${date.year}-${date.month}-${date.day}'),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: _semanticLabel,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.primarySoft,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.14),
+      child: InkWell(
+        key: ValueKey('calendar-day-${date.year}-${date.month}-${date.day}'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: ExcludeSemantics(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.primary.withValues(alpha: 0.14),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    weekdayLabel,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: isSelected
+                          ? colors.onPrimary
+                          : AppColors.mutedText,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    date.day.toString(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: isSelected ? colors.onPrimary : null,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  SizedBox(
+                    height: 4,
+                    child: isToday
+                        ? Container(
+                            key: const ValueKey('calendar-today-dot'),
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? colors.onPrimary
+                                  : AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          )
+                        : null,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              weekdayLabel,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: isSelected ? colors.onPrimary : AppColors.mutedText,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              date.day.toString(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isSelected ? colors.onPrimary : null,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 3),
-            SizedBox(
-              height: 4,
-              child: isToday
-                  ? Container(
-                      key: const ValueKey('calendar-today-dot'),
-                      width: 4,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? colors.onPrimary
-                            : AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                    )
-                  : null,
-            ),
-          ],
         ),
       ),
     );
+  }
+
+  String get _semanticLabel {
+    return '${date.month}\uC6D4 ${date.day}\uC77C ${_fullWeekdayLabel(date.weekday)}';
+  }
+
+  String _fullWeekdayLabel(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return '\uC6D4\uC694\uC77C';
+      case DateTime.tuesday:
+        return '\uD654\uC694\uC77C';
+      case DateTime.wednesday:
+        return '\uC218\uC694\uC77C';
+      case DateTime.thursday:
+        return '\uBAA9\uC694\uC77C';
+      case DateTime.friday:
+        return '\uAE08\uC694\uC77C';
+      case DateTime.saturday:
+        return '\uD1A0\uC694\uC77C';
+      case DateTime.sunday:
+        return '\uC77C\uC694\uC77C';
+      default:
+        return '';
+    }
   }
 }

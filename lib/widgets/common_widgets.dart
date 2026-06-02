@@ -347,59 +347,73 @@ class AppBottomNav extends StatelessWidget {
             final isSelected = tab == selectedTab;
             final color = isSelected ? AppColors.primary : AppColors.mutedText;
             final badgeCount = badges[tab] ?? 0;
-            return SizedBox(
-              width: 58,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () => onSelected(tab),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        height: 28,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppColors.primarySoft
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(18),
+            return Semantics(
+              button: true,
+              selected: isSelected,
+              label: tab.label,
+              onTap: () => onSelected(tab),
+              child: SizedBox(
+                width: 58,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  onTap: () => onSelected(tab),
+                  child: ExcludeSemantics(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 40,
+                            height: 28,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primarySoft
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    child: Icon(
+                                      tab.icon,
+                                      size: 20,
+                                      color: color,
+                                    ),
+                                  ),
                                 ),
-                                child: Icon(tab.icon, size: 20, color: color),
-                              ),
+                                if (badgeCount > 0)
+                                  Positioned(
+                                    top: -4,
+                                    right: -6,
+                                    child: _BottomNavBadge(
+                                      key: Key(
+                                        'app-bottom-nav-badge-${tab.name}',
+                                      ),
+                                      count: badgeCount,
+                                    ),
+                                  ),
+                              ],
                             ),
-                            if (badgeCount > 0)
-                              Positioned(
-                                top: -4,
-                                right: -6,
-                                child: _BottomNavBadge(
-                                  key: Key('app-bottom-nav-badge-${tab.name}'),
-                                  count: badgeCount,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            tab.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  color: color,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
                                 ),
-                              ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        tab.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              color: color,
-                              fontWeight: isSelected
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                            ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

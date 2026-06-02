@@ -70,17 +70,27 @@ class BoardHeader extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         if (onOpenSettings != null) ...[
-          IconButton.filledTonal(
-            onPressed: onOpenSettings,
-            tooltip: '\uC124\uC815',
-            icon: const Icon(Icons.settings_outlined),
+          Semantics(
+            button: true,
+            label: '\uC124\uC815',
+            onTap: onOpenSettings,
+            child: IconButton.filledTonal(
+              onPressed: onOpenSettings,
+              tooltip: '\uC124\uC815',
+              icon: const Icon(Icons.settings_outlined),
+            ),
           ),
           const SizedBox(width: 8),
         ],
-        IconButton.filledTonal(
-          onPressed: onSearchToggle,
-          tooltip: '\uAC80\uC0C9',
-          icon: const Icon(Icons.search_rounded),
+        Semantics(
+          button: true,
+          label: '\uAC80\uC0C9',
+          onTap: onSearchToggle,
+          child: IconButton.filledTonal(
+            onPressed: onSearchToggle,
+            tooltip: '\uAC80\uC0C9',
+            icon: const Icon(Icons.search_rounded),
+          ),
         ),
         const SizedBox(width: 8),
         AddItemFab(onPressed: onAddItem),
@@ -430,27 +440,31 @@ class _MemberRow extends StatelessWidget {
           RoleChip(role: member.role),
           if (canManage) ...[
             const SizedBox(width: 2),
-            PopupMenuButton<_MemberAction>(
-              icon: const Icon(Icons.more_vert_rounded),
-              tooltip: '\uBA64\uBC84 \uAD00\uB9AC',
-              onSelected: (action) => _handleAction(context, action),
-              itemBuilder: (context) => [
-                if (!member.isAdmin && onUpdateRole != null)
-                  const PopupMenuItem(
-                    value: _MemberAction.promote,
-                    child: Text('\uAD00\uB9AC\uC790\uB85C'),
-                  ),
-                if (member.isAdmin && onUpdateRole != null)
-                  const PopupMenuItem(
-                    value: _MemberAction.demote,
-                    child: Text('\uBA64\uBC84\uB85C'),
-                  ),
-                if (onRemove != null)
-                  const PopupMenuItem(
-                    value: _MemberAction.remove,
-                    child: Text('\uB0B4\uBCF4\uB0B4\uAE30'),
-                  ),
-              ],
+            Semantics(
+              button: true,
+              label: '\uBA64\uBC84 \uAD00\uB9AC',
+              child: PopupMenuButton<_MemberAction>(
+                icon: const Icon(Icons.more_vert_rounded),
+                tooltip: '\uBA64\uBC84 \uAD00\uB9AC',
+                onSelected: (action) => _handleAction(context, action),
+                itemBuilder: (context) => [
+                  if (!member.isAdmin && onUpdateRole != null)
+                    const PopupMenuItem(
+                      value: _MemberAction.promote,
+                      child: Text('\uAD00\uB9AC\uC790\uB85C'),
+                    ),
+                  if (member.isAdmin && onUpdateRole != null)
+                    const PopupMenuItem(
+                      value: _MemberAction.demote,
+                      child: Text('\uBA64\uBC84\uB85C'),
+                    ),
+                  if (onRemove != null)
+                    const PopupMenuItem(
+                      value: _MemberAction.remove,
+                      child: Text('\uB0B4\uBCF4\uB0B4\uAE30'),
+                    ),
+                ],
+              ),
             ),
           ],
         ],

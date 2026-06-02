@@ -113,6 +113,43 @@ void main() {
     expect(find.text('9+'), findsOneWidget);
   });
 
+  testWidgets('Key board controls expose accessibility semantics', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final now = DateTime.now();
+    final calendarLabel = RegExp('${now.month}\uC6D4 ${now.day}\uC77C');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'tagged-task',
+              type: BoardItemType.schedule,
+              title: 'Tagged schedule',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              tags: const ['family'],
+              startsAt: now,
+            ),
+          ],
+          selectedTab: BoardTab.calendar,
+          onTabSelected: _ignoreBoardTab,
+          onOpenSettings: () {},
+        ),
+      ),
+    );
+
+    expect(find.bySemanticsLabel('\uC624\uB298'), findsOneWidget);
+    expect(find.bySemanticsLabel('\uC124\uC815'), findsOneWidget);
+    expect(find.bySemanticsLabel('\uD0DC\uADF8 family'), findsOneWidget);
+    expect(find.bySemanticsLabel(calendarLabel), findsOneWidget);
+
+    semantics.dispose();
+  });
+
   test('auth input validation blocks invalid id/password payloads', () {
     expect(
       AuthInputValidator.validateUserIdPassword('', ''),

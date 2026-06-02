@@ -250,12 +250,22 @@ class TagChip extends StatelessWidget {
       ),
     );
 
-    if (onTap == null) return chip;
+    if (onTap == null) {
+      return Semantics(
+        label: '\uD0DC\uADF8 $label',
+        child: ExcludeSemantics(child: chip),
+      );
+    }
 
-    return InkWell(
+    return Semantics(
+      label: '\uD0DC\uADF8 $label',
+      button: true,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: chip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: ExcludeSemantics(child: chip),
+      ),
     );
   }
 }
