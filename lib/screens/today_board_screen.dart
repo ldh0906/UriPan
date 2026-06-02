@@ -169,206 +169,210 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
       ),
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BoardHeader(
-                      board: widget.board,
-                      onCreateInvite: widget.onCreateInvite,
-                      onOpenSettings: widget.onOpenSettings,
-                      onRefresh: widget.onRefresh == null ? null : _refresh,
-                      isRefreshing: _isRefreshing,
-                      onSearchToggle: _toggleSearch,
-                      onAddItem: selectedTab == BoardTab.members
-                          ? null
-                          : () => _addItem(
-                              selectedTab.defaultItemType,
-                              _initialDateTimeForAdd(),
-                            ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (_isSearchVisible) ...[
-                      _SearchField(
-                        controller: _searchController,
-                        onChanged: (value) =>
-                            setState(() => _searchQuery = value),
-                        onClear: _clearSearch,
+        child: RefreshIndicator(
+          onRefresh: widget.onRefresh == null ? Future<void>.value : _refresh,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BoardHeader(
+                        board: widget.board,
+                        onCreateInvite: widget.onCreateInvite,
+                        onOpenSettings: widget.onOpenSettings,
+                        onRefresh: widget.onRefresh == null ? null : _refresh,
+                        isRefreshing: _isRefreshing,
+                        onSearchToggle: _toggleSearch,
+                        onAddItem: selectedTab == BoardTab.members
+                            ? null
+                            : () => _addItem(
+                                selectedTab.defaultItemType,
+                                _initialDateTimeForAdd(),
+                              ),
                       ),
                       const SizedBox(height: 20),
-                    ],
-                    if (_activeTag != null) ...[
-                      _ActiveTagFilterChip(
-                        tag: _activeTag!,
-                        onDeleted: _clearActiveTag,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    if (isSearching)
-                      BoardItemSection(
-                        title: '\uAC80\uC0C9 \uACB0\uACFC',
-                        items: searchResults,
-                        accentColor: AppColors.primary,
-                        accentSoftColor: AppColors.primarySoft,
-                        icon: Icons.search_rounded,
-                        pendingTaskIds: _pendingTaskIds,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                        emptyText:
-                            '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
-                      )
-                    else if (selectedTab == BoardTab.today) ...[
-                      PulseCard(
-                        schedules: todaySchedules.length,
-                        openTasks: openTasks,
-                        notices: todayNotices.length,
-                      ),
-                      if (attentionItems.isNotEmpty) ...[
+                      if (_isSearchVisible) ...[
+                        _SearchField(
+                          controller: _searchController,
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value),
+                          onClear: _clearSearch,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                      if (_activeTag != null) ...[
+                        _ActiveTagFilterChip(
+                          tag: _activeTag!,
+                          onDeleted: _clearActiveTag,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (isSearching)
+                        BoardItemSection(
+                          title: '\uAC80\uC0C9 \uACB0\uACFC',
+                          items: searchResults,
+                          accentColor: AppColors.primary,
+                          accentSoftColor: AppColors.primarySoft,
+                          icon: Icons.search_rounded,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                          emptyText:
+                              '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
+                        )
+                      else if (selectedTab == BoardTab.today) ...[
+                        PulseCard(
+                          schedules: todaySchedules.length,
+                          openTasks: openTasks,
+                          notices: todayNotices.length,
+                        ),
+                        if (attentionItems.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          BoardItemSection(
+                            title: '\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694',
+                            items: attentionItems,
+                            accentColor: AppColors.tertiary,
+                            accentSoftColor: AppColors.warningSoft,
+                            icon: Icons.priority_high_rounded,
+                            showCheckbox: true,
+                            onToggle: _toggleTask,
+                            pendingTaskIds: _pendingTaskIds,
+                            isOverdue: _isOverdueTask,
+                            onItemTap: _showItemDetail,
+                            onTagTap: _setActiveTag,
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        BoardItemSection(
+                          title: '\uC624\uB298 \uC77C\uC815',
+                          items: todaySchedules,
+                          accentColor: AppColors.primary,
+                          accentSoftColor: AppColors.primarySoft,
+                          icon: Icons.calendar_month_rounded,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                        ),
                         const SizedBox(height: 12),
                         BoardItemSection(
-                          title: '\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694',
-                          items: attentionItems,
+                          title: '\uD560 \uC77C',
+                          items: todayTasks,
                           accentColor: AppColors.tertiary,
                           accentSoftColor: AppColors.warningSoft,
-                          icon: Icons.priority_high_rounded,
+                          icon: Icons.check_rounded,
+                          showCheckbox: true,
+                          onToggle: _toggleTask,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                        ),
+                        const SizedBox(height: 12),
+                        BoardItemSection(
+                          title: '\uACF5\uC9C0',
+                          items: todayNotices,
+                          accentColor: AppColors.success,
+                          accentSoftColor: AppColors.successSoft,
+                          icon: Icons.campaign_rounded,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                        ),
+                      ] else if (selectedTab == BoardTab.calendar) ...[
+                        _CalendarWeekStrip(
+                          selectedDate: _selectedCalendarDate,
+                          onDateSelected: (date) =>
+                              setState(() => _selectedCalendarDate = date),
+                          onPreviousWeek: () => setState(
+                            () => _selectedCalendarDate = _selectedCalendarDate
+                                .subtract(const Duration(days: 7)),
+                          ),
+                          onNextWeek: () => setState(
+                            () => _selectedCalendarDate = _selectedCalendarDate
+                                .add(const Duration(days: 7)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        BoardItemSection(
+                          title: '\uC77C\uC815',
+                          items: schedules
+                              .where(
+                                (item) => item.isForDate(_selectedCalendarDate),
+                              )
+                              .toList(growable: false),
+                          accentColor: AppColors.primary,
+                          accentSoftColor: AppColors.primarySoft,
+                          icon: Icons.calendar_month_rounded,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                          emptyText:
+                              '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
+                        ),
+                      ] else if (selectedTab == BoardTab.tasks) ...[
+                        SegmentedButton<_TaskFilter>(
+                          segments: _TaskFilter.values
+                              .map(
+                                (filter) => ButtonSegment(
+                                  value: filter,
+                                  label: Text(filter.label),
+                                ),
+                              )
+                              .toList(),
+                          selected: {_taskFilter},
+                          onSelectionChanged: (values) =>
+                              setState(() => _taskFilter = values.single),
+                        ),
+                        const SizedBox(height: 12),
+                        BoardItemSection(
+                          title: '\uD560 \uC77C',
+                          items: _filteredTasks(tasks),
+                          accentColor: AppColors.tertiary,
+                          accentSoftColor: AppColors.warningSoft,
+                          icon: Icons.check_rounded,
                           showCheckbox: true,
                           onToggle: _toggleTask,
                           pendingTaskIds: _pendingTaskIds,
                           isOverdue: _isOverdueTask,
                           onItemTap: _showItemDetail,
                           onTagTap: _setActiveTag,
+                          emptyText: _taskEmptyText,
                         ),
-                      ],
-                      const SizedBox(height: 24),
-                      BoardItemSection(
-                        title: '\uC624\uB298 \uC77C\uC815',
-                        items: todaySchedules,
-                        accentColor: AppColors.primary,
-                        accentSoftColor: AppColors.primarySoft,
-                        icon: Icons.calendar_month_rounded,
-                        pendingTaskIds: _pendingTaskIds,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                      ),
-                      const SizedBox(height: 12),
-                      BoardItemSection(
-                        title: '\uD560 \uC77C',
-                        items: todayTasks,
-                        accentColor: AppColors.tertiary,
-                        accentSoftColor: AppColors.warningSoft,
-                        icon: Icons.check_rounded,
-                        showCheckbox: true,
-                        onToggle: _toggleTask,
-                        pendingTaskIds: _pendingTaskIds,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                      ),
-                      const SizedBox(height: 12),
-                      BoardItemSection(
-                        title: '\uACF5\uC9C0',
-                        items: todayNotices,
-                        accentColor: AppColors.success,
-                        accentSoftColor: AppColors.successSoft,
-                        icon: Icons.campaign_rounded,
-                        pendingTaskIds: _pendingTaskIds,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                      ),
-                    ] else if (selectedTab == BoardTab.calendar) ...[
-                      _CalendarWeekStrip(
-                        selectedDate: _selectedCalendarDate,
-                        onDateSelected: (date) =>
-                            setState(() => _selectedCalendarDate = date),
-                        onPreviousWeek: () => setState(
-                          () => _selectedCalendarDate = _selectedCalendarDate
-                              .subtract(const Duration(days: 7)),
+                      ] else if (selectedTab == BoardTab.notices)
+                        BoardItemSection(
+                          title: '\uACF5\uC9C0',
+                          items: notices,
+                          accentColor: AppColors.success,
+                          accentSoftColor: AppColors.successSoft,
+                          icon: Icons.campaign_rounded,
+                          pendingTaskIds: _pendingTaskIds,
+                          onItemTap: _showItemDetail,
+                          onTagTap: _setActiveTag,
+                          emptyText:
+                              '\uC77D\uC744 \uACF5\uC9C0\uAC00 \uC5C6\uC5B4\uC694.',
+                        )
+                      else
+                        MembersPanel(
+                          board: widget.board,
+                          members: widget.members,
+                          currentUserId: widget.currentUserId,
+                          activeInvite: widget.activeInvite,
+                          onCreateInvite: widget.onCreateInvite,
+                          onRegenerateInvite: widget.onRegenerateInvite,
+                          onRevokeInvite: widget.onRevokeInvite,
+                          onLeaveBoard: widget.onLeaveBoard,
+                          onUpdateMemberRole: widget.onUpdateMemberRole,
+                          onRemoveMember: widget.onRemoveMember,
                         ),
-                        onNextWeek: () => setState(
-                          () => _selectedCalendarDate = _selectedCalendarDate
-                              .add(const Duration(days: 7)),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      BoardItemSection(
-                        title: '\uC77C\uC815',
-                        items: schedules
-                            .where(
-                              (item) => item.isForDate(_selectedCalendarDate),
-                            )
-                            .toList(growable: false),
-                        accentColor: AppColors.primary,
-                        accentSoftColor: AppColors.primarySoft,
-                        icon: Icons.calendar_month_rounded,
-                        pendingTaskIds: _pendingTaskIds,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                        emptyText:
-                            '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
-                      ),
-                    ] else if (selectedTab == BoardTab.tasks) ...[
-                      SegmentedButton<_TaskFilter>(
-                        segments: _TaskFilter.values
-                            .map(
-                              (filter) => ButtonSegment(
-                                value: filter,
-                                label: Text(filter.label),
-                              ),
-                            )
-                            .toList(),
-                        selected: {_taskFilter},
-                        onSelectionChanged: (values) =>
-                            setState(() => _taskFilter = values.single),
-                      ),
-                      const SizedBox(height: 12),
-                      BoardItemSection(
-                        title: '\uD560 \uC77C',
-                        items: _filteredTasks(tasks),
-                        accentColor: AppColors.tertiary,
-                        accentSoftColor: AppColors.warningSoft,
-                        icon: Icons.check_rounded,
-                        showCheckbox: true,
-                        onToggle: _toggleTask,
-                        pendingTaskIds: _pendingTaskIds,
-                        isOverdue: _isOverdueTask,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                        emptyText: _taskEmptyText,
-                      ),
-                    ] else if (selectedTab == BoardTab.notices)
-                      BoardItemSection(
-                        title: '\uACF5\uC9C0',
-                        items: notices,
-                        accentColor: AppColors.success,
-                        accentSoftColor: AppColors.successSoft,
-                        icon: Icons.campaign_rounded,
-                        pendingTaskIds: _pendingTaskIds,
-                        onItemTap: _showItemDetail,
-                        onTagTap: _setActiveTag,
-                        emptyText:
-                            '\uC77D\uC744 \uACF5\uC9C0\uAC00 \uC5C6\uC5B4\uC694.',
-                      )
-                    else
-                      MembersPanel(
-                        board: widget.board,
-                        members: widget.members,
-                        currentUserId: widget.currentUserId,
-                        activeInvite: widget.activeInvite,
-                        onCreateInvite: widget.onCreateInvite,
-                        onRegenerateInvite: widget.onRegenerateInvite,
-                        onRevokeInvite: widget.onRevokeInvite,
-                        onLeaveBoard: widget.onLeaveBoard,
-                        onUpdateMemberRole: widget.onUpdateMemberRole,
-                        onRemoveMember: widget.onRemoveMember,
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

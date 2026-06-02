@@ -1270,6 +1270,33 @@ void main() {
     expect(refreshCount, 1);
   });
 
+  testWidgets('Pull to refresh calls the board refresh callback', (
+    tester,
+  ) async {
+    var refreshCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          items: const [],
+          onRefresh: () async {
+            refreshCount += 1;
+          },
+        ),
+      ),
+    );
+
+    final refreshIndicator = find.byType(RefreshIndicator);
+
+    expect(refreshIndicator, findsOneWidget);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 300));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(refreshCount, 1);
+  });
+
   testWidgets('Settings button calls the open settings callback', (
     tester,
   ) async {
