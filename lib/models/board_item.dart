@@ -137,6 +137,17 @@ class BoardItem {
   }
 }
 
+bool boardItemMatchesQuery(BoardItem item, String query) {
+  final normalizedQuery = query.trim().toLowerCase();
+  if (normalizedQuery.isEmpty) return true;
+
+  return item.title.toLowerCase().contains(normalizedQuery) ||
+      item.detail.toLowerCase().contains(normalizedQuery) ||
+      item.owner.toLowerCase().contains(normalizedQuery) ||
+      (item.assigneeName?.toLowerCase().contains(normalizedQuery) ?? false) ||
+      item.tags.any((tag) => tag.toLowerCase().contains(normalizedQuery));
+}
+
 List<String> normalizeBoardItemTags(Iterable<String> rawTags) {
   final tags = <String>[];
   final seen = <String>{};

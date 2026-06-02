@@ -207,6 +207,47 @@ void main() {
     expect(find.text('\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694'), findsNothing);
   });
 
+  testWidgets('Search shows matching title in a flat result section', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: TodayBoardScreen(
+          items: [
+            BoardItem(
+              id: 'matching-task',
+              type: BoardItemType.task,
+              title: 'Alpha grocery run',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+            ),
+            BoardItem(
+              id: 'hidden-task',
+              type: BoardItemType.task,
+              title: 'Beta cleanup',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('\uAC80\uC0C9'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, '\uAC80\uC0C9'),
+      'Alpha',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('\uAC80\uC0C9 \uACB0\uACFC'), findsOneWidget);
+    expect(find.text('Alpha grocery run'), findsOneWidget);
+    expect(find.text('Beta cleanup'), findsNothing);
+  });
+
   testWidgets('Members tab shows invite code and copy action for admins', (
     tester,
   ) async {

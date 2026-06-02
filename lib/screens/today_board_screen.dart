@@ -78,10 +78,19 @@ class TodayBoardScreen extends StatefulWidget {
 class _TodayBoardScreenState extends State<TodayBoardScreen> {
   late Future<List<BoardItem>>? _itemsFuture = _loadItems();
   List<BoardItem>? _fallbackItems;
+  final TextEditingController _searchController = TextEditingController();
   final Set<String> _pendingTaskIds = {};
   bool _isRefreshing = false;
+  bool _isSearchVisible = false;
+  String _searchQuery = '';
   _TaskFilter _taskFilter = _TaskFilter.open;
   DateTime _selectedCalendarDate = DateTime.now();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(TodayBoardScreen oldWidget) {
@@ -130,6 +139,13 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     final openTasks = todayTasks.where((item) => !item.isDone).length;
     final attentionItems = _attentionItems(displayedItems);
     final selectedTab = _effectiveSelectedTab;
+    final trimmedSearchQuery = _searchQuery.trim();
+    final isSearching = trimmedSearchQuery.isNotEmpty;
+    final searchResults = isSearching
+        ? displayedItems
+              .where((item) => boardItemMatchesQuery(item, trimmedSearchQuery))
+              .toList(growable: false)
+        : const <BoardItem>[];
 
     return Scaffold(
       bottomNavigationBar: AppBottomNav(
@@ -152,6 +168,7 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       onOpenSettings: widget.onOpenSettings,
                       onRefresh: widget.onRefresh == null ? null : _refresh,
                       isRefreshing: _isRefreshing,
+                      onSearchToggle: _toggleSearch,
                       onAddItem: selectedTab == BoardTab.members
                           ? null
                           : () => _addItem(
@@ -160,7 +177,28 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                             ),
                     ),
                     const SizedBox(height: 20),
-                    if (selectedTab == BoardTab.today) ...[
+                    if (_isSearchVisible) ...[
+                      _SearchField(
+                        controller: _searchController,
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value),
+                        onClear: _clearSearch,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    if (isSearching)
+                      BoardItemSection(
+                        title: '\uAC80\uC0C9 \uACB0\uACFC',
+                        items: searchResults,
+                        accentColor: AppColors.primary,
+                        accentSoftColor: AppColors.primarySoft,
+                        icon: Icons.search_rounded,
+                        pendingTaskIds: _pendingTaskIds,
+                        onItemTap: _showItemDetail,
+                        emptyText:
+                            '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
+                      )
+                    else if (selectedTab == BoardTab.today) ...[
                       PulseCard(
                         schedules: todaySchedules.length,
                         openTasks: openTasks,
@@ -304,6 +342,25 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
   List<BoardItem> _itemsOfType(List<BoardItem> items, BoardItemType type) {
     return items.where((item) => item.type == type).toList(growable: false);
+  }
+
+  void _toggleSearch() {
+    if (_isSearchVisible) {
+      _searchController.clear();
+      setState(() {
+        _isSearchVisible = false;
+        _searchQuery = '';
+      });
+      return;
+    }
+
+    setState(() => _isSearchVisible = true);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    if (_searchQuery.isEmpty) return;
+    setState(() => _searchQuery = '');
   }
 
   List<BoardItem> _attentionItems(List<BoardItem> items) {
@@ -558,6 +615,37 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
           Navigator.pop(context);
           await _deleteItem(item);
         },
+      ),
+    );
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      autofocus: true,
+      onChanged: onChanged,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        labelText: '\uAC80\uC0C9',
+        prefixIcon: const Icon(Icons.search_rounded),
+        suffixIcon: IconButton(
+          onPressed: onClear,
+          tooltip: '\uC9C0\uC6B0\uAE30',
+          icon: const Icon(Icons.close_rounded),
+        ),
       ),
     );
   }

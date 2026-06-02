@@ -14,6 +14,7 @@ class BoardHeader extends StatelessWidget {
     this.onRefresh,
     this.onAddItem,
     this.onOpenSettings,
+    this.onSearchToggle,
   });
 
   final BoardSummary? board;
@@ -22,6 +23,7 @@ class BoardHeader extends StatelessWidget {
   final VoidCallback? onRefresh;
   final VoidCallback? onAddItem;
   final VoidCallback? onOpenSettings;
+  final VoidCallback? onSearchToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +77,12 @@ class BoardHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
+        IconButton.filledTonal(
+          onPressed: onSearchToggle,
+          tooltip: '\uAC80\uC0C9',
+          icon: const Icon(Icons.search_rounded),
+        ),
+        const SizedBox(width: 8),
         AddItemFab(onPressed: onAddItem),
       ],
     );
