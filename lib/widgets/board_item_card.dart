@@ -43,7 +43,12 @@ class BoardItemSection extends StatelessWidget {
         SectionHeader(title: title, count: items.length),
         const SizedBox(height: 10),
         if (items.isEmpty)
-          EmptyState(icon: icon, message: emptyText ?? '?꾩쭅 ??ぉ???놁뼱??')
+          EmptyState(
+            icon: icon,
+            message:
+                emptyText ??
+                '\uC544\uC9C1 \uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694.',
+          )
         else
           ...items.map(
             (item) => BoardItemCard(
@@ -168,7 +173,9 @@ class BoardItemCard extends StatelessWidget {
                     height: 44,
                   ),
                   padding: EdgeInsets.zero,
-                  tooltip: item.isDone ? '?꾨즺 痍⑥냼' : '?꾨즺',
+                  tooltip: item.isDone
+                      ? '\uC644\uB8CC \uCDE8\uC18C'
+                      : '\uC644\uB8CC',
                   onPressed: onToggle == null || isPending
                       ? null
                       : () => onToggle!(item, !item.isDone),

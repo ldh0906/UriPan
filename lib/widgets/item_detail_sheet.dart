@@ -65,7 +65,7 @@ class ItemDetailSheet extends StatelessWidget {
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
-                    tooltip: '닫기',
+                    tooltip: '\uB2EB\uAE30',
                   ),
                 ],
               ),
@@ -79,14 +79,20 @@ class ItemDetailSheet extends StatelessWidget {
                   if (item.assigneeName != null)
                     InfoChip(label: '\uB2F4\uB2F9: ${item.assigneeName}'),
                   InfoChip(label: dateLabel ?? item.timeLabel),
-                  if (item.isPinned) const InfoChip(label: '고정'),
+                  if (item.isPinned) const InfoChip(label: '\uACE0\uC815'),
                   if (item.type == BoardItemType.task)
-                    InfoChip(label: item.isDone ? '완료됨' : '미완료'),
+                    InfoChip(
+                      label: item.isDone
+                          ? '\uC644\uB8CC\uB428'
+                          : '\uBBF8\uC644\uB8CC',
+                    ),
                 ],
               ),
               const SizedBox(height: 16),
               Text(
-                detail.isEmpty ? '메모가 없어요.' : detail,
+                detail.isEmpty
+                    ? '\uBA54\uBAA8\uAC00 \uC5C6\uC5B4\uC694.'
+                    : detail,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: detail.isEmpty ? AppColors.mutedText : null,
                 ),
@@ -110,7 +116,11 @@ class ItemDetailSheet extends StatelessWidget {
                         ? Icons.undo_rounded
                         : Icons.check_circle_rounded,
                   ),
-                  label: Text(item.isDone ? '완료 취소' : '완료하기'),
+                  label: Text(
+                    item.isDone
+                        ? '\uC644\uB8CC \uCDE8\uC18C'
+                        : '\uC644\uB8CC\uD558\uAE30',
+                  ),
                 ),
               ],
               if (item.type == BoardItemType.notice &&
@@ -164,7 +174,7 @@ class ItemDetailSheet extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onDelete,
                   icon: const Icon(Icons.delete_outline_rounded),
-                  label: const Text('삭제'),
+                  label: const Text('\uC0AD\uC81C'),
                 ),
               ],
               if (loadComments != null &&
