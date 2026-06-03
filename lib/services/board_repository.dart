@@ -842,10 +842,13 @@ class SupabaseBoardRepository implements BoardRepository {
   Future<void> confirmNotice(String itemId, bool confirmed) async {
     final userId = _client.auth.currentUser!.id;
     if (confirmed) {
-      await _client.from('item_confirmations').insert({
-        'item_id': itemId,
-        'user_id': userId,
-      });
+      await _client
+          .from('item_confirmations')
+          .upsert(
+            {'item_id': itemId, 'user_id': userId},
+            onConflict: 'item_id,user_id',
+            ignoreDuplicates: true,
+          );
       return;
     }
 
