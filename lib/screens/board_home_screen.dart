@@ -536,6 +536,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (message.contains('creator_admin_required')) {
       return '\uBCF4\uB4DC\uB97C \uB9CC\uB4E0 \uC0AC\uB78C\uC740 \uBC14\uAFC0 \uC218 \uC5C6\uC5B4\uC694.';
     }
+    if (message.contains('board_creator_must_be_admin')) {
+      return '\uBCF4\uB4DC\uB97C \uB9CC\uB4E0 \uC0AC\uB78C\uC740 \uAD00\uB9AC\uC790\uC5EC\uC57C \uD574\uC694.';
+    }
     if (message.contains('last_admin_required')) {
       return '\uB9C8\uC9C0\uB9C9 \uAD00\uB9AC\uC790\uB294 \uBC14\uAFC0 \uC218 \uC5C6\uC5B4\uC694.';
     }
