@@ -17,6 +17,11 @@ class AuthErrorMessages {
     if (message.contains('invalid login credentials')) {
       return '\uC544\uC774\uB514 \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
     }
+    if (message.contains('already registered') ||
+        message.contains('already_registered') ||
+        message.contains('user already exists')) {
+      return '\uC774\uBBF8 \uC788\uB294 \uC544\uC774\uB514\uC608\uC694. \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.';
+    }
     if (message.contains('email') && message.contains('confirm')) {
       return '\uAD00\uB9AC\uC790\uAC00 Supabase \uC774\uBA54\uC77C \uD655\uC778 \uC124\uC815\uC744 \uB044\uACE0 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.';
     }

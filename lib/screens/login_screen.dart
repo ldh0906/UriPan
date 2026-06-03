@@ -77,11 +77,18 @@ class _LoginScreenState extends State<LoginScreen> {
         final userId = AuthInputValidator.normalizeUserId(
           _userIdController.text,
         );
-        await widget.client.auth.signUp(
+        final response = await widget.client.auth.signUp(
           email: AuthInputValidator.syntheticEmailForUserId(userId),
           password: _passwordController.text,
           data: {'display_name': userId},
         );
+        // Email confirmation is off, so a real new signup comes back with a
+        // populated identities list. An id that already exists comes back
+        // with an empty identities list (Supabase hides that the account
+        // exists). Surface it instead of pretending the signup worked.
+        if (response.user?.identities?.isEmpty ?? false) {
+          throw AuthException('user_already_registered');
+        }
       },
       successMessage:
           '\uCC98\uC74C \uC0AC\uC6A9 \uC900\uBE44\uAC00 \uB05D\uB0AC\uC5B4\uC694. \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.',
