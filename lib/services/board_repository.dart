@@ -516,9 +516,13 @@ class SupabaseBoardRepository implements BoardRepository {
 
   @override
   Future<List<BoardSummary>> loadBoards() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return const [];
+
     final rows = await _client
         .from('board_members')
         .select('role, boards(id, name, max_members, board_members(user_id))')
+        .eq('user_id', userId)
         .order('joined_at');
 
     return rows
