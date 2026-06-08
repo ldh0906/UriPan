@@ -22,6 +22,44 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  test(
+    'filterTaskBoardItems sorts all completed tasks by dueAt descending',
+    () {
+      final filtered = filterTaskBoardItems([
+        BoardItem(
+          id: 'old-done',
+          type: BoardItemType.task,
+          title: 'Old done task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Old',
+          dueAt: DateTime(2026, 6, 1, 18),
+          isDone: true,
+        ),
+        BoardItem(
+          id: 'new-done',
+          type: BoardItemType.task,
+          title: 'New done task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'New',
+          dueAt: DateTime(2026, 6, 5, 18),
+          isDone: true,
+        ),
+        const BoardItem(
+          id: 'open',
+          type: BoardItemType.task,
+          title: 'Open task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Open',
+        ),
+      ], filter: TaskBoardFilter.done);
+
+      expect(filtered.map((item) => item.id), ['new-done', 'old-done']);
+    },
+  );
+
   testWidgets('UriPan shows the Today board sections', (tester) async {
     await tester.pumpWidget(const UriPanApp());
     await tester.pumpAndSettle();
@@ -1196,6 +1234,94 @@ void main() {
     expect(find.text('Open mine task'), findsNothing);
     expect(find.text('Done mine task'), findsOneWidget);
     expect(find.text('Done other task'), findsOneWidget);
+  });
+
+  testWidgets('Tasks tab renders all completed tasks by dueAt descending', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'old-done',
+              type: BoardItemType.task,
+              title: 'Old done task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Old',
+              dueAt: DateTime(2026, 6, 1, 18),
+              isDone: true,
+            ),
+            BoardItem(
+              id: 'new-done',
+              type: BoardItemType.task,
+              title: 'New done task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'New',
+              dueAt: DateTime(2026, 6, 5, 18),
+              isDone: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uC644\uB8CC').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.text('New done task')).dy,
+      lessThan(tester.getTopLeft(find.text('Old done task')).dy),
+    );
+  });
+
+  testWidgets('Tasks tab date filter hides tasks from other dates', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 6, 2, 12);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          now: () => now,
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'today-task',
+              type: BoardItemType.task,
+              title: 'Today task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(2026, 6, 2, 18),
+            ),
+            BoardItem(
+              id: 'tomorrow-task',
+              type: BoardItemType.task,
+              title: 'Tomorrow task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Tomorrow',
+              dueAt: DateTime(2026, 6, 3, 18),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Today task'), findsOneWidget);
+    expect(find.text('Tomorrow task'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, '\uC624\uB298'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Today task'), findsOneWidget);
+    expect(find.text('Tomorrow task'), findsNothing);
   });
 
   testWidgets('Tasks tab flags overdue tasks', (tester) async {
