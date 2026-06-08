@@ -24,14 +24,7 @@ List<ScheduledReminder> buildReminderPlan({
         final startsAt = item.startsAt;
         if (startsAt == null) continue;
 
-        candidates.add(
-          _scheduleReminder(
-            item: item,
-            kind: 'start',
-            scheduledAt: startsAt,
-            now: now,
-          ),
-        );
+        // One reminder per schedule: one hour before the start.
         candidates.add(
           _scheduleReminder(
             item: item,
@@ -61,8 +54,15 @@ List<ScheduledReminder> buildReminderPlan({
     }
   }
 
+  final maxScheduledAt = now.add(const Duration(days: 30));
   final futureReminders =
-      candidates.where((reminder) => reminder.scheduledAt.isAfter(now)).toList()
+      candidates
+          .where(
+            (reminder) =>
+                reminder.scheduledAt.isAfter(now) &&
+                !reminder.scheduledAt.isAfter(maxScheduledAt),
+          )
+          .toList()
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
   return futureReminders.take(maxCount).toList();
 }

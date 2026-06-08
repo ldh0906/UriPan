@@ -16,10 +16,130 @@ import 'package:uripan/widgets/board_item_card.dart';
 import 'package:uripan/widgets/comment_thread.dart';
 import 'package:uripan/widgets/board_settings_sheet.dart';
 import 'package:uripan/widgets/common_widgets.dart';
+import 'package:uripan/widgets/item_detail_sheet.dart';
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  test(
+    'filterTaskBoardItems sorts all completed tasks by dueAt descending',
+    () {
+      final filtered = filterTaskBoardItems([
+        BoardItem(
+          id: 'old-done',
+          type: BoardItemType.task,
+          title: 'Old done task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Old',
+          dueAt: DateTime(2026, 6, 1, 18),
+          isDone: true,
+        ),
+        BoardItem(
+          id: 'new-done',
+          type: BoardItemType.task,
+          title: 'New done task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'New',
+          dueAt: DateTime(2026, 6, 5, 18),
+          isDone: true,
+        ),
+        const BoardItem(
+          id: 'open',
+          type: BoardItemType.task,
+          title: 'Open task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Open',
+        ),
+      ], filter: TaskBoardFilter.done);
+
+      expect(filtered.map((item) => item.id), ['new-done', 'old-done']);
+    },
+  );
+
+  test('moveCalendarMonth clamps to the target month last day', () {
+    expect(moveCalendarMonth(DateTime(2024, 2, 29), 1), DateTime(2024, 3, 29));
+    expect(moveCalendarMonth(DateTime(2024, 2, 29), -1), DateTime(2024, 1, 29));
+    expect(moveCalendarMonth(DateTime(2025, 1, 31), 1), DateTime(2025, 2, 28));
+    expect(moveCalendarMonth(DateTime(2026, 1, 31), 1), DateTime(2026, 2, 28));
+  });
+
+  test('filterTaskBoardItems sorts open tasks by dueAt ascending', () {
+    final filtered = filterTaskBoardItems([
+      const BoardItem(
+        id: 'no-date',
+        type: BoardItemType.task,
+        title: 'No date task',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Open',
+      ),
+      BoardItem(
+        id: 'later',
+        type: BoardItemType.task,
+        title: 'Later task',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Later',
+        dueAt: DateTime(2026, 6, 5, 18),
+      ),
+      BoardItem(
+        id: 'sooner',
+        type: BoardItemType.task,
+        title: 'Sooner task',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Sooner',
+        dueAt: DateTime(2026, 6, 1, 18),
+      ),
+    ], filter: TaskBoardFilter.open);
+
+    expect(filtered.map((item) => item.id), ['sooner', 'later', 'no-date']);
+  });
+
+  test('filterTaskBoardItems sorts my tasks by dueAt ascending', () {
+    final filtered = filterTaskBoardItems(
+      [
+        BoardItem(
+          id: 'mine-later',
+          type: BoardItemType.task,
+          title: 'Mine later',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Later',
+          assignedToId: 'me',
+          dueAt: DateTime(2026, 6, 5, 18),
+        ),
+        BoardItem(
+          id: 'other',
+          type: BoardItemType.task,
+          title: 'Other task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Other',
+          assignedToId: 'you',
+          dueAt: DateTime(2026, 6, 2, 18),
+        ),
+        BoardItem(
+          id: 'mine-sooner',
+          type: BoardItemType.task,
+          title: 'Mine sooner',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Sooner',
+          assignedToId: 'me',
+          dueAt: DateTime(2026, 6, 1, 18),
+        ),
+      ],
+      filter: TaskBoardFilter.mine,
+      currentUserId: 'me',
+    );
+
+    expect(filtered.map((item) => item.id), ['mine-sooner', 'mine-later']);
   });
 
   testWidgets('UriPan shows the Today board sections', (tester) async {
@@ -297,6 +417,32 @@ void main() {
     expect(find.text('Today'), findsNothing);
   });
 
+  testWidgets('Item detail sheet omits midnight time from date label', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ItemDetailSheet(
+            item: BoardItem(
+              id: 'midnight-task',
+              type: BoardItemType.task,
+              title: 'Midnight task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(2026, 6, 2),
+            ),
+            isPending: false,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('2026.06.02'), findsOneWidget);
+    expect(find.textContaining('00:00'), findsNothing);
+  });
+
   testWidgets('Board item card shows comment badge only when comments exist', (
     tester,
   ) async {
@@ -406,6 +552,35 @@ void main() {
 
     expect(
       find.text('\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('CommentThread shows load error instead of empty state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommentThread(
+            loadComments: () async => throw Exception('network down'),
+            onAddComment: (_) async {},
+            onDeleteComment: (_) async {},
+            currentUserId: 'user-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694'),
+      findsNothing,
+    );
+    expect(
+      find.text(
+        '\uB313\uAE00\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694.',
+      ),
       findsOneWidget,
     );
   });
@@ -1118,8 +1293,9 @@ void main() {
       ),
     );
 
+    // Sunday-first week starting 2026-05-31: Tue=col2 .. Thu=col4.
     expect(
-      find.byKey(const ValueKey('calendar-bar-family-trip-0-1-3')),
+      find.byKey(const ValueKey('calendar-bar-family-trip-0-2-4')),
       findsOneWidget,
     );
   });
@@ -1195,6 +1371,94 @@ void main() {
     expect(find.text('Open mine task'), findsNothing);
     expect(find.text('Done mine task'), findsOneWidget);
     expect(find.text('Done other task'), findsOneWidget);
+  });
+
+  testWidgets('Tasks tab renders all completed tasks by dueAt descending', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'old-done',
+              type: BoardItemType.task,
+              title: 'Old done task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Old',
+              dueAt: DateTime(2026, 6, 1, 18),
+              isDone: true,
+            ),
+            BoardItem(
+              id: 'new-done',
+              type: BoardItemType.task,
+              title: 'New done task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'New',
+              dueAt: DateTime(2026, 6, 5, 18),
+              isDone: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uC644\uB8CC').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.text('New done task')).dy,
+      lessThan(tester.getTopLeft(find.text('Old done task')).dy),
+    );
+  });
+
+  testWidgets('Tasks tab date filter hides tasks from other dates', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 6, 2, 12);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          now: () => now,
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'today-task',
+              type: BoardItemType.task,
+              title: 'Today task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(2026, 6, 2, 18),
+            ),
+            BoardItem(
+              id: 'tomorrow-task',
+              type: BoardItemType.task,
+              title: 'Tomorrow task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Tomorrow',
+              dueAt: DateTime(2026, 6, 3, 18),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Today task'), findsOneWidget);
+    expect(find.text('Tomorrow task'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, '\uC624\uB298'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Today task'), findsOneWidget);
+    expect(find.text('Tomorrow task'), findsNothing);
   });
 
   testWidgets('Tasks tab flags overdue tasks', (tester) async {

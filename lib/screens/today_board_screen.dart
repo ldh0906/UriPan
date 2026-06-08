@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
 import '../services/board_repository.dart';
+import '../services/friendly_date.dart';
 import '../theme/app_theme.dart';
 import '../widgets/board_action_sheets.dart';
 import '../widgets/board_header.dart';
@@ -10,14 +11,68 @@ import '../widgets/comment_thread.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/item_detail_sheet.dart';
 
-enum _TaskFilter {
+enum TaskBoardFilter {
   open('\uBBF8\uC644\uB8CC'),
   mine('\uB0B4 \uD560 \uC77C'),
   done('\uC644\uB8CC');
 
-  const _TaskFilter(this.label);
+  const TaskBoardFilter(this.label);
 
   final String label;
+}
+
+List<BoardItem> filterTaskBoardItems(
+  List<BoardItem> tasks, {
+  required TaskBoardFilter filter,
+  DateTime? dateFilter,
+  String? currentUserId,
+}) {
+  final datedTasks = dateFilter == null
+      ? tasks
+      : tasks.where((item) => item.isForDate(dateFilter)).toList();
+  final filtered = switch (filter) {
+    TaskBoardFilter.open => datedTasks.where((item) => !item.isDone),
+    TaskBoardFilter.mine =>
+      currentUserId == null
+          ? const Iterable<BoardItem>.empty()
+          : datedTasks.where((item) => item.assignedToId == currentUserId),
+    TaskBoardFilter.done => datedTasks.where((item) => item.isDone),
+  };
+  final result = filtered.toList(growable: false);
+  if (dateFilter != null) return result;
+
+  final indexed = result.indexed.toList(growable: false)
+    ..sort((left, right) {
+      final leftDueAt = left.$2.dueAt;
+      final rightDueAt = right.$2.dueAt;
+      if (leftDueAt == null && rightDueAt == null) {
+        return left.$1.compareTo(right.$1);
+      }
+      if (leftDueAt == null) return 1;
+      if (rightDueAt == null) return -1;
+      final dueAtCompare = filter == TaskBoardFilter.done
+          ? rightDueAt.compareTo(leftDueAt)
+          : leftDueAt.compareTo(rightDueAt);
+      if (dueAtCompare != 0) return dueAtCompare;
+      return left.$1.compareTo(right.$1);
+    });
+  return indexed.map((entry) => entry.$2).toList(growable: false);
+}
+
+DateTime moveCalendarMonth(DateTime selectedDate, int monthDelta) {
+  final targetMonthStart = DateTime(
+    selectedDate.year,
+    selectedDate.month + monthDelta,
+  );
+  final targetLastDay = DateTime(
+    targetMonthStart.year,
+    targetMonthStart.month + 1,
+    0,
+  ).day;
+  final day = selectedDate.day > targetLastDay
+      ? targetLastDay
+      : selectedDate.day;
+  return DateTime(targetMonthStart.year, targetMonthStart.month, day);
 }
 
 enum _CalendarDayCategory { schedule, task }
@@ -113,6 +168,21 @@ DateTime _calendarDateOnly(DateTime value) {
   return DateTime(local.year, local.month, local.day);
 }
 
+DateTime _taskDateOnly(DateTime value) {
+  final local = value.toLocal();
+  return DateTime(local.year, local.month, local.day);
+}
+
+/// Korean calendar weekday headers, Sunday-first (Sun..Sat).
+const calendarWeekdayLabels = <String>['일', '월', '화', '수', '목', '금', '토'];
+
+/// Start of the calendar week (Sunday) containing [date], date-only.
+DateTime startOfCalendarWeek(DateTime date) {
+  final local = DateTime(date.year, date.month, date.day);
+  // DateTime.weekday: Mon=1..Sun=7; `% 7` maps Sunday to 0 so weeks start Sunday.
+  return local.subtract(Duration(days: local.weekday % 7));
+}
+
 class _CalendarBarCandidate {
   const _CalendarBarCandidate({
     required this.itemId,
@@ -204,7 +274,8 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   bool _isSearchVisible = false;
   String _searchQuery = '';
   String? _activeTag;
-  _TaskFilter _taskFilter = _TaskFilter.open;
+  TaskBoardFilter _taskFilter = TaskBoardFilter.open;
+  DateTime? _taskDateFilter;
   late DateTime _selectedCalendarDate;
   bool _isCalendarExpanded = false;
   List<BoardItem> _latestDisplayedItems = const [];
@@ -427,22 +498,14 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           }),
                           onPrevious: () => setState(() {
                             _selectedCalendarDate = _isCalendarExpanded
-                                ? DateTime(
-                                    _selectedCalendarDate.year,
-                                    _selectedCalendarDate.month - 1,
-                                    _selectedCalendarDate.day,
-                                  )
+                                ? moveCalendarMonth(_selectedCalendarDate, -1)
                                 : _selectedCalendarDate.subtract(
                                     const Duration(days: 7),
                                   );
                           }),
                           onNext: () => setState(() {
                             _selectedCalendarDate = _isCalendarExpanded
-                                ? DateTime(
-                                    _selectedCalendarDate.year,
-                                    _selectedCalendarDate.month + 1,
-                                    _selectedCalendarDate.day,
-                                  )
+                                ? moveCalendarMonth(_selectedCalendarDate, 1)
                                 : _selectedCalendarDate.add(
                                     const Duration(days: 7),
                                   );
@@ -495,8 +558,17 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           ),
                         ),
                       ] else if (selectedTab == BoardTab.tasks) ...[
-                        SegmentedButton<_TaskFilter>(
-                          segments: _TaskFilter.values
+                        _TaskDateNavigator(
+                          selectedDate: _taskDateFilter,
+                          today: widget.now(),
+                          onPrevious: _moveTaskDateBack,
+                          onNext: _moveTaskDateForward,
+                          onToday: _selectTaskToday,
+                          onAll: _clearTaskDateFilter,
+                        ),
+                        const SizedBox(height: 12),
+                        SegmentedButton<TaskBoardFilter>(
+                          segments: TaskBoardFilter.values
                               .map(
                                 (filter) => ButtonSegment(
                                   value: filter,
@@ -747,29 +819,58 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   }
 
   List<BoardItem> _filteredTasks(List<BoardItem> tasks) {
-    switch (_taskFilter) {
-      case _TaskFilter.open:
-        return tasks.where((item) => !item.isDone).toList(growable: false);
-      case _TaskFilter.mine:
-        final currentUserId = widget.currentUserId;
-        if (currentUserId == null) return const [];
-        return tasks
-            .where((item) => item.assignedToId == currentUserId)
-            .toList(growable: false);
-      case _TaskFilter.done:
-        return tasks.where((item) => item.isDone).toList(growable: false);
-    }
+    return filterTaskBoardItems(
+      tasks,
+      filter: _taskFilter,
+      dateFilter: _taskDateFilter,
+      currentUserId: widget.currentUserId,
+    );
   }
 
   String get _taskEmptyText {
+    if (_taskDateFilter != null) {
+      switch (_taskFilter) {
+        case TaskBoardFilter.open:
+          return '\uC774\uB0A0 \uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
+        case TaskBoardFilter.mine:
+          return '\uC774\uB0A0 \uB0B4 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
+        case TaskBoardFilter.done:
+          return '\uC774\uB0A0 \uC644\uB8CC\uD55C \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
+      }
+    }
+
     switch (_taskFilter) {
-      case _TaskFilter.open:
+      case TaskBoardFilter.open:
         return '\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
-      case _TaskFilter.mine:
+      case TaskBoardFilter.mine:
         return '\uB0B4 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
-      case _TaskFilter.done:
+      case TaskBoardFilter.done:
         return '\uC644\uB8CC\uD55C \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.';
     }
+  }
+
+  void _moveTaskDateBack() {
+    setState(() {
+      _taskDateFilter = _taskDateOnly(
+        (_taskDateFilter ?? widget.now()).subtract(const Duration(days: 1)),
+      );
+    });
+  }
+
+  void _moveTaskDateForward() {
+    setState(() {
+      _taskDateFilter = _taskDateOnly(
+        (_taskDateFilter ?? widget.now()).add(const Duration(days: 1)),
+      );
+    });
+  }
+
+  void _selectTaskToday() {
+    setState(() => _taskDateFilter = _taskDateOnly(widget.now()));
+  }
+
+  void _clearTaskDateFilter() {
+    setState(() => _taskDateFilter = null);
   }
 
   DateTime? _initialDateTimeForAdd() {
@@ -1082,6 +1183,90 @@ class _SearchField extends StatelessWidget {
   }
 }
 
+class _TaskDateNavigator extends StatelessWidget {
+  const _TaskDateNavigator({
+    required this.selectedDate,
+    required this.today,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onToday,
+    required this.onAll,
+  });
+
+  final DateTime? selectedDate;
+  final DateTime today;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onToday;
+  final VoidCallback onAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final date = selectedDate;
+    final label = date == null
+        ? '\uC804\uCCB4'
+        : friendlyDayLabel(date, now: today) ??
+              '${date.month}\uC6D4 ${date.day}\uC77C';
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.surfaceVariant),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: '\uC774\uC804 \uB0A0',
+                onPressed: onPrevious,
+                icon: const Icon(Icons.chevron_left_rounded),
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 72),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: '\uB2E4\uC74C \uB0A0',
+                onPressed: onNext,
+                icon: const Icon(Icons.chevron_right_rounded),
+              ),
+            ],
+          ),
+        ),
+        ChoiceChip(
+          label: const Text('\uC624\uB298'),
+          selected: date != null && _isSameTaskDay(date, today),
+          onSelected: (_) => onToday(),
+        ),
+        ChoiceChip(
+          label: const Text('\uC804\uCCB4'),
+          selected: date == null,
+          onSelected: (_) => onAll(),
+        ),
+      ],
+    );
+  }
+}
+
+bool _isSameTaskDay(DateTime left, DateTime right) {
+  final leftDay = _taskDateOnly(left);
+  final rightDay = _taskDateOnly(right);
+  return leftDay == rightDay;
+}
+
 class _CalendarPanel extends StatelessWidget {
   const _CalendarPanel({
     required this.selectedDate,
@@ -1105,21 +1290,11 @@ class _CalendarPanel extends StatelessWidget {
   final VoidCallback onToggleExpanded;
   final VoidCallback onToday;
 
-  static const _weekdayLabels = [
-    '\uC6D4',
-    '\uD654',
-    '\uC218',
-    '\uBAA9',
-    '\uAE08',
-    '\uD1A0',
-    '\uC77C',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final visibleStart = isExpanded
-        ? _startOfWeek(DateTime(selectedDate.year, selectedDate.month))
-        : _startOfWeek(selectedDate);
+        ? startOfCalendarWeek(DateTime(selectedDate.year, selectedDate.month))
+        : startOfCalendarWeek(selectedDate);
     final visibleDays = List.generate(
       isExpanded ? 42 : 7,
       (index) => visibleStart.add(Duration(days: index)),
@@ -1186,7 +1361,7 @@ class _CalendarPanel extends StatelessWidget {
               Expanded(
                 child: _CalendarDayCell(
                   date: day,
-                  weekdayLabel: _weekdayLabels[day.weekday - 1],
+                  weekdayLabel: calendarWeekdayLabels[day.weekday % 7],
                   isSelected: _isSameDay(day, selectedDate),
                   isToday: _isSameDay(day, today),
                   indicators: _indicatorsForDay(day),
@@ -1206,7 +1381,7 @@ class _CalendarPanel extends StatelessWidget {
       children: [
         Row(
           children: [
-            for (final label in _weekdayLabels)
+            for (final label in calendarWeekdayLabels)
               Expanded(
                 child: Center(
                   child: Text(
@@ -1268,11 +1443,6 @@ class _CalendarPanel extends StatelessWidget {
 
   List<CalendarBarSegment> _barsForWeek(DateTime weekStart) {
     return calendarWeekBars(schedules: items, weekStart: weekStart);
-  }
-
-  DateTime _startOfWeek(DateTime date) {
-    final local = DateTime(date.year, date.month, date.day);
-    return local.subtract(Duration(days: local.weekday - 1));
   }
 
   bool _isSameDay(DateTime left, DateTime right) {

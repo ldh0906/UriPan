@@ -96,7 +96,7 @@ class MemoryBoardRepository implements BoardRepository {
   final List<BoardComment> _comments = [];
   final Map<String, String> _itemBoardIds = {};
   final Map<String, Map<String, String>> _nicknamesByBoard = {};
-  BoardInvite? _activeInvite;
+  final Map<String, BoardInvite> _activeInvitesByBoard = {};
   final List<BoardSummary> _boards = [
     const BoardSummary(
       id: 'memory-board',
@@ -202,17 +202,17 @@ class MemoryBoardRepository implements BoardRepository {
   @override
   Future<BoardInvite> createInvite(String boardId) async {
     final invite = BoardInvite(
-      id: 'memory-invite',
+      id: 'memory-invite-$boardId',
       code: 'URIP-2026',
       expiresAt: DateTime.now().add(const Duration(days: 7)),
     );
-    _activeInvite = invite;
+    _activeInvitesByBoard[boardId] = invite;
     return invite;
   }
 
   @override
   Future<BoardInvite?> loadActiveInvite(String boardId) async {
-    final invite = _activeInvite;
+    final invite = _activeInvitesByBoard[boardId];
     if (invite == null || invite.expiresAt.isBefore(DateTime.now())) {
       return null;
     }
@@ -221,7 +221,7 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<void> revokeInvite(String inviteId) async {
-    _activeInvite = null;
+    _activeInvitesByBoard.removeWhere((_, invite) => invite.id == inviteId);
   }
 
   @override
@@ -230,8 +230,7 @@ class MemoryBoardRepository implements BoardRepository {
   @override
   Future<void> leaveBoard(String boardId) async {
     _boards.removeWhere((board) => board.id == boardId);
-    _members.clear();
-    _activeInvite = null;
+    _activeInvitesByBoard.remove(boardId);
     _nicknamesByBoard.remove(boardId);
   }
 
@@ -279,7 +278,14 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
-    return List.unmodifiable(_items);
+    if (boardId == null) return List.unmodifiable(_items);
+    return List.unmodifiable(
+      _items.where((item) {
+        final itemBoardId = _itemBoardIds[item.id];
+        return itemBoardId == boardId ||
+            (itemBoardId == null && boardId == _firstBoardId);
+      }),
+    );
   }
 
   @override
@@ -689,20 +695,24 @@ class SupabaseBoardRepository implements BoardRepository {
     String userId,
     String role,
   ) async {
-    await _client
+    final rows = await _client
         .from('board_members')
         .update({'role': role})
         .eq('board_id', boardId)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select('board_id');
+    if (rows.isEmpty) throw StateError('Member not found');
   }
 
   @override
   Future<void> removeMember(String boardId, String userId) async {
-    await _client
+    final rows = await _client
         .from('board_members')
         .delete()
         .eq('board_id', boardId)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select('board_id');
+    if (rows.isEmpty) throw StateError('Member not found');
   }
 
   @override
@@ -772,8 +782,8 @@ class SupabaseBoardRepository implements BoardRepository {
           'type': draft.type.wireName,
           'title': draft.title,
           'detail': draft.detail,
-          'starts_at': startsAt?.toIso8601String(),
-          'due_at': dueAt?.toIso8601String(),
+          'starts_at': _utcIsoString(startsAt),
+          'due_at': _utcIsoString(dueAt),
           'assigned_to': draft.assignedTo,
           'created_by': userId,
           'requires_confirmation': draft.requiresConfirmation,
@@ -802,8 +812,8 @@ class SupabaseBoardRepository implements BoardRepository {
         .update({
           'title': draft.title,
           'detail': draft.detail,
-          'starts_at': startsAt?.toIso8601String(),
-          'due_at': dueAt?.toIso8601String(),
+          'starts_at': _utcIsoString(startsAt),
+          'due_at': _utcIsoString(dueAt),
           'assigned_to': draft.type == BoardItemType.task
               ? draft.assignedTo
               : null,
@@ -898,12 +908,22 @@ class SupabaseBoardRepository implements BoardRepository {
 
   @override
   Future<void> deleteComment(String commentId) async {
-    await _client.from('item_comments').delete().eq('id', commentId);
+    final rows = await _client
+        .from('item_comments')
+        .delete()
+        .eq('id', commentId)
+        .select('id');
+    if (rows.isEmpty) throw StateError('Comment not found');
   }
 
   @override
   Future<void> deleteItem(String itemId) async {
-    await _client.from('board_items').delete().eq('id', itemId);
+    final rows = await _client
+        .from('board_items')
+        .delete()
+        .eq('id', itemId)
+        .select('id');
+    if (rows.isEmpty) throw StateError('Item not found');
   }
 
   BoardSummary _boardSummaryFromMembershipRow(Map<String, dynamic> row) {
@@ -1108,6 +1128,8 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   String _two(int value) => value.toString().padLeft(2, '0');
+
+  String? _utcIsoString(DateTime? value) => value?.toUtc().toIso8601String();
 }
 
 class _ProfileRow {

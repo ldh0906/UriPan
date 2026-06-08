@@ -133,7 +133,8 @@ class BoardItem {
   }
 
   bool isForDate(DateTime date) {
-    final target = DateTime(date.year, date.month, date.day);
+    final localDate = date.toLocal();
+    final target = DateTime(localDate.year, localDate.month, localDate.day);
     if (type == BoardItemType.notice) return true;
 
     if (type == BoardItemType.task) {

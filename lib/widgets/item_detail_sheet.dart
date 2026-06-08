@@ -204,8 +204,12 @@ class ItemDetailSheet extends StatelessWidget {
         : item.dueAt;
     if (value == null) return null;
     final local = value.toLocal();
-    final absoluteLabel =
-        '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    final dateLabel =
+        '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')}';
+    final isMidnight = local.hour == 0 && local.minute == 0;
+    final absoluteLabel = isMidnight
+        ? dateLabel
+        : '$dateLabel ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
     final friendlyLabel = friendlyDayLabel(value);
     if (friendlyLabel == null) return absoluteLabel;
     return '$friendlyLabel \u00B7 $absoluteLabel';

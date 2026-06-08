@@ -22,6 +22,8 @@ String friendlyRelativeTime(DateTime when, {DateTime? now}) {
   final localWhen = when.toLocal();
   final localNow = (now ?? DateTime.now()).toLocal();
   final elapsed = localNow.difference(localWhen);
+  if (elapsed.isNegative) return '\uBC29\uAE08';
+
   final seconds = elapsed.inSeconds;
 
   if (seconds < 60) return '\uBC29\uAE08';

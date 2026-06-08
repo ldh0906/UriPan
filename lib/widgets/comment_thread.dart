@@ -199,7 +199,7 @@ class _CommentThreadState extends State<CommentThread> {
               ),
             ),
           )
-        else if (_comments.isEmpty)
+        else if (_errorMessage == null && _comments.isEmpty)
           const _CommentEmptyState()
         else
           ..._comments.map(

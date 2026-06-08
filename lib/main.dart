@@ -18,7 +18,10 @@ Future<void> main() async {
 
     // Respect "stay signed in": when the user opted out, drop the persisted
     // session on cold start so they have to log in again.
-    final keepSignedIn = await SessionPreferences().loadKeepSignedIn();
+    var keepSignedIn = true;
+    try {
+      keepSignedIn = await SessionPreferences().loadKeepSignedIn();
+    } catch (_) {}
     if (!keepSignedIn && Supabase.instance.client.auth.currentSession != null) {
       try {
         await Supabase.instance.client.auth.signOut();
