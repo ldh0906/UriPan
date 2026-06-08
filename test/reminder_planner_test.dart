@@ -89,35 +89,26 @@ void main() {
   });
 
   group('buildReminderPlan schedules', () {
-    test(
-      'creates start and one hour before reminders for a future schedule',
-      () {
-        final startsAt = DateTime(2026, 6, 2, 11);
-        final plan = buildReminderPlan(
-          items: [
-            _schedule(id: 'schedule', title: 'Dentist', startsAt: startsAt),
-          ],
-          currentUserId: 'me',
-          now: now,
-        );
+    test('creates a single one-hour-before reminder for a future schedule', () {
+      final startsAt = DateTime(2026, 6, 2, 11);
+      final plan = buildReminderPlan(
+        items: [
+          _schedule(id: 'schedule', title: 'Dentist', startsAt: startsAt),
+        ],
+        currentUserId: 'me',
+        now: now,
+      );
 
-        expect(plan, hasLength(2));
-        expect(
-          plan.map((reminder) => reminder.title),
-          everyElement('\uC77C\uC815'),
-        );
-        expect(plan.map((reminder) => reminder.scheduledAt), [
-          startsAt.subtract(const Duration(hours: 1)),
-          startsAt,
-        ]);
-        expect(
-          plan.map((reminder) => reminder.body),
-          everyElement(contains('Dentist')),
-        );
-      },
-    );
+      expect(plan, hasLength(1));
+      expect(plan.single.title, '\uC77C\uC815');
+      expect(
+        plan.single.scheduledAt,
+        startsAt.subtract(const Duration(hours: 1)),
+      );
+      expect(plan.single.body, contains('Dentist'));
+    });
 
-    test('keeps only future schedule reminders when pre reminder is past', () {
+    test('drops the schedule when one hour before is already past', () {
       final startsAt = DateTime(2026, 6, 2, 9, 30);
       final plan = buildReminderPlan(
         items: [
@@ -127,8 +118,7 @@ void main() {
         now: now,
       );
 
-      expect(plan, hasLength(1));
-      expect(plan.single.scheduledAt, startsAt);
+      expect(plan, isEmpty);
     });
   });
 
@@ -172,7 +162,7 @@ void main() {
     expect(plan, hasLength(2));
     expect(plan.map((reminder) => reminder.scheduledAt), [
       DateTime(2026, 6, 2, 10),
-      DateTime(2026, 6, 2, 11),
+      DateTime(2026, 6, 2, 12, 50),
     ]);
   });
 

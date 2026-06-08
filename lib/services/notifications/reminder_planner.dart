@@ -24,14 +24,7 @@ List<ScheduledReminder> buildReminderPlan({
         final startsAt = item.startsAt;
         if (startsAt == null) continue;
 
-        candidates.add(
-          _scheduleReminder(
-            item: item,
-            kind: 'start',
-            scheduledAt: startsAt,
-            now: now,
-          ),
-        );
+        // One reminder per schedule: one hour before the start.
         candidates.add(
           _scheduleReminder(
             item: item,
