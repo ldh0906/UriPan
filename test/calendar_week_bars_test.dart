@@ -3,8 +3,58 @@ import 'package:uripan/models/board_item.dart';
 import 'package:uripan/screens/today_board_screen.dart';
 
 void main() {
+  group('startOfCalendarWeek (Sunday-first)', () {
+    test('returns the Sunday on/before a weekday', () {
+      // 2026-06-03 is a Wednesday; its week starts Sunday 2026-05-31.
+      expect(
+        startOfCalendarWeek(DateTime(2026, 6, 3, 9)),
+        DateTime(2026, 5, 31),
+      );
+    });
+
+    test('returns the same day for a Sunday', () {
+      expect(
+        startOfCalendarWeek(DateTime(2026, 6, 7, 14)),
+        DateTime(2026, 6, 7),
+      );
+    });
+
+    test('returns the previous Sunday for a Monday', () {
+      expect(
+        startOfCalendarWeek(DateTime(2026, 6, 8, 1)),
+        DateTime(2026, 6, 7),
+      );
+    });
+  });
+
+  group('calendarWeekdayLabels', () {
+    test('is Sunday-first (Sun..Sat)', () {
+      expect(calendarWeekdayLabels, const ['일', '월', '화', '수', '목', '금', '토']);
+    });
+  });
+
   group('calendarWeekBars', () {
     final weekStart = DateTime(2026, 6, 1);
+
+    test('renders a Sunday-to-Monday schedule as one contiguous bar', () {
+      // Sunday-first week starting 2026-06-07; schedule spans Sun -> Mon.
+      final segments = calendarWeekBars(
+        schedules: [
+          _schedule(
+            id: 'sun-mon',
+            startsAt: DateTime(2026, 6, 7, 9),
+            dueAt: DateTime(2026, 6, 8, 18),
+          ),
+        ],
+        weekStart: DateTime(2026, 6, 7),
+      );
+
+      expect(segments, hasLength(1));
+      expect(segments.single.startColumn, 0);
+      expect(segments.single.endColumn, 1);
+      expect(segments.single.roundedLeft, isTrue);
+      expect(segments.single.roundedRight, isTrue);
+    });
 
     test('creates a rounded one-column segment for a single-day schedule', () {
       final segments = calendarWeekBars(

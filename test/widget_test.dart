@@ -1118,8 +1118,9 @@ void main() {
       ),
     );
 
+    // Sunday-first week starting 2026-05-31: Tue=col2 .. Thu=col4.
     expect(
-      find.byKey(const ValueKey('calendar-bar-family-trip-0-1-3')),
+      find.byKey(const ValueKey('calendar-bar-family-trip-0-2-4')),
       findsOneWidget,
     );
   });

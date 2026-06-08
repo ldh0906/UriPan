@@ -113,6 +113,16 @@ DateTime _calendarDateOnly(DateTime value) {
   return DateTime(local.year, local.month, local.day);
 }
 
+/// Korean calendar weekday headers, Sunday-first (Sun..Sat).
+const calendarWeekdayLabels = <String>['일', '월', '화', '수', '목', '금', '토'];
+
+/// Start of the calendar week (Sunday) containing [date], date-only.
+DateTime startOfCalendarWeek(DateTime date) {
+  final local = DateTime(date.year, date.month, date.day);
+  // DateTime.weekday: Mon=1..Sun=7; `% 7` maps Sunday to 0 so weeks start Sunday.
+  return local.subtract(Duration(days: local.weekday % 7));
+}
+
 class _CalendarBarCandidate {
   const _CalendarBarCandidate({
     required this.itemId,
@@ -1105,21 +1115,11 @@ class _CalendarPanel extends StatelessWidget {
   final VoidCallback onToggleExpanded;
   final VoidCallback onToday;
 
-  static const _weekdayLabels = [
-    '\uC6D4',
-    '\uD654',
-    '\uC218',
-    '\uBAA9',
-    '\uAE08',
-    '\uD1A0',
-    '\uC77C',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final visibleStart = isExpanded
-        ? _startOfWeek(DateTime(selectedDate.year, selectedDate.month))
-        : _startOfWeek(selectedDate);
+        ? startOfCalendarWeek(DateTime(selectedDate.year, selectedDate.month))
+        : startOfCalendarWeek(selectedDate);
     final visibleDays = List.generate(
       isExpanded ? 42 : 7,
       (index) => visibleStart.add(Duration(days: index)),
@@ -1186,7 +1186,7 @@ class _CalendarPanel extends StatelessWidget {
               Expanded(
                 child: _CalendarDayCell(
                   date: day,
-                  weekdayLabel: _weekdayLabels[day.weekday - 1],
+                  weekdayLabel: calendarWeekdayLabels[day.weekday % 7],
                   isSelected: _isSameDay(day, selectedDate),
                   isToday: _isSameDay(day, today),
                   indicators: _indicatorsForDay(day),
@@ -1206,7 +1206,7 @@ class _CalendarPanel extends StatelessWidget {
       children: [
         Row(
           children: [
-            for (final label in _weekdayLabels)
+            for (final label in calendarWeekdayLabels)
               Expanded(
                 child: Center(
                   child: Text(
@@ -1268,11 +1268,6 @@ class _CalendarPanel extends StatelessWidget {
 
   List<CalendarBarSegment> _barsForWeek(DateTime weekStart) {
     return calendarWeekBars(schedules: items, weekStart: weekStart);
-  }
-
-  DateTime _startOfWeek(DateTime date) {
-    final local = DateTime(date.year, date.month, date.day);
-    return local.subtract(Duration(days: local.weekday - 1));
   }
 
   bool _isSameDay(DateTime left, DateTime right) {
