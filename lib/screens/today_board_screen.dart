@@ -39,7 +39,7 @@ List<BoardItem> filterTaskBoardItems(
     TaskBoardFilter.done => datedTasks.where((item) => item.isDone),
   };
   final result = filtered.toList(growable: false);
-  if (dateFilter != null || filter != TaskBoardFilter.done) return result;
+  if (dateFilter != null) return result;
 
   final indexed = result.indexed.toList(growable: false)
     ..sort((left, right) {
@@ -50,11 +50,29 @@ List<BoardItem> filterTaskBoardItems(
       }
       if (leftDueAt == null) return 1;
       if (rightDueAt == null) return -1;
-      final dueAtCompare = rightDueAt.compareTo(leftDueAt);
+      final dueAtCompare = filter == TaskBoardFilter.done
+          ? rightDueAt.compareTo(leftDueAt)
+          : leftDueAt.compareTo(rightDueAt);
       if (dueAtCompare != 0) return dueAtCompare;
       return left.$1.compareTo(right.$1);
     });
   return indexed.map((entry) => entry.$2).toList(growable: false);
+}
+
+DateTime moveCalendarMonth(DateTime selectedDate, int monthDelta) {
+  final targetMonthStart = DateTime(
+    selectedDate.year,
+    selectedDate.month + monthDelta,
+  );
+  final targetLastDay = DateTime(
+    targetMonthStart.year,
+    targetMonthStart.month + 1,
+    0,
+  ).day;
+  final day = selectedDate.day > targetLastDay
+      ? targetLastDay
+      : selectedDate.day;
+  return DateTime(targetMonthStart.year, targetMonthStart.month, day);
 }
 
 enum _CalendarDayCategory { schedule, task }
@@ -480,22 +498,14 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           }),
                           onPrevious: () => setState(() {
                             _selectedCalendarDate = _isCalendarExpanded
-                                ? DateTime(
-                                    _selectedCalendarDate.year,
-                                    _selectedCalendarDate.month - 1,
-                                    _selectedCalendarDate.day,
-                                  )
+                                ? moveCalendarMonth(_selectedCalendarDate, -1)
                                 : _selectedCalendarDate.subtract(
                                     const Duration(days: 7),
                                   );
                           }),
                           onNext: () => setState(() {
                             _selectedCalendarDate = _isCalendarExpanded
-                                ? DateTime(
-                                    _selectedCalendarDate.year,
-                                    _selectedCalendarDate.month + 1,
-                                    _selectedCalendarDate.day,
-                                  )
+                                ? moveCalendarMonth(_selectedCalendarDate, 1)
                                 : _selectedCalendarDate.add(
                                     const Duration(days: 7),
                                   );

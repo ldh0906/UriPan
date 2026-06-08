@@ -16,6 +16,7 @@ import 'package:uripan/widgets/board_item_card.dart';
 import 'package:uripan/widgets/comment_thread.dart';
 import 'package:uripan/widgets/board_settings_sheet.dart';
 import 'package:uripan/widgets/common_widgets.dart';
+import 'package:uripan/widgets/item_detail_sheet.dart';
 
 void main() {
   setUp(() {
@@ -59,6 +60,87 @@ void main() {
       expect(filtered.map((item) => item.id), ['new-done', 'old-done']);
     },
   );
+
+  test('moveCalendarMonth clamps to the target month last day', () {
+    expect(moveCalendarMonth(DateTime(2024, 2, 29), 1), DateTime(2024, 3, 29));
+    expect(moveCalendarMonth(DateTime(2024, 2, 29), -1), DateTime(2024, 1, 29));
+    expect(moveCalendarMonth(DateTime(2025, 1, 31), 1), DateTime(2025, 2, 28));
+    expect(moveCalendarMonth(DateTime(2026, 1, 31), 1), DateTime(2026, 2, 28));
+  });
+
+  test('filterTaskBoardItems sorts open tasks by dueAt ascending', () {
+    final filtered = filterTaskBoardItems([
+      const BoardItem(
+        id: 'no-date',
+        type: BoardItemType.task,
+        title: 'No date task',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Open',
+      ),
+      BoardItem(
+        id: 'later',
+        type: BoardItemType.task,
+        title: 'Later task',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Later',
+        dueAt: DateTime(2026, 6, 5, 18),
+      ),
+      BoardItem(
+        id: 'sooner',
+        type: BoardItemType.task,
+        title: 'Sooner task',
+        detail: '',
+        owner: 'Us',
+        timeLabel: 'Sooner',
+        dueAt: DateTime(2026, 6, 1, 18),
+      ),
+    ], filter: TaskBoardFilter.open);
+
+    expect(filtered.map((item) => item.id), ['sooner', 'later', 'no-date']);
+  });
+
+  test('filterTaskBoardItems sorts my tasks by dueAt ascending', () {
+    final filtered = filterTaskBoardItems(
+      [
+        BoardItem(
+          id: 'mine-later',
+          type: BoardItemType.task,
+          title: 'Mine later',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Later',
+          assignedToId: 'me',
+          dueAt: DateTime(2026, 6, 5, 18),
+        ),
+        BoardItem(
+          id: 'other',
+          type: BoardItemType.task,
+          title: 'Other task',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Other',
+          assignedToId: 'you',
+          dueAt: DateTime(2026, 6, 2, 18),
+        ),
+        BoardItem(
+          id: 'mine-sooner',
+          type: BoardItemType.task,
+          title: 'Mine sooner',
+          detail: '',
+          owner: 'Us',
+          timeLabel: 'Sooner',
+          assignedToId: 'me',
+          dueAt: DateTime(2026, 6, 1, 18),
+        ),
+      ],
+      filter: TaskBoardFilter.mine,
+      currentUserId: 'me',
+    );
+
+    expect(filtered.map((item) => item.id), ['mine-sooner', 'mine-later']);
+  });
 
   testWidgets('UriPan shows the Today board sections', (tester) async {
     await tester.pumpWidget(const UriPanApp());
@@ -335,6 +417,32 @@ void main() {
     expect(find.text('Today'), findsNothing);
   });
 
+  testWidgets('Item detail sheet omits midnight time from date label', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ItemDetailSheet(
+            item: BoardItem(
+              id: 'midnight-task',
+              type: BoardItemType.task,
+              title: 'Midnight task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              dueAt: DateTime(2026, 6, 2),
+            ),
+            isPending: false,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('2026.06.02'), findsOneWidget);
+    expect(find.textContaining('00:00'), findsNothing);
+  });
+
   testWidgets('Board item card shows comment badge only when comments exist', (
     tester,
   ) async {
@@ -444,6 +552,35 @@ void main() {
 
     expect(
       find.text('\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('CommentThread shows load error instead of empty state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CommentThread(
+            loadComments: () async => throw Exception('network down'),
+            onAddComment: (_) async {},
+            onDeleteComment: (_) async {},
+            currentUserId: 'user-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uC544\uC9C1 \uB313\uAE00\uC774 \uC5C6\uC5B4\uC694'),
+      findsNothing,
+    );
+    expect(
+      find.text(
+        '\uB313\uAE00\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC5B4\uC694.',
+      ),
       findsOneWidget,
     );
   });
