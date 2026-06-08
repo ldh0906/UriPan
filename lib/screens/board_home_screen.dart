@@ -248,9 +248,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   }
 
   Future<void> _syncRemindersIfNeeded({bool force = false}) async {
-    if (!_reminderPreferencesLoaded ||
-        _controller.isLoading ||
-        _controller.activeBoard == null) {
+    if (!_reminderPreferencesLoaded || _controller.isLoading) {
       return;
     }
 
@@ -264,6 +262,15 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       do {
         _syncRemindersAgain = false;
         await _ensureSchedulerReady();
+
+        if (_controller.activeBoard == null) {
+          final synced = await _guardSchedulerCall(
+            () => widget.scheduler.sync(const []),
+          );
+          if (synced) _lastReminderPlanSignature = null;
+          force = false;
+          continue;
+        }
 
         final plan = buildReminderPlan(
           items: _controller.items,

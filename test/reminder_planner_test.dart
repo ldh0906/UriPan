@@ -166,6 +166,28 @@ void main() {
     ]);
   });
 
+  test('drops reminders scheduled more than 30 days from now', () {
+    final plan = buildReminderPlan(
+      items: [
+        _schedule(
+          id: 'inside-window',
+          title: 'Inside window',
+          startsAt: now.add(const Duration(days: 30)),
+        ),
+        _schedule(
+          id: 'outside-window',
+          title: 'Outside window',
+          startsAt: now.add(const Duration(days: 31, hours: 2)),
+        ),
+      ],
+      currentUserId: 'me',
+      now: now,
+    );
+
+    expect(plan, hasLength(1));
+    expect(plan.single.body, contains('Inside window'));
+  });
+
   test('stable ids repeat for the same logical reminders', () {
     final items = [
       _task(

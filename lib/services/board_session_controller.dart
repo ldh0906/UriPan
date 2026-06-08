@@ -316,18 +316,46 @@ class BoardSessionController extends ChangeNotifier {
 
   Future<void> addComment(String itemId, String body) async {
     final board = _requireActiveBoard();
-    await _runAction(() async {
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
       await _repository.addComment(itemId, body);
-      _items = await _repository.loadBoardItems(boardId: board.id);
-    });
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
   }
 
   Future<void> deleteComment(String commentId) async {
     final board = _requireActiveBoard();
-    await _runAction(() async {
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
       await _repository.deleteComment(commentId);
-      _items = await _repository.loadBoardItems(boardId: board.id);
-    });
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) notifyListeners();
+    }
   }
 
   Future<void> handleBoardMembershipChanged() async {
