@@ -72,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signUp() async {
     if (!_validateUserIdPassword()) return;
 
+    await _setKeepSignedIn(_keepSignedIn);
     await _runAuthAction(
       () async {
         final userId = AuthInputValidator.normalizeUserId(
@@ -91,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       },
       successMessage:
-          '\uCC98\uC74C \uC0AC\uC6A9 \uC900\uBE44\uAC00 \uB05D\uB0AC\uC5B4\uC694. \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694.',
+          '\uCC98\uC74C \uC0AC\uC6A9 \uC900\uBE44\uAC00 \uB05D\uB0AC\uC5B4\uC694.',
     );
   }
 
