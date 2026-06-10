@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uripan/models/board_item.dart';
+import 'package:uripan/services/board_item_time_label.dart';
 
 void main() {
   group('BoardItem.isForDate', () {
@@ -60,6 +61,34 @@ void main() {
       expect(task.isForDate(DateTime(2026, 6, 2)), isTrue);
       expect(task.isForDate(DateTime(2026, 6, 3)), isFalse);
       expect(notice.isForDate(DateTime(2026, 6, 3)), isTrue);
+    });
+  });
+
+  group('formatBoardItemTimeLabel', () {
+    test('renders a start-end range for multiday schedules', () {
+      final now = DateTime(2026, 6, 1, 8);
+
+      expect(
+        formatBoardItemTimeLabel(
+          BoardItemType.schedule,
+          startsAt: DateTime(2026, 6, 1, 9),
+          dueAt: DateTime(2026, 6, 3, 18),
+          now: now,
+        ),
+        '\uC624\uB298 09:00 - \uC218\uC694\uC77C 18:00',
+      );
+    });
+
+    test('keeps a reversed schedule end as the start label', () {
+      expect(
+        formatBoardItemTimeLabel(
+          BoardItemType.schedule,
+          startsAt: DateTime(2026, 6, 3, 9),
+          dueAt: DateTime(2026, 6, 1, 18),
+          now: DateTime(2026, 6, 1),
+        ),
+        '\uC218\uC694\uC77C 09:00',
+      );
     });
   });
 

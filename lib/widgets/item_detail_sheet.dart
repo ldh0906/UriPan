@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
-import '../services/friendly_date.dart';
+import '../services/board_item_time_label.dart';
 import '../theme/app_theme.dart';
 import 'board_item_card.dart';
 import 'comment_thread.dart';
@@ -199,20 +199,12 @@ class ItemDetailSheet extends StatelessWidget {
   }
 
   String? _dateLabel(BoardItem item) {
-    final value = item.type == BoardItemType.schedule
-        ? item.startsAt
-        : item.dueAt;
-    if (value == null) return null;
-    final local = value.toLocal();
-    final dateLabel =
-        '${local.year}.${local.month.toString().padLeft(2, '0')}.${local.day.toString().padLeft(2, '0')}';
-    final isMidnight = local.hour == 0 && local.minute == 0;
-    final absoluteLabel = isMidnight
-        ? dateLabel
-        : '$dateLabel ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-    final friendlyLabel = friendlyDayLabel(value);
-    if (friendlyLabel == null) return absoluteLabel;
-    return '$friendlyLabel \u00B7 $absoluteLabel';
+    return formatBoardItemTimeLabel(
+      item.type,
+      startsAt: item.startsAt,
+      dueAt: item.dueAt,
+      style: BoardItemTimeLabelStyle.detail,
+    );
   }
 }
 

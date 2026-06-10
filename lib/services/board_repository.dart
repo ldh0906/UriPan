@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/board_item.dart';
+import 'board_item_time_label.dart';
 
 abstract class BoardRepository {
   Future<List<BoardSummary>> loadBoards() async => const [];
@@ -448,20 +449,14 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
-    final value = type == BoardItemType.schedule ? startsAt : dueAt;
-    if (value == null) {
-      return type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298';
-    }
-
-    final local = value.toLocal();
-    if (type == BoardItemType.schedule) {
-      return '${_two(local.hour)}:${_two(local.minute)}';
-    }
-
-    return '${local.month}/${local.day}';
+    return formatBoardItemTimeLabel(
+          type,
+          startsAt: startsAt,
+          dueAt: dueAt,
+          style: BoardItemTimeLabelStyle.compact,
+        ) ??
+        (type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298');
   }
-
-  String _two(int value) => value.toString().padLeft(2, '0');
 
   void _updateBoardMemberCount(String boardId) {
     final index = _boards.indexWhere((board) => board.id == boardId);
@@ -1114,20 +1109,14 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
-    final value = type == BoardItemType.schedule ? startsAt : dueAt;
-    if (value == null) {
-      return type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298';
-    }
-
-    final local = value.toLocal();
-    if (type == BoardItemType.schedule) {
-      return '${_two(local.hour)}:${_two(local.minute)}';
-    }
-
-    return '${local.month}/${local.day}';
+    return formatBoardItemTimeLabel(
+          type,
+          startsAt: startsAt,
+          dueAt: dueAt,
+          style: BoardItemTimeLabelStyle.compact,
+        ) ??
+        (type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298');
   }
-
-  String _two(int value) => value.toString().padLeft(2, '0');
 
   String? _utcIsoString(DateTime? value) => value?.toUtc().toIso8601String();
 }
