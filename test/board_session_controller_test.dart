@@ -50,6 +50,22 @@ void main() {
     },
   );
 
+  test('completing load after dispose does not notify', () async {
+    final repository = _DelayedLoadRepository();
+    final controller = BoardSessionController(repository);
+    var notifications = 0;
+    controller.addListener(() => notifications += 1);
+
+    final loadFuture = controller.load();
+    expect(notifications, 1);
+
+    controller.dispose();
+    repository.boards.complete([_adminBoard]);
+
+    await loadFuture;
+    expect(notifications, 1);
+  });
+
   test(
     'reloads items from the repository after creating, completing, and deleting items',
     () async {
@@ -569,6 +585,28 @@ void main() {
     expect(controller.items.single.id, 'fresh');
     expect(repository.loadedItemBoardIds, ['board-1', 'board-1', 'board-2']);
   });
+}
+
+class _DelayedLoadRepository extends BoardRepository {
+  final boards = Completer<List<BoardSummary>>();
+
+  @override
+  Future<List<BoardSummary>> loadBoards() => boards.future;
+
+  @override
+  Future<UserProfile?> loadMyProfile() async {
+    return const UserProfile(
+      id: 'user-1',
+      displayName: 'Mina',
+      avatarColor: '#647D31',
+    );
+  }
+
+  @override
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async => const [];
+
+  @override
+  Future<List<BoardMember>> loadMembers(String boardId) async => const [];
 }
 
 const _adminBoard = BoardSummary(

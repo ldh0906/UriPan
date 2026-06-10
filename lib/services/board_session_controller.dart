@@ -17,6 +17,7 @@ class BoardSessionController extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   int _stateRequestId = 0;
+  bool _disposed = false;
 
   List<BoardSummary> get boards => _boards;
   List<BoardItem> get items => _items;
@@ -28,11 +29,18 @@ class BoardSessionController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get hasNoBoard => !_isLoading && _activeBoard == null;
 
+  @override
+  void dispose() {
+    _disposed = true;
+    _nextStateRequest();
+    super.dispose();
+  }
+
   Future<void> load({String? preferredBoardId}) async {
     final requestId = _nextStateRequest();
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final loadedBoards = await _repository.loadBoards();
@@ -62,7 +70,7 @@ class BoardSessionController extends ChangeNotifier {
     } finally {
       if (_isCurrentStateRequest(requestId)) {
         _isLoading = false;
-        notifyListeners();
+        _safeNotify();
       }
     }
   }
@@ -73,13 +81,13 @@ class BoardSessionController extends ChangeNotifier {
       _items = const [];
       _members = const [];
       _activeInvite = null;
-      notifyListeners();
+      _safeNotify();
       return;
     }
 
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final loadedItems = await _repository.loadBoardItems(boardId: board.id);
@@ -92,7 +100,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -221,7 +229,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.createItem(board.id, draft);
@@ -235,7 +243,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -243,7 +251,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.updateItem(itemId, draft);
@@ -257,7 +265,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -265,7 +273,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.completeTask(itemId, isDone);
@@ -279,7 +287,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -287,7 +295,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.confirmNotice(itemId, confirmed);
@@ -301,7 +309,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -309,7 +317,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.deleteItem(itemId);
@@ -323,7 +331,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -335,7 +343,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.addComment(itemId, body);
@@ -349,7 +357,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -357,7 +365,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _repository.deleteComment(commentId);
@@ -371,7 +379,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      if (_isCurrentStateRequest(requestId)) notifyListeners();
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
     }
   }
 
@@ -406,11 +414,17 @@ class BoardSessionController extends ChangeNotifier {
 
   int _nextStateRequest() => ++_stateRequestId;
 
-  bool _isCurrentStateRequest(int requestId) => requestId == _stateRequestId;
+  bool _isCurrentStateRequest(int requestId) {
+    return !_disposed && requestId == _stateRequestId;
+  }
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
 
   Future<void> _runAction(Future<void> Function() action) async {
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await action();
@@ -418,7 +432,7 @@ class BoardSessionController extends ChangeNotifier {
       _errorMessage = error.toString();
       rethrow;
     } finally {
-      notifyListeners();
+      _safeNotify();
     }
   }
 }
