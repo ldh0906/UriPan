@@ -178,7 +178,8 @@ const calendarWeekdayLabels = <String>['일', '월', '화', '수', '목', '금',
 
 /// Start of the calendar week (Sunday) containing [date], date-only.
 DateTime startOfCalendarWeek(DateTime date) {
-  final local = DateTime(date.year, date.month, date.day);
+  final localDate = date.toLocal();
+  final local = DateTime(localDate.year, localDate.month, localDate.day);
   // DateTime.weekday: Mon=1..Sun=7; `% 7` maps Sunday to 0 so weeks start Sunday.
   return local.subtract(Duration(days: local.weekday % 7));
 }
@@ -213,6 +214,7 @@ class TodayBoardScreen extends StatefulWidget {
     this.onAddItem,
     this.activeInvite,
     this.onCreateInvite,
+    this.onOpenMembers,
     this.onOpenSettings,
     this.onRegenerateInvite,
     this.onRevokeInvite,
@@ -245,6 +247,7 @@ class TodayBoardScreen extends StatefulWidget {
   onAddItem;
   final BoardInvite? activeInvite;
   final VoidCallback? onCreateInvite;
+  final VoidCallback? onOpenMembers;
   final VoidCallback? onOpenSettings;
   final VoidCallback? onRegenerateInvite;
   final VoidCallback? onRevokeInvite;
@@ -908,6 +911,9 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
   }
 
   void _selectTab(BoardTab tab) {
+    if (tab == BoardTab.members) {
+      widget.onOpenMembers?.call();
+    }
     if (widget.onTabSelected != null) {
       widget.onTabSelected!(tab);
     } else {

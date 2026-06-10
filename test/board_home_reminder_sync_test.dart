@@ -48,6 +48,38 @@ void main() {
     expect(repository.leftBoardIds, ['board-1']);
     expect(scheduler.syncCalls.last, isEmpty);
   });
+
+  testWidgets('syncs empty reminder plan before logout', (tester) async {
+    final repository = _LeaveBoardRepository();
+    final scheduler = _RecordingReminderScheduler();
+    final client = SupabaseClient(
+      'https://example.supabase.co',
+      'test-anon-key',
+    )..auth.stopAutoRefresh();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BoardHomeScreen(
+          client: client,
+          repository: repository,
+          scheduler: scheduler,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(scheduler.syncCalls, isNotEmpty);
+    expect(scheduler.syncCalls.last, isNotEmpty);
+
+    await tester.tap(find.byTooltip('\uC124\uC815'));
+    await tester.pumpAndSettle();
+    final signOut = find.text('\uB85C\uADF8\uC544\uC6C3', skipOffstage: false);
+    await tester.ensureVisible(signOut);
+    await tester.tap(signOut);
+    await tester.pump();
+
+    expect(scheduler.syncCalls.last, isEmpty);
+  });
 }
 
 class _LeaveBoardRepository extends BoardRepository {

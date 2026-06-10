@@ -109,6 +109,31 @@ void main() {
       expect(defaultMembers.first.effectiveName, '\uC9C0\uC6B0');
       expect(secondMembers.first.effectiveName, '\uB2E4\uB978\uC9C0\uC6B0');
     });
+
+    test('members are scoped to each board', () async {
+      final repository = MemoryBoardRepository([]);
+      final second = await repository.createBoard('Second', 4);
+
+      await repository.removeMember(second.id, 'memory-user-1');
+
+      final defaultMembers = await repository.loadMembers('memory-board');
+      final secondMembers = await repository.loadMembers(second.id);
+      final boards = await repository.loadBoards();
+
+      expect(defaultMembers.map((member) => member.userId), [
+        'memory-user-1',
+        'memory-user-2',
+      ]);
+      expect(secondMembers, isEmpty);
+      expect(
+        boards.firstWhere((board) => board.id == second.id).memberCount,
+        0,
+      );
+      expect(
+        boards.firstWhere((board) => board.id == 'memory-board').memberCount,
+        2,
+      );
+    });
   });
 }
 

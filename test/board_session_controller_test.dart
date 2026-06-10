@@ -50,6 +50,22 @@ void main() {
     },
   );
 
+  test('completing load after dispose does not notify', () async {
+    final repository = _DelayedLoadRepository();
+    final controller = BoardSessionController(repository);
+    var notifications = 0;
+    controller.addListener(() => notifications += 1);
+
+    final loadFuture = controller.load();
+    expect(notifications, 1);
+
+    controller.dispose();
+    repository.boards.complete([_adminBoard]);
+
+    await loadFuture;
+    expect(notifications, 1);
+  });
+
   test(
     'reloads items from the repository after creating, completing, and deleting items',
     () async {
@@ -160,6 +176,47 @@ void main() {
     expect(reloaded.myProfile?.avatarColor, '#4B7BE7');
   });
 
+  test('updateMyProfile reloads active board member and item names', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      membersByBoard: {
+        'board-1': [
+          BoardMember(
+            userId: 'user-1',
+            displayName: 'Mina',
+            avatarColor: '#647D31',
+            role: 'admin',
+            joinedAt: DateTime(2026, 6),
+          ),
+        ],
+      },
+      itemsByBoard: {
+        'board-1': [
+          const BoardItem(
+            id: 'task-1',
+            type: BoardItemType.task,
+            title: 'Task',
+            detail: '',
+            owner: 'Mina',
+            createdById: 'user-1',
+            assignedToId: 'user-1',
+            assigneeName: 'Mina',
+            timeLabel: 'Today',
+          ),
+        ],
+      },
+    );
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.updateMyProfile(displayName: 'Nari');
+
+    expect(controller.members.single.displayName, 'Nari');
+    expect(controller.items.single.owner, 'Nari');
+    expect(controller.items.single.assigneeName, 'Nari');
+    expect(repository.loadedItemBoardIds, ['board-1', 'board-1']);
+  });
+
   test(
     'setBoardNickname reloads active board members and item names',
     () async {
@@ -225,6 +282,29 @@ void main() {
     await controller.load();
 
     expect(controller.activeInvite?.code, 'URIP-0001');
+  });
+
+  test('refreshActiveInvite reloads a stale admin invite', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      itemsByBoard: {'board-1': []},
+      activeInvite: BoardInvite(
+        id: 'invite-1',
+        code: 'URIP-OLD',
+        expiresAt: DateTime(2026, 6, 8),
+      ),
+    );
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    repository.activeInvite = BoardInvite(
+      id: 'invite-2',
+      code: 'URIP-NEW',
+      expiresAt: DateTime(2026, 6, 9),
+    );
+    await controller.refreshActiveInvite();
+
+    expect(controller.activeInvite?.code, 'URIP-NEW');
   });
 
   test(
@@ -507,6 +587,28 @@ void main() {
   });
 }
 
+class _DelayedLoadRepository extends BoardRepository {
+  final boards = Completer<List<BoardSummary>>();
+
+  @override
+  Future<List<BoardSummary>> loadBoards() => boards.future;
+
+  @override
+  Future<UserProfile?> loadMyProfile() async {
+    return const UserProfile(
+      id: 'user-1',
+      displayName: 'Mina',
+      avatarColor: '#647D31',
+    );
+  }
+
+  @override
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async => const [];
+
+  @override
+  Future<List<BoardMember>> loadMembers(String boardId) async => const [];
+}
+
 const _adminBoard = BoardSummary(
   id: 'board-1',
   name: 'Home',
@@ -566,6 +668,36 @@ class _FakeBoardRepository implements BoardRepository {
       avatarColor: avatarColor ?? old.avatarColor,
     );
     myProfile = updated;
+    if (displayName != null) {
+      for (final entry in membersByBoard.entries) {
+        membersByBoard[entry.key] = entry.value
+            .map(
+              (member) => member.userId == updated.id
+                  ? BoardMember(
+                      userId: member.userId,
+                      displayName: displayName,
+                      avatarColor: avatarColor ?? member.avatarColor,
+                      role: member.role,
+                      joinedAt: member.joinedAt,
+                      nickname: member.nickname,
+                    )
+                  : member,
+            )
+            .toList();
+      }
+      for (final entry in itemsByBoard.entries) {
+        itemsByBoard[entry.key] = entry.value
+            .map(
+              (item) => item.copyWith(
+                owner: item.createdById == updated.id ? displayName : null,
+                assigneeName: item.assignedToId == updated.id
+                    ? displayName
+                    : null,
+              ),
+            )
+            .toList();
+      }
+    }
     return updated;
   }
 

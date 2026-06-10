@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/board_item.dart';
+import 'board_item_time_label.dart';
 
 abstract class BoardRepository {
   Future<List<BoardSummary>> loadBoards() async => const [];
@@ -106,22 +107,24 @@ class MemoryBoardRepository implements BoardRepository {
       memberCount: 2,
     ),
   ];
-  final List<BoardMember> _members = [
-    BoardMember(
-      userId: 'memory-user-1',
-      displayName: '\uC9C0\uC6B0',
-      avatarColor: '#647D31',
-      role: 'admin',
-      joinedAt: DateTime(2026, 6),
-    ),
-    BoardMember(
-      userId: 'memory-user-2',
-      displayName: '\uBBFC\uC900',
-      avatarColor: '#E7A14B',
-      role: 'member',
-      joinedAt: DateTime(2026, 6, 1, 1),
-    ),
-  ];
+  final Map<String, List<BoardMember>> _membersByBoardId = {
+    'memory-board': [
+      BoardMember(
+        userId: 'memory-user-1',
+        displayName: '\uC9C0\uC6B0',
+        avatarColor: '#647D31',
+        role: 'admin',
+        joinedAt: DateTime(2026, 6),
+      ),
+      BoardMember(
+        userId: 'memory-user-2',
+        displayName: '\uBBFC\uC900',
+        avatarColor: '#E7A14B',
+        role: 'member',
+        joinedAt: DateTime(2026, 6, 1, 1),
+      ),
+    ],
+  };
   UserProfile _myProfile = const UserProfile(
     id: 'memory-user-1',
     displayName: '\uC9C0\uC6B0',
@@ -144,6 +147,7 @@ class MemoryBoardRepository implements BoardRepository {
       displayName: displayName ?? _myProfile.displayName,
       avatarColor: avatarColor ?? _myProfile.avatarColor,
     );
+    _updateMemoryProfileMember();
     _refreshMemoryNames();
     return _myProfile;
   }
@@ -151,8 +155,9 @@ class MemoryBoardRepository implements BoardRepository {
   @override
   Future<List<BoardMember>> loadMembers(String boardId) async {
     final nicknames = _nicknamesByBoard[boardId] ?? const {};
+    final members = _membersByBoardId[boardId] ?? const [];
     return List.unmodifiable(
-      _members.map((member) {
+      members.map((member) {
         return BoardMember(
           userId: member.userId,
           displayName: member.displayName,
@@ -175,6 +180,15 @@ class MemoryBoardRepository implements BoardRepository {
       memberCount: 1,
     );
     _boards.add(board);
+    _membersByBoardId[board.id] = [
+      BoardMember(
+        userId: _myProfile.id,
+        displayName: _myProfile.displayName,
+        avatarColor: _myProfile.avatarColor,
+        role: 'admin',
+        joinedAt: DateTime.now(),
+      ),
+    ];
     return board;
   }
 
@@ -232,6 +246,7 @@ class MemoryBoardRepository implements BoardRepository {
     _boards.removeWhere((board) => board.id == boardId);
     _activeInvitesByBoard.remove(boardId);
     _nicknamesByBoard.remove(boardId);
+    _membersByBoardId.remove(boardId);
   }
 
   @override
@@ -255,10 +270,12 @@ class MemoryBoardRepository implements BoardRepository {
     String userId,
     String role,
   ) async {
-    final index = _members.indexWhere((member) => member.userId == userId);
+    final members = _membersByBoardId[boardId];
+    if (members == null) throw StateError('Board not found');
+    final index = members.indexWhere((member) => member.userId == userId);
     if (index < 0) throw StateError('Member not found');
-    final old = _members[index];
-    _members[index] = BoardMember(
+    final old = members[index];
+    members[index] = BoardMember(
       userId: old.userId,
       displayName: old.displayName,
       avatarColor: old.avatarColor,
@@ -270,9 +287,11 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<void> removeMember(String boardId, String userId) async {
-    final before = _members.length;
-    _members.removeWhere((member) => member.userId == userId);
-    if (_members.length == before) throw StateError('Member not found');
+    final members = _membersByBoardId[boardId];
+    if (members == null) throw StateError('Board not found');
+    final before = members.length;
+    members.removeWhere((member) => member.userId == userId);
+    if (members.length == before) throw StateError('Member not found');
     _updateBoardMemberCount(boardId);
   }
 
@@ -448,20 +467,14 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
-    final value = type == BoardItemType.schedule ? startsAt : dueAt;
-    if (value == null) {
-      return type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298';
-    }
-
-    final local = value.toLocal();
-    if (type == BoardItemType.schedule) {
-      return '${_two(local.hour)}:${_two(local.minute)}';
-    }
-
-    return '${local.month}/${local.day}';
+    return formatBoardItemTimeLabel(
+          type,
+          startsAt: startsAt,
+          dueAt: dueAt,
+          style: BoardItemTimeLabelStyle.compact,
+        ) ??
+        (type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298');
   }
-
-  String _two(int value) => value.toString().padLeft(2, '0');
 
   void _updateBoardMemberCount(String boardId) {
     final index = _boards.indexWhere((board) => board.id == boardId);
@@ -472,7 +485,7 @@ class MemoryBoardRepository implements BoardRepository {
       name: old.name,
       role: old.role,
       maxMembers: old.maxMembers,
-      memberCount: _members.length,
+      memberCount: _membersByBoardId[boardId]?.length ?? 0,
     );
   }
 
@@ -487,10 +500,29 @@ class MemoryBoardRepository implements BoardRepository {
     final nickname = _nicknamesByBoard[boardId]?[userId]?.trim();
     if (nickname != null && nickname.isNotEmpty) return nickname;
     if (userId == _myProfile.id) return _myProfile.displayName;
-    for (final member in _members) {
+    for (final member in _membersByBoardId[boardId] ?? const <BoardMember>[]) {
       if (member.userId == userId) return member.displayName;
     }
     return userId;
+  }
+
+  void _updateMemoryProfileMember() {
+    for (final entry in _membersByBoardId.entries) {
+      final members = entry.value;
+      final index = members.indexWhere(
+        (member) => member.userId == _myProfile.id,
+      );
+      if (index < 0) continue;
+      final old = members[index];
+      members[index] = BoardMember(
+        userId: old.userId,
+        displayName: _myProfile.displayName,
+        avatarColor: _myProfile.avatarColor,
+        role: old.role,
+        joinedAt: old.joinedAt,
+        nickname: old.nickname,
+      );
+    }
   }
 
   void _refreshMemoryNames() {
@@ -1114,20 +1146,14 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   String _timeLabel(BoardItemType type, DateTime? startsAt, DateTime? dueAt) {
-    final value = type == BoardItemType.schedule ? startsAt : dueAt;
-    if (value == null) {
-      return type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298';
-    }
-
-    final local = value.toLocal();
-    if (type == BoardItemType.schedule) {
-      return '${_two(local.hour)}:${_two(local.minute)}';
-    }
-
-    return '${local.month}/${local.day}';
+    return formatBoardItemTimeLabel(
+          type,
+          startsAt: startsAt,
+          dueAt: dueAt,
+          style: BoardItemTimeLabelStyle.compact,
+        ) ??
+        (type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298');
   }
-
-  String _two(int value) => value.toString().padLeft(2, '0');
 
   String? _utcIsoString(DateTime? value) => value?.toUtc().toIso8601String();
 }

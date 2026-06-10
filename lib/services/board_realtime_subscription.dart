@@ -13,6 +13,7 @@ class BoardRealtimeSubscription {
     required BoardSummary? board,
     required void Function() onItemsChanged,
     required void Function() onMembershipChanged,
+    required bool Function(String itemId) isCurrentBoardItem,
   }) {
     if (board == null) {
       clear();
@@ -41,13 +42,29 @@ class BoardRealtimeSubscription {
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'item_confirmations',
-          callback: (_) => onItemsChanged(),
+          callback: (payload) {
+            if (shouldRefreshItemsForItemChildChange(
+              eventType: payload.eventType,
+              newRecord: payload.newRecord,
+              isCurrentBoardItem: isCurrentBoardItem,
+            )) {
+              onItemsChanged();
+            }
+          },
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'item_comments',
-          callback: (_) => onItemsChanged(),
+          callback: (payload) {
+            if (shouldRefreshItemsForItemChildChange(
+              eventType: payload.eventType,
+              newRecord: payload.newRecord,
+              isCurrentBoardItem: isCurrentBoardItem,
+            )) {
+              onItemsChanged();
+            }
+          },
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
@@ -71,4 +88,15 @@ class BoardRealtimeSubscription {
     _channel = null;
     _subscribedBoardId = null;
   }
+}
+
+bool shouldRefreshItemsForItemChildChange({
+  required PostgresChangeEvent eventType,
+  required Map<String, dynamic> newRecord,
+  required bool Function(String itemId) isCurrentBoardItem,
+}) {
+  if (eventType == PostgresChangeEvent.delete) return true;
+
+  final itemId = newRecord['item_id'];
+  return itemId is String && isCurrentBoardItem(itemId);
 }

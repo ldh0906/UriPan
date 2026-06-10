@@ -751,6 +751,32 @@ void main() {
     },
   );
 
+  testWidgets('BoardHomeScreen maps trigger database errors', (tester) async {
+    final cases = {
+      'invite_not_found':
+          '\uCD08\uB300\uCF54\uB4DC\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.',
+      'task_not_found_or_no_access':
+          '\uD56D\uBAA9\uC744 \uCC3E\uC744 \uC218 \uC5C6\uAC70\uB098 \uAD8C\uD55C\uC774 \uC5C6\uC5B4\uC694.',
+      'notice_confirmation_required':
+          '\uD655\uC778\uC774 \uD544\uC694\uD55C \uACF5\uC9C0\uC608\uC694.',
+    };
+
+    for (final entry in cases.entries) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BoardHomeScreen(
+            key: ValueKey(entry.key),
+            client: _testSupabaseClient(),
+            repository: _FailingBoardRepository(entry.key),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(entry.value), findsOneWidget);
+    }
+  });
+
   testWidgets('Empty board item section renders an EmptyState message', (
     tester,
   ) async {
@@ -1138,6 +1164,34 @@ void main() {
     expect(find.text('URIP-2026'), findsOneWidget);
     expect(find.text('\uBCF5\uC0AC'), findsOneWidget);
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
+  });
+
+  testWidgets('Opening the members tab requests an invite refresh', (
+    tester,
+  ) async {
+    var openedMembers = 0;
+    BoardTab selectedTab = BoardTab.today;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            return TodayBoardScreen(
+              items: const [],
+              selectedTab: selectedTab,
+              onTabSelected: (tab) => setState(() => selectedTab = tab),
+              onOpenMembers: () => openedMembers += 1,
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uAC00\uC871'));
+    await tester.pumpAndSettle();
+
+    expect(openedMembers, 1);
+    expect(selectedTab, BoardTab.members);
   });
 
   testWidgets('Calendar tab shows schedules and tasks for the selected day', (
@@ -1634,6 +1688,26 @@ void main() {
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
   });
 
+  test('selectableDatePickerRange includes an old existing date', () {
+    final range = selectableDatePickerRange(
+      DateTime(2020, 1, 2, 9),
+      now: DateTime(2026, 6, 10, 12),
+    );
+
+    expect(range.start, DateTime(2020, 1, 2));
+    expect(range.end, DateTime(2029, 6, 9));
+  });
+
+  test('selectableDatePickerRange includes a far future existing date', () {
+    final range = selectableDatePickerRange(
+      DateTime(2035, 12, 25, 18),
+      now: DateTime(2026, 6, 10, 12),
+    );
+
+    expect(range.start, DateTime(2025, 6, 10));
+    expect(range.end, DateTime(2035, 12, 25));
+  });
+
   testWidgets('Add item sheet exposes optional end controls for schedules', (
     tester,
   ) async {
@@ -1708,6 +1782,105 @@ void main() {
     expect(submittedDraft?.title, 'Buy milk');
     expect(submittedDraft?.assignedTo, 'user-2');
   });
+
+  testWidgets('Edit item sheet shows and preserves a departed assignee', (
+    tester,
+  ) async {
+    BoardItemDraft? submittedDraft;
+    final observer = _ResultObserver<BoardItemDraft>(
+      onPopped: (result) => submittedDraft = result,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [observer],
+        home: Scaffold(
+          body: AddItemSheet(
+            initialItem: BoardItem(
+              id: 'task-1',
+              type: BoardItemType.task,
+              title: 'Existing task',
+              detail: '',
+              owner: 'Us',
+              assignedToId: 'departed-user',
+              timeLabel: 'Today',
+              dueAt: DateTime.now().add(const Duration(days: 1)),
+            ),
+            members: [
+              BoardMember(
+                userId: 'user-1',
+                displayName: 'Mina',
+                avatarColor: '#647D31',
+                role: 'admin',
+                joinedAt: DateTime(2026, 6),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('(\uD0C8\uD1F4\uD55C \uBA64\uBC84)'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uC800\uC7A5'),
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+    await tester.pumpAndSettle();
+
+    expect(submittedDraft?.assignedTo, 'departed-user');
+  });
+
+  testWidgets(
+    'Edit item sheet clears a departed assignee when none is chosen',
+    (tester) async {
+      BoardItemDraft? submittedDraft;
+      final observer = _ResultObserver<BoardItemDraft>(
+        onPopped: (result) => submittedDraft = result,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorObservers: [observer],
+          home: Scaffold(
+            body: AddItemSheet(
+              initialItem: BoardItem(
+                id: 'task-1',
+                type: BoardItemType.task,
+                title: 'Existing task',
+                detail: '',
+                owner: 'Us',
+                assignedToId: 'departed-user',
+                timeLabel: 'Today',
+                dueAt: DateTime.now().add(const Duration(days: 1)),
+              ),
+              members: [
+                BoardMember(
+                  userId: 'user-1',
+                  displayName: 'Mina',
+                  avatarColor: '#647D31',
+                  role: 'admin',
+                  joinedAt: DateTime(2026, 6),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, '\uC800\uC7A5'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+      await tester.pumpAndSettle();
+
+      expect(submittedDraft?.assignedTo, isNull);
+    },
+  );
 
   testWidgets('Add item sheet rejects a past task datetime in create mode', (
     tester,
@@ -2582,6 +2755,20 @@ class _FakeBoardRepository extends BoardRepository {
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     return items;
   }
+}
+
+class _FailingBoardRepository extends BoardRepository {
+  _FailingBoardRepository(this.message);
+
+  final String message;
+
+  @override
+  Future<List<BoardSummary>> loadBoards() async {
+    throw PostgrestException(message: message);
+  }
+
+  @override
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async => const [];
 }
 
 class _RecordingReminderScheduler implements ReminderScheduler {

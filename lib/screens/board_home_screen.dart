@@ -75,6 +75,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       onMembershipChanged: () {
         if (mounted) unawaited(_controller.handleBoardMembershipChanged());
       },
+      isCurrentBoardItem: (itemId) {
+        return _controller.items.any((item) => item.id == itemId);
+      },
     );
     unawaited(_syncRemindersIfNeeded());
     if (mounted) setState(() {});
@@ -151,6 +154,15 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _refreshActiveInvite() async {
+    final board = _controller.activeBoard;
+    if (board == null || !board.isAdmin) return;
+
+    await _runAction(() async {
+      await _controller.refreshActiveInvite();
+    });
+  }
+
   Future<void> _leaveBoard() async {
     final board = _controller.activeBoard;
     if (board == null) return;
@@ -158,6 +170,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     await _runAction(() async {
       await _controller.leaveBoard();
     });
+  }
+
+  Future<void> _signOut() async {
+    _lastReminderPlanSignature = null;
+    await _guardSchedulerCall(() => widget.scheduler.sync(const []));
+    await widget.client.auth.signOut();
   }
 
   void _openSettings() {
@@ -188,7 +206,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
           : null,
       onSignOut: () {
         Navigator.pop(context);
-        unawaited(widget.client.auth.signOut());
+        unawaited(_signOut());
       },
     );
   }
@@ -534,6 +552,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (message.contains('revoked_invite')) {
       return '\uCD08\uB300\uCF54\uB4DC\uAC00 \uCDE8\uC18C\uB410\uC5B4\uC694.';
     }
+    if (message.contains('invite_not_found')) {
+      return '\uCD08\uB300\uCF54\uB4DC\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
+    }
     if (message.contains('already_joined')) {
       return '\uC774\uBBF8 \uCC38\uAC00\uD55C \uBCF4\uB4DC\uC608\uC694.';
     }
@@ -560,6 +581,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     }
     if (message.contains('nickname_too_long')) {
       return '\uBCC4\uBA85\uC740 40\uC790 \uC774\uD558\uC5EC\uC57C \uD574\uC694.';
+    }
+    if (message.contains('task_not_found_or_no_access')) {
+      return '\uD56D\uBAA9\uC744 \uCC3E\uC744 \uC218 \uC5C6\uAC70\uB098 \uAD8C\uD55C\uC774 \uC5C6\uC5B4\uC694.';
+    }
+    if (message.contains('notice_confirmation_required')) {
+      return '\uD655\uC778\uC774 \uD544\uC694\uD55C \uACF5\uC9C0\uC608\uC694.';
     }
     return message;
   }
@@ -605,7 +632,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
                 _initialLoad = _controller.load();
               });
             },
-            onSignOut: () => widget.client.auth.signOut(),
+            onSignOut: _signOut,
           );
         }
 
@@ -615,7 +642,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
             message: _message,
             onCreateBoard: _createBoard,
             onJoinBoard: _joinBoard,
-            onSignOut: () => widget.client.auth.signOut(),
+            onSignOut: _signOut,
           );
         }
 
@@ -632,6 +659,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onAddItem: _addItem,
               activeInvite: _controller.activeInvite,
               onCreateInvite: _createInvite,
+              onOpenMembers: () => unawaited(_refreshActiveInvite()),
               onOpenSettings: _openSettings,
               onRegenerateInvite: _regenerateInvite,
               onRevokeInvite: _revokeInvite,

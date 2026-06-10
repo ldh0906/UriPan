@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
-import '../services/friendly_date.dart';
+import '../services/board_item_time_label.dart';
 import '../theme/app_theme.dart';
 import 'common_widgets.dart';
 
@@ -123,16 +123,13 @@ class BoardItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metaBits = <Widget>[];
-    final when = item.startsAt ?? item.dueAt;
-    if (item.type != BoardItemType.notice && when != null) {
-      final localWhen = when.toLocal();
-      final day = friendlyDayLabel(when) ?? '';
-      final time = localWhen.hour == 0 && localWhen.minute == 0
-          ? ''
-          : '${localWhen.hour.toString().padLeft(2, '0')}:'
-                '${localWhen.minute.toString().padLeft(2, '0')}';
-      final label = [day, time].where((value) => value.isNotEmpty).join(' ');
-      if (label.isNotEmpty) {
+    if (item.type != BoardItemType.notice) {
+      final label = formatBoardItemTimeLabel(
+        item.type,
+        startsAt: item.startsAt,
+        dueAt: item.dueAt,
+      );
+      if (label != null && label.isNotEmpty) {
         metaBits.add(
           _MetaBit(
             icon: item.type == BoardItemType.task

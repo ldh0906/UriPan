@@ -31,6 +31,25 @@ Future<BoardItemDraft?> showEditItemSheet(
   );
 }
 
+DateTimeRange selectableDatePickerRange(DateTime initialDate, {DateTime? now}) {
+  final today = _dateOnly(now ?? DateTime.now());
+  final defaultFirstDate = today.subtract(const Duration(days: 365));
+  final defaultLastDate = today.add(const Duration(days: 365 * 3));
+  final initialDay = _dateOnly(initialDate);
+
+  return DateTimeRange(
+    start: initialDay.isBefore(defaultFirstDate)
+        ? initialDay
+        : defaultFirstDate,
+    end: initialDay.isAfter(defaultLastDate) ? initialDay : defaultLastDate,
+  );
+}
+
+DateTime _dateOnly(DateTime value) {
+  final local = value.toLocal();
+  return DateTime(local.year, local.month, local.day);
+}
+
 class CreateBoardResult {
   const CreateBoardResult(this.name, this.maxMembers);
 
@@ -275,7 +294,8 @@ class _AddItemSheetState extends State<AddItemSheet> {
                 ],
                 const SizedBox(height: 12),
               ],
-              if (_type == BoardItemType.task && widget.members.isNotEmpty) ...[
+              if (_type == BoardItemType.task &&
+                  (widget.members.isNotEmpty || _assignedToId != null)) ...[
                 DropdownButtonFormField<String>(
                   initialValue: _assigneeDropdownValue,
                   decoration: const InputDecoration(
@@ -292,6 +312,11 @@ class _AddItemSheetState extends State<AddItemSheet> {
                         child: Text(member.effectiveName),
                       ),
                     ),
+                    if (_hasMissingAssignee)
+                      DropdownMenuItem(
+                        value: _assignedToId,
+                        child: const Text('(\uD0C8\uD1F4\uD55C \uBA64\uBC84)'),
+                      ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -446,9 +471,13 @@ class _AddItemSheetState extends State<AddItemSheet> {
   String get _assigneeDropdownValue {
     final assignedToId = _assignedToId;
     if (assignedToId == null) return '';
-    return widget.members.any((member) => member.userId == assignedToId)
-        ? assignedToId
-        : '';
+    return assignedToId;
+  }
+
+  bool get _hasMissingAssignee {
+    final assignedToId = _assignedToId;
+    return assignedToId != null &&
+        !widget.members.any((member) => member.userId == assignedToId);
   }
 
   void _removeTag(String tag) {
@@ -461,11 +490,12 @@ class _AddItemSheetState extends State<AddItemSheet> {
   }
 
   Future<void> _pickDate() async {
+    final range = selectableDatePickerRange(_selectedDate);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+      initialDate: _dateOnly(_selectedDate),
+      firstDate: range.start,
+      lastDate: range.end,
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -493,11 +523,12 @@ class _AddItemSheetState extends State<AddItemSheet> {
   }
 
   Future<void> _pickEndDate() async {
+    final range = selectableDatePickerRange(_endDate);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+      initialDate: _dateOnly(_endDate),
+      firstDate: range.start,
+      lastDate: range.end,
     );
     if (picked == null || !mounted) return;
     setState(() {
