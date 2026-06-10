@@ -1763,6 +1763,105 @@ void main() {
     expect(submittedDraft?.assignedTo, 'user-2');
   });
 
+  testWidgets('Edit item sheet shows and preserves a departed assignee', (
+    tester,
+  ) async {
+    BoardItemDraft? submittedDraft;
+    final observer = _ResultObserver<BoardItemDraft>(
+      onPopped: (result) => submittedDraft = result,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: [observer],
+        home: Scaffold(
+          body: AddItemSheet(
+            initialItem: BoardItem(
+              id: 'task-1',
+              type: BoardItemType.task,
+              title: 'Existing task',
+              detail: '',
+              owner: 'Us',
+              assignedToId: 'departed-user',
+              timeLabel: 'Today',
+              dueAt: DateTime.now().add(const Duration(days: 1)),
+            ),
+            members: [
+              BoardMember(
+                userId: 'user-1',
+                displayName: 'Mina',
+                avatarColor: '#647D31',
+                role: 'admin',
+                joinedAt: DateTime(2026, 6),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('(\uD0C8\uD1F4\uD55C \uBA64\uBC84)'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uC800\uC7A5'),
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+    await tester.pumpAndSettle();
+
+    expect(submittedDraft?.assignedTo, 'departed-user');
+  });
+
+  testWidgets(
+    'Edit item sheet clears a departed assignee when none is chosen',
+    (tester) async {
+      BoardItemDraft? submittedDraft;
+      final observer = _ResultObserver<BoardItemDraft>(
+        onPopped: (result) => submittedDraft = result,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorObservers: [observer],
+          home: Scaffold(
+            body: AddItemSheet(
+              initialItem: BoardItem(
+                id: 'task-1',
+                type: BoardItemType.task,
+                title: 'Existing task',
+                detail: '',
+                owner: 'Us',
+                assignedToId: 'departed-user',
+                timeLabel: 'Today',
+                dueAt: DateTime.now().add(const Duration(days: 1)),
+              ),
+              members: [
+                BoardMember(
+                  userId: 'user-1',
+                  displayName: 'Mina',
+                  avatarColor: '#647D31',
+                  role: 'admin',
+                  joinedAt: DateTime(2026, 6),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, '\uC800\uC7A5'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, '\uC800\uC7A5'));
+      await tester.pumpAndSettle();
+
+      expect(submittedDraft?.assignedTo, isNull);
+    },
+  );
+
   testWidgets('Add item sheet rejects a past task datetime in create mode', (
     tester,
   ) async {

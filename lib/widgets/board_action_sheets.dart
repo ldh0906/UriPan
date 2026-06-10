@@ -275,7 +275,8 @@ class _AddItemSheetState extends State<AddItemSheet> {
                 ],
                 const SizedBox(height: 12),
               ],
-              if (_type == BoardItemType.task && widget.members.isNotEmpty) ...[
+              if (_type == BoardItemType.task &&
+                  (widget.members.isNotEmpty || _assignedToId != null)) ...[
                 DropdownButtonFormField<String>(
                   initialValue: _assigneeDropdownValue,
                   decoration: const InputDecoration(
@@ -292,6 +293,11 @@ class _AddItemSheetState extends State<AddItemSheet> {
                         child: Text(member.effectiveName),
                       ),
                     ),
+                    if (_hasMissingAssignee)
+                      DropdownMenuItem(
+                        value: _assignedToId,
+                        child: const Text('(\uD0C8\uD1F4\uD55C \uBA64\uBC84)'),
+                      ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -446,9 +452,13 @@ class _AddItemSheetState extends State<AddItemSheet> {
   String get _assigneeDropdownValue {
     final assignedToId = _assignedToId;
     if (assignedToId == null) return '';
-    return widget.members.any((member) => member.userId == assignedToId)
-        ? assignedToId
-        : '';
+    return assignedToId;
+  }
+
+  bool get _hasMissingAssignee {
+    final assignedToId = _assignedToId;
+    return assignedToId != null &&
+        !widget.members.any((member) => member.userId == assignedToId);
   }
 
   void _removeTag(String tag) {
