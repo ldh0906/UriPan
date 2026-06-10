@@ -160,6 +160,47 @@ void main() {
     expect(reloaded.myProfile?.avatarColor, '#4B7BE7');
   });
 
+  test('updateMyProfile reloads active board member and item names', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      membersByBoard: {
+        'board-1': [
+          BoardMember(
+            userId: 'user-1',
+            displayName: 'Mina',
+            avatarColor: '#647D31',
+            role: 'admin',
+            joinedAt: DateTime(2026, 6),
+          ),
+        ],
+      },
+      itemsByBoard: {
+        'board-1': [
+          const BoardItem(
+            id: 'task-1',
+            type: BoardItemType.task,
+            title: 'Task',
+            detail: '',
+            owner: 'Mina',
+            createdById: 'user-1',
+            assignedToId: 'user-1',
+            assigneeName: 'Mina',
+            timeLabel: 'Today',
+          ),
+        ],
+      },
+    );
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    await controller.updateMyProfile(displayName: 'Nari');
+
+    expect(controller.members.single.displayName, 'Nari');
+    expect(controller.items.single.owner, 'Nari');
+    expect(controller.items.single.assigneeName, 'Nari');
+    expect(repository.loadedItemBoardIds, ['board-1', 'board-1']);
+  });
+
   test(
     'setBoardNickname reloads active board members and item names',
     () async {
@@ -566,6 +607,36 @@ class _FakeBoardRepository implements BoardRepository {
       avatarColor: avatarColor ?? old.avatarColor,
     );
     myProfile = updated;
+    if (displayName != null) {
+      for (final entry in membersByBoard.entries) {
+        membersByBoard[entry.key] = entry.value
+            .map(
+              (member) => member.userId == updated.id
+                  ? BoardMember(
+                      userId: member.userId,
+                      displayName: displayName,
+                      avatarColor: avatarColor ?? member.avatarColor,
+                      role: member.role,
+                      joinedAt: member.joinedAt,
+                      nickname: member.nickname,
+                    )
+                  : member,
+            )
+            .toList();
+      }
+      for (final entry in itemsByBoard.entries) {
+        itemsByBoard[entry.key] = entry.value
+            .map(
+              (item) => item.copyWith(
+                owner: item.createdById == updated.id ? displayName : null,
+                assigneeName: item.assignedToId == updated.id
+                    ? displayName
+                    : null,
+              ),
+            )
+            .toList();
+      }
+    }
     return updated;
   }
 

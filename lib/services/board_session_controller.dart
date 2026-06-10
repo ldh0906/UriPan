@@ -193,10 +193,14 @@ class BoardSessionController extends ChangeNotifier {
     String? avatarColor,
   }) async {
     await _runAction(() async {
+      final board = _activeBoard;
       _myProfile = await _repository.updateMyProfile(
         displayName: displayName,
         avatarColor: avatarColor,
       );
+      if (board != null) {
+        await load(preferredBoardId: board.id);
+      }
     });
   }
 
