@@ -148,6 +148,44 @@ void main() {
       expect(() => repository.deleteItem('item-1'), throwsStateError);
     });
   });
+
+  group('SupabaseBoardRepository snapshot display names', () {
+    test('uses live name before left-member snapshot label', () {
+      expect(
+        resolveBoardDisplayName(
+          userId: 'user-2',
+          liveNames: {'user-2': '현재 이름'},
+          snapshotName: '이전 이름',
+          fallback: '???',
+        ),
+        '현재 이름',
+      );
+    });
+
+    test('uses left-member snapshot label when live name is missing', () {
+      expect(
+        resolveBoardDisplayName(
+          userId: 'user-2',
+          liveNames: const {},
+          snapshotName: '탈퇴자',
+          fallback: '???',
+        ),
+        '탈퇴자 (\uB098\uAC10)',
+      );
+    });
+
+    test('ignores blank snapshots and keeps existing fallback', () {
+      expect(
+        resolveBoardDisplayName(
+          userId: 'user-2',
+          liveNames: const {},
+          snapshotName: '  ',
+          fallback: 'user-2',
+        ),
+        'user-2',
+      );
+    });
+  });
 }
 
 Future<SupabaseClient> _signedInClient(http.Client httpClient) async {

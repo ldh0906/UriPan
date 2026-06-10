@@ -387,6 +387,11 @@ class BoardSessionController extends ChangeNotifier {
     await load(preferredBoardId: _activeBoard?.id);
   }
 
+  /// Board metadata (name, max_members) changed by another admin (QA-C3).
+  Future<void> handleBoardMetadataChanged() async {
+    await load(preferredBoardId: _activeBoard?.id);
+  }
+
   Future<void> handleBoardItemsChanged() async {
     await refreshItems();
   }

@@ -3,6 +3,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/board_item.dart';
 import 'board_item_time_label.dart';
 
+String resolveBoardDisplayName({
+  required String? userId,
+  required Map<String, String> liveNames,
+  required String? snapshotName,
+  required String fallback,
+}) {
+  final liveName = userId == null ? null : liveNames[userId];
+  return liveName ?? _leftMemberSnapshotLabel(snapshotName) ?? fallback;
+}
+
+String? _leftMemberSnapshotLabel(String? snapshotName) {
+  final trimmed = snapshotName?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return '$trimmed (\uB098\uAC10)';
+}
+
 abstract class BoardRepository {
   Future<List<BoardSummary>> loadBoards() async => const [];
   Future<UserProfile?> loadMyProfile() async => null;
@@ -548,7 +564,10 @@ class SupabaseBoardRepository implements BoardRepository {
   const SupabaseBoardRepository(this._client);
 
   static const _itemSelectColumns =
-      'id, board_id, type, title, detail, starts_at, due_at, is_done, is_pinned, requires_confirmation, tags, created_by, assigned_to, item_confirmations(user_id), item_comments(count)';
+      'id, board_id, type, title, detail, starts_at, due_at, is_done, '
+      'is_pinned, requires_confirmation, tags, created_by, assigned_to, '
+      'created_by_name_snapshot, assigned_to_name_snapshot, '
+      'item_confirmations(user_id), item_comments(count)';
 
   final SupabaseClient _client;
 
@@ -908,7 +927,9 @@ class SupabaseBoardRepository implements BoardRepository {
   }) async {
     final rows = await _client
         .from('item_comments')
-        .select('id, item_id, author_id, body, created_at')
+        .select(
+          'id, item_id, author_id, author_name_snapshot, body, created_at',
+        )
         .eq('item_id', itemId)
         .order('created_at');
     final comments = rows
@@ -930,7 +951,9 @@ class SupabaseBoardRepository implements BoardRepository {
     final row = await _client
         .from('item_comments')
         .insert({'item_id': itemId, 'author_id': userId, 'body': body})
-        .select('id, item_id, author_id, body, created_at')
+        .select(
+          'id, item_id, author_id, author_name_snapshot, body, created_at',
+        )
         .single();
     final commentRow = Map<String, dynamic>.from(row);
     final profiles = await _profiles(_commentAuthorIds([commentRow]));
@@ -1069,10 +1092,22 @@ class SupabaseBoardRepository implements BoardRepository {
       type: type,
       title: row['title'] as String,
       detail: (row['detail'] as String?) ?? '',
-      owner: names[createdById] ?? '???',
+      owner: resolveBoardDisplayName(
+        userId: createdById,
+        liveNames: names,
+        snapshotName: row['created_by_name_snapshot'] as String?,
+        fallback: '???',
+      ),
       createdById: createdById,
       assignedToId: assignedToId,
-      assigneeName: assignedToId == null ? null : names[assignedToId],
+      assigneeName: assignedToId == null
+          ? null
+          : resolveBoardDisplayName(
+              userId: assignedToId,
+              liveNames: names,
+              snapshotName: row['assigned_to_name_snapshot'] as String?,
+              fallback: '???',
+            ),
       timeLabel: _timeLabel(type, startsAt, dueAt),
       startsAt: startsAt,
       dueAt: dueAt,
@@ -1099,11 +1134,15 @@ class SupabaseBoardRepository implements BoardRepository {
   ) {
     final authorId = row['author_id'] as String;
     final profile = profiles[authorId];
+    final liveName = nicknames[authorId] ?? profile?.displayName;
     return BoardComment(
       id: row['id'] as String,
       itemId: row['item_id'] as String,
       authorId: authorId,
-      authorName: nicknames[authorId] ?? profile?.displayName ?? authorId,
+      authorName:
+          liveName ??
+          _leftMemberSnapshotLabel(row['author_name_snapshot'] as String?) ??
+          authorId,
       authorAvatarColor: profile?.avatarColor ?? '#647D31',
       body: row['body'] as String,
       createdAt: DateTime.parse(row['created_at'] as String),
