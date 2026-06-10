@@ -15,6 +15,7 @@ import 'package:uripan/widgets/board_action_sheets.dart';
 import 'package:uripan/widgets/board_item_card.dart';
 import 'package:uripan/widgets/comment_thread.dart';
 import 'package:uripan/widgets/board_settings_sheet.dart';
+import 'package:uripan/widgets/board_state_screens.dart';
 import 'package:uripan/widgets/common_widgets.dart';
 import 'package:uripan/widgets/item_detail_sheet.dart';
 
@@ -777,6 +778,77 @@ void main() {
     }
   });
 
+  testWidgets('No board message uses the theme error color', (tester) async {
+    const errorColor = Color(0xFFB00020);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          colorScheme: const ColorScheme.light(error: errorColor),
+        ),
+        home: NoBoardScreen(
+          message: 'board failed',
+          onCreateBoard: () {},
+          onJoinBoard: () {},
+          onSignOut: () {},
+        ),
+      ),
+    );
+
+    final messageText = tester.widget<Text>(find.text('board failed'));
+    expect(messageText.style?.color, errorColor);
+  });
+
+  testWidgets(
+    'Board action error banner uses the current theme and offers retry',
+    (tester) async {
+      const errorContainer = Color(0xFF9AF0D1);
+      final repository = _ActionFailingBoardRepository(
+        items: [
+          BoardItem(
+            id: 'task-1',
+            type: BoardItemType.task,
+            title: 'Retry task',
+            detail: '',
+            owner: 'Us',
+            timeLabel: 'Today',
+            dueAt: DateTime.now(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            colorScheme: const ColorScheme.light(
+              errorContainer: errorContainer,
+            ),
+          ),
+          home: BoardHomeScreen(
+            client: _testSupabaseClient(),
+            repository: repository,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The same task can render a '\uC644\uB8CC' action in more than one section.
+      await tester.tap(find.byTooltip('\uC644\uB8CC').first);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Material && widget.color == errorContainer,
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(TextButton, '\uB2E4\uC2DC \uC2DC\uB3C4'),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('Empty board item section renders an EmptyState message', (
     tester,
   ) async {
@@ -800,6 +872,35 @@ void main() {
       find.text('\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Empty board item section renders and calls an optional CTA', (
+    tester,
+  ) async {
+    var ctaCalls = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BoardItemSection(
+            title: '\uD560 \uC77C',
+            items: const [],
+            accentColor: Colors.orange,
+            accentSoftColor: Colors.orangeAccent,
+            icon: Icons.check_rounded,
+            emptyText: '\uB0A8\uC740 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
+            emptyActionLabel: '\uD560 \uC77C \uCD94\uAC00',
+            onEmptyAction: () => ctaCalls += 1,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.widgetWithText(FilledButton, '\uD560 \uC77C \uCD94\uAC00'),
+    );
+
+    expect(ctaCalls, 1);
   });
 
   testWidgets('BoardItemSection caps visible items and shows more count', (
@@ -1515,6 +1616,123 @@ void main() {
     expect(find.text('Tomorrow task'), findsNothing);
   });
 
+  testWidgets('Tasks tab empty CTA adds a task', (tester) async {
+    BoardItemType? addedType;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: const [],
+          onAddItem: (type, [initialDateTime]) => addedType = type,
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.widgetWithText(FilledButton, '\uD560 \uC77C \uCD94\uAC00'),
+    );
+
+    expect(addedType, BoardItemType.task);
+  });
+
+  testWidgets('Primary empty CTAs use the tab default add action', (
+    tester,
+  ) async {
+    final cases = <BoardTab, (String, BoardItemType)>{
+      BoardTab.today: ('\uC77C\uC815 \uCD94\uAC00', BoardItemType.schedule),
+      BoardTab.calendar: ('\uC77C\uC815 \uCD94\uAC00', BoardItemType.schedule),
+      BoardTab.notices: ('\uACF5\uC9C0 \uC791\uC131', BoardItemType.notice),
+    };
+
+    for (final entry in cases.entries) {
+      BoardItemType? addedType;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TodayBoardScreen(
+            key: ValueKey(entry.key),
+            selectedTab: entry.key,
+            onTabSelected: _ignoreBoardTab,
+            items: const [],
+            onAddItem: (type, [initialDateTime]) => addedType = type,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, entry.value.$1).first);
+      await tester.pumpAndSettle();
+
+      expect(addedType, entry.value.$2);
+    }
+  });
+
+  testWidgets('Search empty CTA clears the search query', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: TodayBoardScreen(items: [])),
+    );
+
+    await tester.tap(find.byTooltip('\uAC80\uC0C9'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'missing');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.widgetWithText(
+        FilledButton,
+        '\uAC80\uC0C9\uC5B4 \uC9C0\uC6B0\uAE30',
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('Filtered tasks empty CTA clears the filter', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TodayBoardScreen(
+          selectedTab: BoardTab.tasks,
+          onTabSelected: _ignoreBoardTab,
+          items: [
+            BoardItem(
+              id: 'family-task',
+              type: BoardItemType.task,
+              title: 'Family task',
+              detail: '',
+              owner: 'Us',
+              timeLabel: 'Today',
+              tags: const ['family'],
+              dueAt: DateTime(2026, 6, 2, 18),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uC644\uB8CC'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Family task'), findsNothing);
+
+    await tester.tap(
+      find.widgetWithText(FilledButton, '\uD544\uD130 \uD574\uC81C'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Family task'), findsOneWidget);
+  });
+
   testWidgets('Tasks tab flags overdue tasks', (tester) async {
     final now = DateTime(2026, 6, 2, 12);
 
@@ -1820,7 +2038,22 @@ void main() {
       ),
     );
 
-    expect(find.text('(\uD0C8\uD1F4\uD55C \uBA64\uBC84)'), findsOneWidget);
+    expect(
+      find.text('\uD0C8\uD1F4\uD55C \uBA64\uBC84 \uC720\uC9C0 \uC911'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C\uC73C\uB85C \uBCC0\uACBD'),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.text('\uD0C8\uD1F4\uD55C \uBA64\uBC84 \uC720\uC9C0 \uC911').last,
+    );
+    await tester.pumpAndSettle();
 
     await tester.ensureVisible(
       find.widgetWithText(FilledButton, '\uC800\uC7A5'),
@@ -1870,7 +2103,11 @@ void main() {
 
       await tester.tap(find.byType(DropdownButtonFormField<String>));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C').last);
+      await tester.tap(
+        find.text(
+          '\uB2F4\uB2F9\uC790 \uC5C6\uC74C\uC73C\uB85C \uBCC0\uACBD',
+        ).last,
+      );
       await tester.pumpAndSettle();
       await tester.ensureVisible(
         find.widgetWithText(FilledButton, '\uC800\uC7A5'),
@@ -2754,6 +2991,15 @@ class _FakeBoardRepository extends BoardRepository {
   @override
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     return items;
+  }
+}
+
+class _ActionFailingBoardRepository extends _FakeBoardRepository {
+  _ActionFailingBoardRepository({required super.items});
+
+  @override
+  Future<BoardItem> completeTask(String itemId, bool isDone) async {
+    throw PostgrestException(message: 'task_not_found_or_no_access');
   }
 }
 

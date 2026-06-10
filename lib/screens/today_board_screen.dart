@@ -431,6 +431,9 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           onTagTap: _setActiveTag,
                           emptyText:
                               '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
+                          emptyActionLabel:
+                              '\uAC80\uC0C9\uC5B4 \uC9C0\uC6B0\uAE30',
+                          onEmptyAction: _clearSearch,
                         )
                       else if (selectedTab == BoardTab.today) ...[
                         PulseCard(
@@ -464,6 +467,12 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           pendingTaskIds: _pendingTaskIds,
                           onItemTap: _showItemDetail,
                           onTagTap: _setActiveTag,
+                          emptyActionLabel: _emptyActionLabelFor(
+                            BoardItemType.schedule,
+                          ),
+                          onEmptyAction: _emptyActionFor(
+                            BoardItemType.schedule,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         BoardItemSection(
@@ -533,6 +542,13 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           onTagTap: _setActiveTag,
                           emptyText:
                               '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
+                          emptyActionLabel: _emptyActionLabelFor(
+                            BoardItemType.schedule,
+                          ),
+                          onEmptyAction: _emptyActionFor(
+                            BoardItemType.schedule,
+                            initialDateTime: _initialDateTimeForAdd(),
+                          ),
                           maxVisible: 3,
                           onShowMore: () => _showCalendarDaySheet(
                             context,
@@ -597,6 +613,8 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           onItemTap: _showItemDetail,
                           onTagTap: _setActiveTag,
                           emptyText: _taskEmptyText,
+                          emptyActionLabel: _taskEmptyActionLabel,
+                          onEmptyAction: _taskEmptyAction,
                         ),
                       ] else if (selectedTab == BoardTab.notices)
                         BoardItemSection(
@@ -610,6 +628,12 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           onTagTap: _setActiveTag,
                           emptyText:
                               '\uC77D\uC744 \uACF5\uC9C0\uAC00 \uC5C6\uC5B4\uC694.',
+                          emptyActionLabel: _emptyActionLabelFor(
+                            BoardItemType.notice,
+                          ),
+                          onEmptyAction: _emptyActionFor(
+                            BoardItemType.notice,
+                          ),
                         )
                       else
                         MembersPanel(
@@ -828,6 +852,52 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
       dateFilter: _taskDateFilter,
       currentUserId: widget.currentUserId,
     );
+  }
+
+  bool get _canAddItems => widget.onAddItem != null || widget.repository != null;
+
+  bool get _hasTaskFilter =>
+      _activeTag != null ||
+      _taskFilter != TaskBoardFilter.open ||
+      _taskDateFilter != null;
+
+  String? get _taskEmptyActionLabel {
+    if (_hasTaskFilter) return '\uD544\uD130 \uD574\uC81C';
+    if (!_canAddItems) return null;
+    return '\uD560 \uC77C \uCD94\uAC00';
+  }
+
+  VoidCallback? get _taskEmptyAction {
+    if (_hasTaskFilter) return _clearTaskFilters;
+    if (!_canAddItems) return null;
+    return () => _addItem(BoardItemType.task);
+  }
+
+  String? _emptyActionLabelFor(BoardItemType type) {
+    if (_activeTag != null) return '\uD544\uD130 \uD574\uC81C';
+    if (!_canAddItems) return null;
+    return switch (type) {
+      BoardItemType.schedule => '\uC77C\uC815 \uCD94\uAC00',
+      BoardItemType.task => '\uD560 \uC77C \uCD94\uAC00',
+      BoardItemType.notice => '\uACF5\uC9C0 \uC791\uC131',
+    };
+  }
+
+  VoidCallback? _emptyActionFor(
+    BoardItemType type, {
+    DateTime? initialDateTime,
+  }) {
+    if (_activeTag != null) return _clearActiveTag;
+    if (!_canAddItems) return null;
+    return () => _addItem(type, initialDateTime);
+  }
+
+  void _clearTaskFilters() {
+    setState(() {
+      _activeTag = null;
+      _taskFilter = TaskBoardFilter.open;
+      _taskDateFilter = null;
+    });
   }
 
   String get _taskEmptyText {

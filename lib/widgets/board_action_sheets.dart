@@ -302,9 +302,13 @@ class _AddItemSheetState extends State<AddItemSheet> {
                     labelText: '\uB2F4\uB2F9\uC790',
                   ),
                   items: [
-                    const DropdownMenuItem(
+                    DropdownMenuItem(
                       value: '',
-                      child: Text('\uB2F4\uB2F9\uC790 \uC5C6\uC74C'),
+                      child: Text(
+                        _hasMissingAssignee
+                            ? '\uB2F4\uB2F9\uC790 \uC5C6\uC74C\uC73C\uB85C \uBCC0\uACBD'
+                            : '\uB2F4\uB2F9\uC790 \uC5C6\uC74C',
+                      ),
                     ),
                     ...widget.members.map(
                       (member) => DropdownMenuItem(
@@ -315,7 +319,9 @@ class _AddItemSheetState extends State<AddItemSheet> {
                     if (_hasMissingAssignee)
                       DropdownMenuItem(
                         value: _assignedToId,
-                        child: const Text('(\uD0C8\uD1F4\uD55C \uBA64\uBC84)'),
+                        child: const Text(
+                          '\uD0C8\uD1F4\uD55C \uBA64\uBC84 \uC720\uC9C0 \uC911',
+                        ),
                       ),
                   ],
                   onChanged: (value) {

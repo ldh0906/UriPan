@@ -44,7 +44,16 @@ class _AuthGateState extends State<AuthGate> {
           }
 
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 12),
+                  Text('\uC138\uC158 \uD655\uC778 \uC911'),
+                ],
+              ),
+            ),
           );
         }
 

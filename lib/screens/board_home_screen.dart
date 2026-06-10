@@ -41,6 +41,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   late Future<void> _initialLoad;
   BoardTab _selectedTab = BoardTab.today;
   String? _message;
+  Future<void> Function()? _lastFailedAction;
   bool _remindersEnabled = true;
   bool _reminderPreferencesLoaded = false;
   bool _schedulerInitialized = false;
@@ -528,14 +529,23 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
 
   Future<void> _runAction(Future<void> Function() action) async {
     try {
-      setState(() => _message = null);
+      setState(() {
+        _message = null;
+        _lastFailedAction = null;
+      });
       await action();
     } on PostgrestException catch (error) {
       if (!mounted) return;
-      setState(() => _message = _friendlyDatabaseError(error.message));
+      setState(() {
+        _message = _friendlyDatabaseError(error.message);
+        _lastFailedAction = action;
+      });
     } catch (error) {
       if (!mounted) return;
-      setState(() => _message = error.toString());
+      setState(() {
+        _message = error.toString();
+        _lastFailedAction = action;
+      });
     }
   }
 
@@ -682,10 +692,25 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
                 top: 48,
                 child: Material(
                   borderRadius: BorderRadius.circular(12),
-                  color: AppTheme.light().colorScheme.errorContainer,
+                  color: Theme.of(context).colorScheme.errorContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Text(_message!),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(_message!)),
+                        if (_lastFailedAction != null) ...[
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () {
+                              final action = _lastFailedAction;
+                              if (action == null) return;
+                              unawaited(_runAction(action));
+                            },
+                            child: const Text('\uB2E4\uC2DC \uC2DC\uB3C4'),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),

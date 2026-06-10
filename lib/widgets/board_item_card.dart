@@ -22,6 +22,8 @@ class BoardItemSection extends StatelessWidget {
     this.onTagTap,
     this.maxVisible,
     this.onShowMore,
+    this.emptyActionLabel,
+    this.onEmptyAction,
   });
 
   final String title;
@@ -38,6 +40,8 @@ class BoardItemSection extends StatelessWidget {
   final ValueChanged<String>? onTagTap;
   final int? maxVisible;
   final VoidCallback? onShowMore;
+  final String? emptyActionLabel;
+  final VoidCallback? onEmptyAction;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +59,8 @@ class BoardItemSection extends StatelessWidget {
             message:
                 emptyText ??
                 '\uC544\uC9C1 \uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694.',
+            actionLabel: emptyActionLabel,
+            onAction: onEmptyAction,
           )
         else
           ...visibleItems.map(

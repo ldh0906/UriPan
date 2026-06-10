@@ -50,7 +50,10 @@ class NoBoardScreen extends StatelessWidget {
               ),
               if (message != null) ...[
                 const SizedBox(height: 16),
-                Text(message!),
+                Text(
+                  message!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
             ],
           ),
@@ -86,7 +89,10 @@ class BoardLoadErrorScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              Text(message),
+              Text(
+                message,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: onRetry,
