@@ -38,7 +38,7 @@ class _AuthGateState extends State<AuthGate> {
         if (widget.client.auth.currentUser?.isAnonymous == true) {
           if (!_isClearingAnonymousSession) {
             _isClearingAnonymousSession = true;
-            widget.client.auth.signOut().whenComplete(() {
+            _clearAnonymousSession().whenComplete(() {
               if (mounted) setState(() => _isClearingAnonymousSession = false);
             });
           }
@@ -55,5 +55,12 @@ class _AuthGateState extends State<AuthGate> {
         );
       },
     );
+  }
+
+  Future<void> _clearAnonymousSession() async {
+    try {
+      await widget.scheduler.sync(const []);
+    } catch (_) {}
+    await widget.client.auth.signOut();
   }
 }

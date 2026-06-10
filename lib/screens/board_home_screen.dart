@@ -169,6 +169,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _signOut() async {
+    _lastReminderPlanSignature = null;
+    await _guardSchedulerCall(() => widget.scheduler.sync(const []));
+    await widget.client.auth.signOut();
+  }
+
   void _openSettings() {
     final board = _controller.activeBoard;
     if (board == null) return;
@@ -197,7 +203,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
           : null,
       onSignOut: () {
         Navigator.pop(context);
-        unawaited(widget.client.auth.signOut());
+        unawaited(_signOut());
       },
     );
   }
@@ -623,7 +629,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
                 _initialLoad = _controller.load();
               });
             },
-            onSignOut: () => widget.client.auth.signOut(),
+            onSignOut: _signOut,
           );
         }
 
@@ -633,7 +639,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
             message: _message,
             onCreateBoard: _createBoard,
             onJoinBoard: _joinBoard,
-            onSignOut: () => widget.client.auth.signOut(),
+            onSignOut: _signOut,
           );
         }
 
