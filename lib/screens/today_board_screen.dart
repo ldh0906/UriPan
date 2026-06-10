@@ -178,7 +178,8 @@ const calendarWeekdayLabels = <String>['일', '월', '화', '수', '목', '금',
 
 /// Start of the calendar week (Sunday) containing [date], date-only.
 DateTime startOfCalendarWeek(DateTime date) {
-  final local = DateTime(date.year, date.month, date.day);
+  final localDate = date.toLocal();
+  final local = DateTime(localDate.year, localDate.month, localDate.day);
   // DateTime.weekday: Mon=1..Sun=7; `% 7` maps Sunday to 0 so weeks start Sunday.
   return local.subtract(Duration(days: local.weekday % 7));
 }

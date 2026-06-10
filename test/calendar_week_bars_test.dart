@@ -25,6 +25,13 @@ void main() {
         DateTime(2026, 6, 7),
       );
     });
+
+    test('normalizes UTC input before finding the local week start', () {
+      expect(
+        startOfCalendarWeek(DateTime.utc(2026, 6, 6, 15, 30)),
+        DateTime(2026, 6, 7),
+      );
+    });
   });
 
   group('calendarWeekdayLabels', () {
