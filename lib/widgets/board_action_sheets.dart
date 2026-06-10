@@ -31,6 +31,25 @@ Future<BoardItemDraft?> showEditItemSheet(
   );
 }
 
+DateTimeRange selectableDatePickerRange(DateTime initialDate, {DateTime? now}) {
+  final today = _dateOnly(now ?? DateTime.now());
+  final defaultFirstDate = today.subtract(const Duration(days: 365));
+  final defaultLastDate = today.add(const Duration(days: 365 * 3));
+  final initialDay = _dateOnly(initialDate);
+
+  return DateTimeRange(
+    start: initialDay.isBefore(defaultFirstDate)
+        ? initialDay
+        : defaultFirstDate,
+    end: initialDay.isAfter(defaultLastDate) ? initialDay : defaultLastDate,
+  );
+}
+
+DateTime _dateOnly(DateTime value) {
+  final local = value.toLocal();
+  return DateTime(local.year, local.month, local.day);
+}
+
 class CreateBoardResult {
   const CreateBoardResult(this.name, this.maxMembers);
 
@@ -471,11 +490,12 @@ class _AddItemSheetState extends State<AddItemSheet> {
   }
 
   Future<void> _pickDate() async {
+    final range = selectableDatePickerRange(_selectedDate);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+      initialDate: _dateOnly(_selectedDate),
+      firstDate: range.start,
+      lastDate: range.end,
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -503,11 +523,12 @@ class _AddItemSheetState extends State<AddItemSheet> {
   }
 
   Future<void> _pickEndDate() async {
+    final range = selectableDatePickerRange(_endDate);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+      initialDate: _dateOnly(_endDate),
+      firstDate: range.start,
+      lastDate: range.end,
     );
     if (picked == null || !mounted) return;
     setState(() {

@@ -1688,6 +1688,26 @@ void main() {
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
   });
 
+  test('selectableDatePickerRange includes an old existing date', () {
+    final range = selectableDatePickerRange(
+      DateTime(2020, 1, 2, 9),
+      now: DateTime(2026, 6, 10, 12),
+    );
+
+    expect(range.start, DateTime(2020, 1, 2));
+    expect(range.end, DateTime(2029, 6, 9));
+  });
+
+  test('selectableDatePickerRange includes a far future existing date', () {
+    final range = selectableDatePickerRange(
+      DateTime(2035, 12, 25, 18),
+      now: DateTime(2026, 6, 10, 12),
+    );
+
+    expect(range.start, DateTime(2025, 6, 10));
+    expect(range.end, DateTime(2035, 12, 25));
+  });
+
   testWidgets('Add item sheet exposes optional end controls for schedules', (
     tester,
   ) async {
