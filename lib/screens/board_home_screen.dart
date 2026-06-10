@@ -75,6 +75,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       onMembershipChanged: () {
         if (mounted) unawaited(_controller.handleBoardMembershipChanged());
       },
+      isCurrentBoardItem: (itemId) {
+        return _controller.items.any((item) => item.id == itemId);
+      },
     );
     unawaited(_syncRemindersIfNeeded());
     if (mounted) setState(() {});
