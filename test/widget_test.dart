@@ -751,6 +751,32 @@ void main() {
     },
   );
 
+  testWidgets('BoardHomeScreen maps trigger database errors', (tester) async {
+    final cases = {
+      'invite_not_found':
+          '\uCD08\uB300\uCF54\uB4DC\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.',
+      'task_not_found_or_no_access':
+          '\uD56D\uBAA9\uC744 \uCC3E\uC744 \uC218 \uC5C6\uAC70\uB098 \uAD8C\uD55C\uC774 \uC5C6\uC5B4\uC694.',
+      'notice_confirmation_required':
+          '\uD655\uC778\uC774 \uD544\uC694\uD55C \uACF5\uC9C0\uC608\uC694.',
+    };
+
+    for (final entry in cases.entries) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BoardHomeScreen(
+            key: ValueKey(entry.key),
+            client: _testSupabaseClient(),
+            repository: _FailingBoardRepository(entry.key),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(entry.value), findsOneWidget);
+    }
+  });
+
   testWidgets('Empty board item section renders an EmptyState message', (
     tester,
   ) async {
@@ -2610,6 +2636,20 @@ class _FakeBoardRepository extends BoardRepository {
   Future<List<BoardItem>> loadBoardItems({String? boardId}) async {
     return items;
   }
+}
+
+class _FailingBoardRepository extends BoardRepository {
+  _FailingBoardRepository(this.message);
+
+  final String message;
+
+  @override
+  Future<List<BoardSummary>> loadBoards() async {
+    throw PostgrestException(message: message);
+  }
+
+  @override
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) async => const [];
 }
 
 class _RecordingReminderScheduler implements ReminderScheduler {

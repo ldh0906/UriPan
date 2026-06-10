@@ -543,6 +543,9 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (message.contains('revoked_invite')) {
       return '\uCD08\uB300\uCF54\uB4DC\uAC00 \uCDE8\uC18C\uB410\uC5B4\uC694.';
     }
+    if (message.contains('invite_not_found')) {
+      return '\uCD08\uB300\uCF54\uB4DC\uB97C \uD655\uC778\uD574\uC8FC\uC138\uC694.';
+    }
     if (message.contains('already_joined')) {
       return '\uC774\uBBF8 \uCC38\uAC00\uD55C \uBCF4\uB4DC\uC608\uC694.';
     }
@@ -569,6 +572,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     }
     if (message.contains('nickname_too_long')) {
       return '\uBCC4\uBA85\uC740 40\uC790 \uC774\uD558\uC5EC\uC57C \uD574\uC694.';
+    }
+    if (message.contains('task_not_found_or_no_access')) {
+      return '\uD56D\uBAA9\uC744 \uCC3E\uC744 \uC218 \uC5C6\uAC70\uB098 \uAD8C\uD55C\uC774 \uC5C6\uC5B4\uC694.';
+    }
+    if (message.contains('notice_confirmation_required')) {
+      return '\uD655\uC778\uC774 \uD544\uC694\uD55C \uACF5\uC9C0\uC608\uC694.';
     }
     return message;
   }
