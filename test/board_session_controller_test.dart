@@ -268,6 +268,29 @@ void main() {
     expect(controller.activeInvite?.code, 'URIP-0001');
   });
 
+  test('refreshActiveInvite reloads a stale admin invite', () async {
+    final repository = _FakeBoardRepository(
+      boards: [_adminBoard],
+      itemsByBoard: {'board-1': []},
+      activeInvite: BoardInvite(
+        id: 'invite-1',
+        code: 'URIP-OLD',
+        expiresAt: DateTime(2026, 6, 8),
+      ),
+    );
+    final controller = BoardSessionController(repository);
+    await controller.load();
+
+    repository.activeInvite = BoardInvite(
+      id: 'invite-2',
+      code: 'URIP-NEW',
+      expiresAt: DateTime(2026, 6, 9),
+    );
+    await controller.refreshActiveInvite();
+
+    expect(controller.activeInvite?.code, 'URIP-NEW');
+  });
+
   test(
     'regenerateInvite sets activeInvite and revokeInvite clears it',
     () async {

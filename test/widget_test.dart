@@ -1140,6 +1140,34 @@ void main() {
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
 
+  testWidgets('Opening the members tab requests an invite refresh', (
+    tester,
+  ) async {
+    var openedMembers = 0;
+    BoardTab selectedTab = BoardTab.today;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            return TodayBoardScreen(
+              items: const [],
+              selectedTab: selectedTab,
+              onTabSelected: (tab) => setState(() => selectedTab = tab),
+              onOpenMembers: () => openedMembers += 1,
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('\uAC00\uC871'));
+    await tester.pumpAndSettle();
+
+    expect(openedMembers, 1);
+    expect(selectedTab, BoardTab.members);
+  });
+
   testWidgets('Calendar tab shows schedules and tasks for the selected day', (
     tester,
   ) async {

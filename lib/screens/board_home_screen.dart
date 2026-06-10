@@ -151,6 +151,15 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     });
   }
 
+  Future<void> _refreshActiveInvite() async {
+    final board = _controller.activeBoard;
+    if (board == null || !board.isAdmin) return;
+
+    await _runAction(() async {
+      await _controller.refreshActiveInvite();
+    });
+  }
+
   Future<void> _leaveBoard() async {
     final board = _controller.activeBoard;
     if (board == null) return;
@@ -632,6 +641,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
               onAddItem: _addItem,
               activeInvite: _controller.activeInvite,
               onCreateInvite: _createInvite,
+              onOpenMembers: () => unawaited(_refreshActiveInvite()),
               onOpenSettings: _openSettings,
               onRegenerateInvite: _regenerateInvite,
               onRevokeInvite: _revokeInvite,

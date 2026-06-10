@@ -141,6 +141,19 @@ class BoardSessionController extends ChangeNotifier {
     });
   }
 
+  Future<void> refreshActiveInvite() async {
+    final board = _activeBoard;
+    if (board == null || !board.isAdmin) {
+      _activeInvite = null;
+      notifyListeners();
+      return;
+    }
+
+    await _runAction(() async {
+      _activeInvite = await _repository.loadActiveInvite(board.id);
+    });
+  }
+
   Future<BoardSummary> joinBoardWithInvite(String code) async {
     late BoardSummary joined;
     await _runAction(() async {
