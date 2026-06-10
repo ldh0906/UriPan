@@ -153,7 +153,7 @@ class BoardSessionController extends ChangeNotifier {
     final board = _activeBoard;
     if (board == null || !board.isAdmin) {
       _activeInvite = null;
-      notifyListeners();
+      _safeNotify();
       return;
     }
 
