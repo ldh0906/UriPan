@@ -126,10 +126,15 @@ class _ThrowingRepository extends BoardRepository {
   Future<List<BoardSummary>> loadBoards() {
     throw StateError('load failed');
   }
+
+  @override
+  Future<List<BoardItem>> loadBoardItems({String? boardId}) {
+    throw StateError('load failed');
+  }
 }
 
 class _ReminderRepository extends BoardRepository {
-  _ReminderRepository({required bool withBoard}) : _withBoard = withBoard;
+  _ReminderRepository({required this._withBoard});
 
   bool _withBoard;
   final leftBoardIds = <String>[];
