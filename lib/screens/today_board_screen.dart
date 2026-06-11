@@ -403,22 +403,42 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                               ),
                       ),
                       const SizedBox(height: 20),
-                      if (_isSearchVisible) ...[
-                        _SearchField(
-                          controller: _searchController,
-                          onChanged: (value) =>
-                              setState(() => _searchQuery = value),
-                          onClear: _clearSearch,
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                      if (_activeTag != null) ...[
-                        _ActiveTagFilterChip(
-                          tag: _activeTag!,
-                          onDeleted: _clearActiveTag,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                        alignment: Alignment.topCenter,
+                        child: _isSearchVisible
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _SearchField(
+                                    controller: _searchController,
+                                    onChanged: (value) =>
+                                        setState(() => _searchQuery = value),
+                                    onClear: _clearSearch,
+                                  ),
+                                  const SizedBox(height: 20),
+                                ],
+                              )
+                            : const SizedBox(width: double.infinity),
+                      ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                        alignment: Alignment.topCenter,
+                        child: _activeTag != null
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _ActiveTagFilterChip(
+                                    tag: _activeTag!,
+                                    onDeleted: _clearActiveTag,
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              )
+                            : const SizedBox(width: double.infinity),
+                      ),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
                         switchInCurve: Curves.easeOutCubic,
