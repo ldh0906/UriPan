@@ -105,9 +105,9 @@ class PulseCard extends StatelessWidget {
             height: 46,
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(17),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: const Icon(Icons.monitor_heart_rounded, color: Colors.white),
+            child: const Icon(Icons.home_rounded, color: Colors.white),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -286,7 +286,7 @@ class InviteCodePanel extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

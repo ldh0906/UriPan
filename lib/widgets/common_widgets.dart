@@ -28,15 +28,15 @@ enum BoardTab {
   IconData get icon {
     switch (this) {
       case BoardTab.today:
-        return Icons.dashboard_customize_outlined;
+        return Icons.space_dashboard_rounded;
       case BoardTab.calendar:
-        return Icons.calendar_month_outlined;
+        return Icons.calendar_month_rounded;
       case BoardTab.tasks:
-        return Icons.check_box_outlined;
+        return Icons.check_circle_outline_rounded;
       case BoardTab.notices:
-        return Icons.campaign_outlined;
+        return Icons.campaign_rounded;
       case BoardTab.members:
-        return Icons.group_outlined;
+        return Icons.family_restroom_rounded;
     }
   }
 
@@ -74,32 +74,26 @@ class SoftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = AnimatedContainer(
+    return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
-      padding: padding,
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: borderColor ?? AppColors.text.withValues(alpha: 0.05),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: borderColor ?? AppColors.border),
+        boxShadow: AppShadows.card,
       ),
-      child: child,
-    );
-
-    if (onTap == null) return card;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: card,
+      child: Material(
+        color: color,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          splashColor: AppColors.primary.withValues(alpha: 0.06),
+          highlightColor: AppColors.primary.withValues(alpha: 0.04),
+          child: Padding(padding: padding, child: child),
+        ),
+      ),
     );
   }
 }
@@ -132,7 +126,7 @@ class EmptyState extends StatelessWidget {
                 height: 38,
                 decoration: BoxDecoration(
                   color: AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Icon(icon, size: 20, color: AppColors.mutedText),
               ),
@@ -161,23 +155,65 @@ class EmptyState extends StatelessWidget {
 }
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.title, required this.count});
+  const SectionHeader({
+    super.key,
+    required this.title,
+    required this.count,
+    this.accentColor,
+    this.accentSoftColor,
+  });
 
   final String title;
   final int count;
+  final Color? accentColor;
+  final Color? accentSoftColor;
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = this.accentColor;
+    if (accentColor == null) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+          ),
+          Text(
+            '$count\uAC1C',
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: AppColors.primary),
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            color: accentColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
-        Text(
-          '$count\uAC1C',
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(color: AppColors.primary),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: accentSoftColor ?? accentColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          child: Text(
+            '$count\uAC1C',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: accentColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ],
     );
@@ -196,7 +232,9 @@ class AddItemFab extends StatelessWidget {
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
       ),
       icon: const Icon(Icons.add_rounded),
       label: const Text('\uCD94\uAC00'),
@@ -226,13 +264,13 @@ class MemberAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Text(
         _initials(displayName),
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
           color: Colors.white,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
@@ -309,7 +347,7 @@ class _SmallPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Text(
         label,
@@ -343,7 +381,7 @@ class AppBottomNav extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface.withValues(alpha: 0.94),
           border: Border(
-            top: BorderSide(color: AppColors.text.withValues(alpha: 0.06)),
+            top: BorderSide(color: AppColors.border),
           ),
         ),
         child: Row(
@@ -359,64 +397,83 @@ class AppBottomNav extends StatelessWidget {
               onTap: () => onSelected(tab),
               child: SizedBox(
                 width: 58,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: () => onSelected(tab),
-                  child: ExcludeSemantics(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 40,
-                            height: 28,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppColors.primarySoft
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    child: Icon(
-                                      tab.icon,
-                                      size: 20,
-                                      color: color,
-                                    ),
-                                  ),
-                                ),
-                                if (badgeCount > 0)
-                                  Positioned(
-                                    top: -4,
-                                    right: -6,
-                                    child: _BottomNavBadge(
-                                      key: Key(
-                                        'app-bottom-nav-badge-${tab.name}',
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    onTap: () => onSelected(tab),
+                    child: ExcludeSemantics(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 40,
+                              height: 28,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Positioned.fill(
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 200,
                                       ),
-                                      count: badgeCount,
+                                      curve: Curves.easeOutCubic,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primarySoft
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(
+                                          AppRadius.lg,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        tab.icon,
+                                        size: 20,
+                                        color: color,
+                                      ),
                                     ),
                                   ),
-                              ],
+                                  if (badgeCount > 0)
+                                    Positioned(
+                                      top: -4,
+                                      right: -6,
+                                      child: _BottomNavBadge(
+                                        key: Key(
+                                          'app-bottom-nav-badge-${tab.name}',
+                                        ),
+                                        count: badgeCount,
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            tab.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(
-                                  color: color,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w800
-                                      : FontWeight.w600,
-                                ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        color: color,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                      ) ??
+                                  TextStyle(
+                                    color: color,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                  ),
+                              child: Text(
+                                tab.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -443,7 +500,7 @@ class _BottomNavBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         color: AppColors.tertiary,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         border: Border.all(color: AppColors.surface, width: 2),
       ),
       child: Center(
@@ -452,7 +509,7 @@ class _BottomNavBadge extends StatelessWidget {
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
             color: Colors.white,
             fontSize: 10,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),

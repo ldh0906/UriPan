@@ -691,7 +691,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
                 right: 16,
                 top: 48,
                 child: Material(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   color: Theme.of(context).colorScheme.errorContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -786,8 +786,8 @@ class _SkeletonBar extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.text.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
     );
   }

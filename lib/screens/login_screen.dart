@@ -204,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppColors.primary.withValues(alpha: 0.4),
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       textStyle: const TextStyle(
                         fontSize: 15,
@@ -236,7 +236,7 @@ class _BrandMark extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [AppColors.primary, AppColors.secondary],
           ),
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.28),
@@ -285,15 +285,9 @@ class _LoginCard extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.text.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -345,7 +339,7 @@ class _LoginCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
               decoration: BoxDecoration(
                 color: isError ? AppColors.dangerSoft : AppColors.successSoft,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,7 +394,7 @@ class _KeepSignedInRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       onTap: onChanged == null ? null : () => onChanged!(!value),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),

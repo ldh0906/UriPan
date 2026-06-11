@@ -11,6 +11,7 @@ import 'package:uripan/services/auth_input_validator.dart';
 import 'package:uripan/services/board_repository.dart';
 import 'package:uripan/services/notifications/reminder_planner.dart';
 import 'package:uripan/services/notifications/reminder_scheduler.dart';
+import 'package:uripan/theme/app_theme.dart';
 import 'package:uripan/widgets/board_action_sheets.dart';
 import 'package:uripan/widgets/board_item_card.dart';
 import 'package:uripan/widgets/comment_thread.dart';
@@ -416,6 +417,49 @@ void main() {
     expect(find.textContaining('18:00'), findsOneWidget);
     expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
     expect(find.text('Today'), findsNothing);
+  });
+
+  testWidgets('Board item card hides empty detail and uses an accent bar', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BoardItemCard(
+            item: BoardItem(
+              id: 'notice',
+              type: BoardItemType.notice,
+              title: 'Notice title',
+              detail: '   ',
+              owner: 'Us',
+              timeLabel: 'Read',
+            ),
+            accentColor: AppColors.secondary,
+            accentSoftColor: AppColors.secondarySoft,
+            icon: Icons.campaign_rounded,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('   '), findsNothing);
+    expect(find.byIcon(Icons.campaign_rounded), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (widget) {
+          if (widget is! Container ||
+              widget.constraints !=
+                  const BoxConstraints.tightFor(width: 4)) {
+            return false;
+          }
+          final decoration = widget.decoration;
+          return decoration is BoxDecoration &&
+              decoration.color == AppColors.secondary &&
+              decoration.borderRadius == BorderRadius.circular(2);
+        },
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Item detail sheet omits midnight time from date label', (
@@ -1100,7 +1144,7 @@ void main() {
     expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.radio_button_unchecked_rounded));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(completedItem?.id, 'overdue-task');
     expect(completedIsDone, isTrue);

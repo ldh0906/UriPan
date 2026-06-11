@@ -174,7 +174,7 @@ class _CommentThreadState extends State<CommentThread> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Text(
                   '${_comments.length}',
@@ -218,7 +218,7 @@ class _CommentThreadState extends State<CommentThread> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
               color: AppColors.dangerSoft,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Text(
               _errorMessage!,
@@ -265,7 +265,7 @@ class _CommentEmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Column(
         children: [
@@ -317,8 +317,8 @@ class _CommentBubble extends StatelessWidget {
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(isOwn ? 16 : 5),
           topRight: Radius.circular(isOwn ? 5 : 16),
-          bottomLeft: const Radius.circular(16),
-          bottomRight: const Radius.circular(16),
+          bottomLeft: const Radius.circular(AppRadius.lg),
+          bottomRight: const Radius.circular(AppRadius.lg),
         ),
       ),
       child: Column(
@@ -420,7 +420,7 @@ class _CommentComposer extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.text.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
