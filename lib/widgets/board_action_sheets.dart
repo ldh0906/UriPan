@@ -10,7 +10,6 @@ Future<BoardItemDraft?> showAddItemSheet(
 }) {
   return showModalBottomSheet<BoardItemDraft>(
     context: context,
-    showDragHandle: true,
     builder: (context) => AddItemSheet(
       initialType: initialType,
       members: members,
@@ -26,7 +25,6 @@ Future<BoardItemDraft?> showEditItemSheet(
 }) {
   return showModalBottomSheet<BoardItemDraft>(
     context: context,
-    showDragHandle: true,
     builder: (context) => AddItemSheet(initialItem: item, members: members),
   );
 }

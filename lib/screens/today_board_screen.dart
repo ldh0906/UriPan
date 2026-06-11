@@ -419,235 +419,273 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      if (isSearching)
-                        BoardItemSection(
-                          title: '\uAC80\uC0C9 \uACB0\uACFC',
-                          items: searchResults,
-                          accentColor: AppColors.primary,
-                          accentSoftColor: AppColors.primarySoft,
-                          icon: Icons.search_rounded,
-                          pendingTaskIds: _pendingTaskIds,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                          emptyText:
-                              '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
-                          emptyActionLabel:
-                              '\uAC80\uC0C9\uC5B4 \uC9C0\uC6B0\uAE30',
-                          onEmptyAction: _clearSearch,
-                        )
-                      else if (selectedTab == BoardTab.today) ...[
-                        PulseCard(
-                          schedules: todaySchedules.length,
-                          openTasks: openTasks,
-                          notices: todayNotices.length,
-                        ),
-                        if (attentionItems.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          BoardItemSection(
-                            title: '\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694',
-                            items: attentionItems,
-                            accentColor: AppColors.tertiary,
-                            accentSoftColor: AppColors.warningSoft,
-                            icon: Icons.priority_high_rounded,
-                            showCheckbox: true,
-                            onToggle: _toggleTask,
-                            pendingTaskIds: _pendingTaskIds,
-                            isOverdue: _isOverdueTask,
-                            onItemTap: _showItemDetail,
-                            onTagTap: _setActiveTag,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeOutCubic,
+                        transitionBuilder: (child, animation) {
+                          final offset = Tween<Offset>(
+                            begin: const Offset(0, 0.015),
+                            end: Offset.zero,
+                          ).animate(animation);
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: offset,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: KeyedSubtree(
+                          key: ValueKey(
+                            isSearching ? 'search' : selectedTab.name,
                           ),
-                        ],
-                        const SizedBox(height: 24),
-                        BoardItemSection(
-                          title: '\uC624\uB298 \uC77C\uC815',
-                          items: todaySchedules,
-                          accentColor: AppColors.primary,
-                          accentSoftColor: AppColors.primarySoft,
-                          icon: Icons.calendar_month_rounded,
-                          pendingTaskIds: _pendingTaskIds,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                          emptyActionLabel: _emptyActionLabelFor(
-                            BoardItemType.schedule,
-                          ),
-                          onEmptyAction: _emptyActionFor(
-                            BoardItemType.schedule,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        BoardItemSection(
-                          title: '\uD560 \uC77C',
-                          items: todayTasks,
-                          accentColor: AppColors.tertiary,
-                          accentSoftColor: AppColors.warningSoft,
-                          icon: Icons.check_rounded,
-                          showCheckbox: true,
-                          onToggle: _toggleTask,
-                          pendingTaskIds: _pendingTaskIds,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                        ),
-                        const SizedBox(height: 12),
-                        BoardItemSection(
-                          title: '\uACF5\uC9C0',
-                          items: todayNotices,
-                          accentColor: AppColors.success,
-                          accentSoftColor: AppColors.successSoft,
-                          icon: Icons.campaign_rounded,
-                          pendingTaskIds: _pendingTaskIds,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                        ),
-                      ] else if (selectedTab == BoardTab.calendar) ...[
-                        _CalendarPanel(
-                          selectedDate: _selectedCalendarDate,
-                          today: widget.now(),
-                          items: [...schedules, ...tasks],
-                          isExpanded: _isCalendarExpanded,
-                          onDateSelected: (date) => setState(() {
-                            _selectedCalendarDate = date;
-                            _isCalendarExpanded = false;
-                          }),
-                          onPrevious: () => setState(() {
-                            _selectedCalendarDate = _isCalendarExpanded
-                                ? moveCalendarMonth(_selectedCalendarDate, -1)
-                                : _selectedCalendarDate.subtract(
-                                    const Duration(days: 7),
-                                  );
-                          }),
-                          onNext: () => setState(() {
-                            _selectedCalendarDate = _isCalendarExpanded
-                                ? moveCalendarMonth(_selectedCalendarDate, 1)
-                                : _selectedCalendarDate.add(
-                                    const Duration(days: 7),
-                                  );
-                          }),
-                          onToggleExpanded: () => setState(
-                            () => _isCalendarExpanded = !_isCalendarExpanded,
-                          ),
-                          onToday: () => setState(() {
-                            _selectedCalendarDate = widget.now();
-                            _isCalendarExpanded = false;
-                          }),
-                        ),
-                        const SizedBox(height: 16),
-                        BoardItemSection(
-                          title: '\uC77C\uC815',
-                          items: selectedDaySchedules,
-                          accentColor: AppColors.primary,
-                          accentSoftColor: AppColors.primarySoft,
-                          icon: Icons.calendar_month_rounded,
-                          pendingTaskIds: _pendingTaskIds,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                          emptyText:
-                              '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
-                          emptyActionLabel: _emptyActionLabelFor(
-                            BoardItemType.schedule,
-                          ),
-                          onEmptyAction: _emptyActionFor(
-                            BoardItemType.schedule,
-                            initialDateTime: _initialDateTimeForAdd(),
-                          ),
-                          maxVisible: 3,
-                          onShowMore: () => _showCalendarDaySheet(
-                            context,
-                            _CalendarDayCategory.schedule,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        BoardItemSection(
-                          title: '\uD560 \uC77C',
-                          items: selectedDayTasks,
-                          accentColor: AppColors.tertiary,
-                          accentSoftColor: AppColors.warningSoft,
-                          icon: Icons.check_rounded,
-                          showCheckbox: true,
-                          onToggle: _toggleTask,
-                          pendingTaskIds: _pendingTaskIds,
-                          isOverdue: _isOverdueTask,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                          emptyText:
-                              '\uC774\uB0A0 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
-                          maxVisible: 3,
-                          onShowMore: () => _showCalendarDaySheet(
-                            context,
-                            _CalendarDayCategory.task,
-                          ),
-                        ),
-                      ] else if (selectedTab == BoardTab.tasks) ...[
-                        _TaskDateNavigator(
-                          selectedDate: _taskDateFilter,
-                          today: widget.now(),
-                          onPrevious: _moveTaskDateBack,
-                          onNext: _moveTaskDateForward,
-                          onToday: _selectTaskToday,
-                          onAll: _clearTaskDateFilter,
-                        ),
-                        const SizedBox(height: 12),
-                        SegmentedButton<TaskBoardFilter>(
-                          segments: TaskBoardFilter.values
-                              .map(
-                                (filter) => ButtonSegment(
-                                  value: filter,
-                                  label: Text(filter.label),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isSearching)
+                                BoardItemSection(
+                                  title: '\uAC80\uC0C9 \uACB0\uACFC',
+                                  items: searchResults,
+                                  accentColor: AppColors.primary,
+                                  accentSoftColor: AppColors.primarySoft,
+                                  icon: Icons.search_rounded,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                  emptyText:
+                                      '\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC5B4\uC694.',
+                                  emptyActionLabel:
+                                      '\uAC80\uC0C9\uC5B4 \uC9C0\uC6B0\uAE30',
+                                  onEmptyAction: _clearSearch,
+                                )
+                              else if (selectedTab == BoardTab.today) ...[
+                                PulseCard(
+                                  schedules: todaySchedules.length,
+                                  openTasks: openTasks,
+                                  notices: todayNotices.length,
                                 ),
-                              )
-                              .toList(),
-                          selected: {_taskFilter},
-                          onSelectionChanged: (values) =>
-                              setState(() => _taskFilter = values.single),
-                        ),
-                        const SizedBox(height: 12),
-                        BoardItemSection(
-                          title: '\uD560 \uC77C',
-                          items: _filteredTasks(tasks),
-                          accentColor: AppColors.tertiary,
-                          accentSoftColor: AppColors.warningSoft,
-                          icon: Icons.check_rounded,
-                          showCheckbox: true,
-                          onToggle: _toggleTask,
-                          pendingTaskIds: _pendingTaskIds,
-                          isOverdue: _isOverdueTask,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                          emptyText: _taskEmptyText,
-                          emptyActionLabel: _taskEmptyActionLabel,
-                          onEmptyAction: _taskEmptyAction,
-                        ),
-                      ] else if (selectedTab == BoardTab.notices)
-                        BoardItemSection(
-                          title: '\uACF5\uC9C0',
-                          items: notices,
-                          accentColor: AppColors.success,
-                          accentSoftColor: AppColors.successSoft,
-                          icon: Icons.campaign_rounded,
-                          pendingTaskIds: _pendingTaskIds,
-                          onItemTap: _showItemDetail,
-                          onTagTap: _setActiveTag,
-                          emptyText:
-                              '\uC77D\uC744 \uACF5\uC9C0\uAC00 \uC5C6\uC5B4\uC694.',
-                          emptyActionLabel: _emptyActionLabelFor(
-                            BoardItemType.notice,
+                                if (attentionItems.isNotEmpty) ...[
+                                  const SizedBox(height: 20),
+                                  BoardItemSection(
+                                    title: '\uB193\uCE58\uBA74 \uC548 \uB3FC\uC694',
+                                    items: attentionItems,
+                                    accentColor: AppColors.tertiary,
+                                    accentSoftColor: AppColors.warningSoft,
+                                    icon: Icons.priority_high_rounded,
+                                    showCheckbox: true,
+                                    onToggle: _toggleTask,
+                                    pendingTaskIds: _pendingTaskIds,
+                                    isOverdue: _isOverdueTask,
+                                    onItemTap: _showItemDetail,
+                                    onTagTap: _setActiveTag,
+                                  ),
+                                  const SizedBox(height: 28),
+                                ] else
+                                  const SizedBox(height: 20),
+                                BoardItemSection(
+                                  title: '\uC624\uB298 \uC77C\uC815',
+                                  items: todaySchedules,
+                                  accentColor: AppColors.primary,
+                                  accentSoftColor: AppColors.primarySoft,
+                                  icon: Icons.calendar_month_rounded,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                  emptyActionLabel: _emptyActionLabelFor(
+                                    BoardItemType.schedule,
+                                  ),
+                                  onEmptyAction: _emptyActionFor(
+                                    BoardItemType.schedule,
+                                  ),
+                                ),
+                                const SizedBox(height: 28),
+                                BoardItemSection(
+                                  title: '\uD560 \uC77C',
+                                  items: todayTasks,
+                                  accentColor: AppColors.tertiary,
+                                  accentSoftColor: AppColors.warningSoft,
+                                  icon: Icons.check_rounded,
+                                  showCheckbox: true,
+                                  onToggle: _toggleTask,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                ),
+                                const SizedBox(height: 28),
+                                BoardItemSection(
+                                  title: '\uACF5\uC9C0',
+                                  items: todayNotices,
+                                  accentColor: AppColors.secondary,
+                                  accentSoftColor: AppColors.secondarySoft,
+                                  icon: Icons.campaign_rounded,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                ),
+                              ] else if (selectedTab == BoardTab.calendar) ...[
+                                _CalendarPanel(
+                                  selectedDate: _selectedCalendarDate,
+                                  today: widget.now(),
+                                  items: [...schedules, ...tasks],
+                                  isExpanded: _isCalendarExpanded,
+                                  onDateSelected: (date) => setState(() {
+                                    _selectedCalendarDate = date;
+                                    _isCalendarExpanded = false;
+                                  }),
+                                  onPrevious: () => setState(() {
+                                    _selectedCalendarDate = _isCalendarExpanded
+                                        ? moveCalendarMonth(
+                                            _selectedCalendarDate,
+                                            -1,
+                                          )
+                                        : _selectedCalendarDate.subtract(
+                                            const Duration(days: 7),
+                                          );
+                                  }),
+                                  onNext: () => setState(() {
+                                    _selectedCalendarDate = _isCalendarExpanded
+                                        ? moveCalendarMonth(
+                                            _selectedCalendarDate,
+                                            1,
+                                          )
+                                        : _selectedCalendarDate.add(
+                                            const Duration(days: 7),
+                                          );
+                                  }),
+                                  onToggleExpanded: () => setState(
+                                    () => _isCalendarExpanded =
+                                        !_isCalendarExpanded,
+                                  ),
+                                  onToday: () => setState(() {
+                                    _selectedCalendarDate = widget.now();
+                                    _isCalendarExpanded = false;
+                                  }),
+                                ),
+                                const SizedBox(height: 20),
+                                BoardItemSection(
+                                  title: '\uC77C\uC815',
+                                  items: selectedDaySchedules,
+                                  accentColor: AppColors.primary,
+                                  accentSoftColor: AppColors.primarySoft,
+                                  icon: Icons.calendar_month_rounded,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                  emptyText:
+                                      '\uC774\uB0A0 \uC77C\uC815\uC774 \uC5C6\uC5B4\uC694.',
+                                  emptyActionLabel: _emptyActionLabelFor(
+                                    BoardItemType.schedule,
+                                  ),
+                                  onEmptyAction: _emptyActionFor(
+                                    BoardItemType.schedule,
+                                    initialDateTime: _initialDateTimeForAdd(),
+                                  ),
+                                  maxVisible: 3,
+                                  onShowMore: () => _showCalendarDaySheet(
+                                    context,
+                                    _CalendarDayCategory.schedule,
+                                  ),
+                                ),
+                                const SizedBox(height: 28),
+                                BoardItemSection(
+                                  title: '\uD560 \uC77C',
+                                  items: selectedDayTasks,
+                                  accentColor: AppColors.tertiary,
+                                  accentSoftColor: AppColors.warningSoft,
+                                  icon: Icons.check_rounded,
+                                  showCheckbox: true,
+                                  onToggle: _toggleTask,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  isOverdue: _isOverdueTask,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                  emptyText:
+                                      '\uC774\uB0A0 \uD560 \uC77C\uC774 \uC5C6\uC5B4\uC694.',
+                                  maxVisible: 3,
+                                  onShowMore: () => _showCalendarDaySheet(
+                                    context,
+                                    _CalendarDayCategory.task,
+                                  ),
+                                ),
+                              ] else if (selectedTab == BoardTab.tasks) ...[
+                                _TaskDateNavigator(
+                                  selectedDate: _taskDateFilter,
+                                  today: widget.now(),
+                                  onPrevious: _moveTaskDateBack,
+                                  onNext: _moveTaskDateForward,
+                                  onToday: _selectTaskToday,
+                                  onAll: _clearTaskDateFilter,
+                                ),
+                                const SizedBox(height: 12),
+                                SegmentedButton<TaskBoardFilter>(
+                                  segments: TaskBoardFilter.values
+                                      .map(
+                                        (filter) => ButtonSegment(
+                                          value: filter,
+                                          label: Text(filter.label),
+                                        ),
+                                      )
+                                      .toList(),
+                                  selected: {_taskFilter},
+                                  onSelectionChanged: (values) => setState(
+                                    () => _taskFilter = values.single,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                BoardItemSection(
+                                  title: '\uD560 \uC77C',
+                                  items: _filteredTasks(tasks),
+                                  accentColor: AppColors.tertiary,
+                                  accentSoftColor: AppColors.warningSoft,
+                                  icon: Icons.check_rounded,
+                                  showCheckbox: true,
+                                  onToggle: _toggleTask,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  isOverdue: _isOverdueTask,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                  emptyText: _taskEmptyText,
+                                  emptyActionLabel: _taskEmptyActionLabel,
+                                  onEmptyAction: _taskEmptyAction,
+                                ),
+                              ] else if (selectedTab == BoardTab.notices)
+                                BoardItemSection(
+                                  title: '\uACF5\uC9C0',
+                                  items: notices,
+                                  accentColor: AppColors.secondary,
+                                  accentSoftColor: AppColors.secondarySoft,
+                                  icon: Icons.campaign_rounded,
+                                  pendingTaskIds: _pendingTaskIds,
+                                  onItemTap: _showItemDetail,
+                                  onTagTap: _setActiveTag,
+                                  emptyText:
+                                      '\uC77D\uC744 \uACF5\uC9C0\uAC00 \uC5C6\uC5B4\uC694.',
+                                  emptyActionLabel: _emptyActionLabelFor(
+                                    BoardItemType.notice,
+                                  ),
+                                  onEmptyAction: _emptyActionFor(
+                                    BoardItemType.notice,
+                                  ),
+                                )
+                              else
+                                MembersPanel(
+                                  board: widget.board,
+                                  members: widget.members,
+                                  currentUserId: widget.currentUserId,
+                                  activeInvite: widget.activeInvite,
+                                  onCreateInvite: widget.onCreateInvite,
+                                  onRegenerateInvite:
+                                      widget.onRegenerateInvite,
+                                  onRevokeInvite: widget.onRevokeInvite,
+                                  onLeaveBoard: widget.onLeaveBoard,
+                                  onUpdateMemberRole: widget.onUpdateMemberRole,
+                                  onRemoveMember: widget.onRemoveMember,
+                                ),
+                            ],
                           ),
-                          onEmptyAction: _emptyActionFor(
-                            BoardItemType.notice,
-                          ),
-                        )
-                      else
-                        MembersPanel(
-                          board: widget.board,
-                          members: widget.members,
-                          currentUserId: widget.currentUserId,
-                          activeInvite: widget.activeInvite,
-                          onCreateInvite: widget.onCreateInvite,
-                          onRegenerateInvite: widget.onRegenerateInvite,
-                          onRevokeInvite: widget.onRevokeInvite,
-                          onLeaveBoard: widget.onLeaveBoard,
-                          onUpdateMemberRole: widget.onUpdateMemberRole,
-                          onRemoveMember: widget.onRemoveMember,
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -700,11 +738,6 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (sheetContext) {
         final maxHeight = MediaQuery.of(sheetContext).size.height * 0.7;
         return ConstrainedBox(
@@ -1164,7 +1197,6 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
 
     await showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
       builder: (context) => ItemDetailSheet(
         item: item,
         isPending: _pendingTaskIds.contains(item.id),
@@ -1292,7 +1324,7 @@ class _TaskDateNavigator extends StatelessWidget {
         DecoratedBox(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(color: AppColors.surfaceVariant),
           ),
           child: Row(
@@ -1580,10 +1612,10 @@ class _CalendarWeekBarsRow extends StatelessWidget {
         color: AppColors.primary,
         borderRadius: BorderRadius.horizontal(
           left: isStart && segment.roundedLeft
-              ? const Radius.circular(999)
+              ? const Radius.circular(AppRadius.pill)
               : Radius.zero,
           right: isEnd && segment.roundedRight
-              ? const Radius.circular(999)
+              ? const Radius.circular(AppRadius.pill)
               : Radius.zero,
         ),
       ),
@@ -1626,13 +1658,18 @@ class _CalendarDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final weekendTextColor = switch (date.weekday) {
+      DateTime.sunday => const Color(0xFFC94F4F),
+      DateTime.saturday => const Color(0xFF3B82C4),
+      _ => AppColors.text,
+    };
     final textColor = isSelected
         ? colors.onPrimary
         : isOutsideMonth
         ? AppColors.mutedText
         : isToday
         ? AppColors.primary
-        : AppColors.text;
+        : weekendTextColor;
     return Semantics(
       button: true,
       selected: isSelected,
@@ -1676,7 +1713,7 @@ class _CalendarDayCell extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: textColor,
                         fontWeight: isToday || isSelected
-                            ? FontWeight.w900
+                            ? FontWeight.w800
                             : FontWeight.w800,
                       ),
                     ),

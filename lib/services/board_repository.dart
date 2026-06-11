@@ -259,6 +259,14 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<void> leaveBoard(String boardId) async {
+    // 보드 제거 전에 소속 아이템을 확정해야 함 — 매핑 없는 아이템은 _firstBoardId 소속.
+    final leavingItemIds = _items
+        .where((item) => (_itemBoardIds[item.id] ?? _firstBoardId) == boardId)
+        .map((item) => item.id)
+        .toSet();
+    _items.removeWhere((item) => leavingItemIds.contains(item.id));
+    _comments.removeWhere((comment) => leavingItemIds.contains(comment.itemId));
+    leavingItemIds.forEach(_itemBoardIds.remove);
     _boards.removeWhere((board) => board.id == boardId);
     _activeInvitesByBoard.remove(boardId);
     _nicknamesByBoard.remove(boardId);

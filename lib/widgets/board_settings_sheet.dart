@@ -672,17 +672,17 @@ class _BoardSwitcherRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderColor = isActive
         ? AppColors.primary
-        : AppColors.text.withValues(alpha: 0.06);
+        : AppColors.border;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: isActive ? AppColors.primarySoft : AppColors.surfaceVariant,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: borderColor, width: isActive ? 1.5 : 1),
           ),
           child: Row(
@@ -699,7 +699,7 @@ class _BoardSwitcherRow extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w900),
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ),
                         if (isActive) ...[
@@ -753,7 +753,6 @@ Future<void> showBoardSettingsSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
-    showDragHandle: true,
     builder: (context) => BoardSettingsSheet(
       boardName: boardName,
       userName: userName,
@@ -779,7 +778,6 @@ Future<EditProfileResult?> showEditProfileSheet(
   return showModalBottomSheet<EditProfileResult>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
     builder: (context) => EditProfileSheet(profile: profile),
   );
 }
@@ -791,7 +789,6 @@ Future<EditBoardSettingsResult?> showEditBoardSettingsSheet(
   return showModalBottomSheet<EditBoardSettingsResult>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
     builder: (context) => EditBoardSettingsSheet(board: board),
   );
 }
@@ -803,7 +800,6 @@ Future<EditBoardNicknameResult?> showEditBoardNicknameSheet(
   return showModalBottomSheet<EditBoardNicknameResult>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
     builder: (context) => EditBoardNicknameSheet(nickname: nickname),
   );
 }

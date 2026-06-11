@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/board_item.dart';
 import '../services/board_item_time_label.dart';
@@ -51,7 +52,12 @@ class BoardItemSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: title, count: items.length),
+        SectionHeader(
+          title: title,
+          count: items.length,
+          accentColor: accentColor,
+          accentSoftColor: accentSoftColor,
+        ),
         const SizedBox(height: 10),
         if (items.isEmpty)
           EmptyState(
@@ -184,102 +190,127 @@ class BoardItemCard extends StatelessWidget {
         )
         .toList();
 
+    final hasDetail = item.detail.trim().isNotEmpty;
+    final titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
+      decoration: item.isDone ? TextDecoration.lineThrough : null,
+      color: item.isDone ? AppColors.mutedText : null,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: SoftCard(
         onTap: onTap,
         padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (showCheckbox && item.type == BoardItemType.task) ...[
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: IconButton(
-                  constraints: const BoxConstraints.tightFor(
-                    width: 44,
-                    height: 44,
-                  ),
-                  padding: EdgeInsets.zero,
-                  tooltip: item.isDone
-                      ? '\uC644\uB8CC \uCDE8\uC18C'
-                      : '\uC644\uB8CC',
-                  onPressed: onToggle == null || isPending
-                      ? null
-                      : () => onToggle!(item, !item.isDone),
-                  icon: isPending
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          item.isDone
-                              ? Icons.check_circle_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          size: 18,
-                          color: item.isDone
-                              ? AppColors.primary
-                              : AppColors.mutedText,
-                        ),
-                ),
-              ),
-            ] else ...[
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: accentSoftColor,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, color: accentColor),
-              ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.title,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                decoration: item.isDone
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: item.isDone ? AppColors.mutedText : null,
-                              ),
-                        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showCheckbox && item.type == BoardItemType.task) ...[
+                SizedBox(
+                  width: 18,
+                  child: OverflowBox(
+                    minWidth: 28,
+                    maxWidth: 28,
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      constraints: const BoxConstraints.tightFor(
+                        width: 28,
+                        height: 28,
                       ),
-                      if (item.isPinned)
-                        const Icon(
-                          Icons.push_pin_rounded,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    item.detail,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.mutedText,
+                      padding: EdgeInsets.zero,
+                      tooltip: item.isDone
+                          ? '\uC644\uB8CC \uCDE8\uC18C'
+                          : '\uC644\uB8CC',
+                      onPressed: onToggle == null || isPending
+                          ? null
+                          : () {
+                              if (!item.isDone) HapticFeedback.lightImpact();
+                              onToggle!(item, !item.isDone);
+                            },
+                      icon: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        switchInCurve: Curves.easeOutBack,
+                        transitionBuilder: (child, animation) =>
+                            ScaleTransition(scale: animation, child: child),
+                        child: isPending
+                            ? const SizedBox(
+                                key: ValueKey('pending'),
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(
+                                item.isDone
+                                    ? Icons.check_circle_rounded
+                                    : Icons.radio_button_unchecked_rounded,
+                                key: ValueKey(item.isDone),
+                                size: 18,
+                                color: item.isDone
+                                    ? AppColors.primary
+                                    : AppColors.mutedText,
+                              ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  if (metaBits.isNotEmpty)
-                    Wrap(spacing: 12, runSpacing: 4, children: metaBits),
-                  if (metaBits.isNotEmpty && tagChips.isNotEmpty)
-                    const SizedBox(height: 6),
-                  if (tagChips.isNotEmpty)
-                    Wrap(spacing: 8, runSpacing: 6, children: tagChips),
-                ],
+                ),
+                const SizedBox(width: 10),
+              ] else ...[
+                SizedBox(
+                  width: 18,
+                  child: Container(
+                    constraints: const BoxConstraints.tightFor(width: 4),
+                    decoration: BoxDecoration(
+                      color: accentColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOut,
+                            style: titleStyle ?? const TextStyle(),
+                            child: Text(item.title),
+                          ),
+                        ),
+                        if (item.isPinned)
+                          const Icon(
+                            Icons.push_pin_rounded,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                      ],
+                    ),
+                    if (hasDetail) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        item.detail,
+                        style: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(color: AppColors.mutedText),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    if (metaBits.isNotEmpty)
+                      Wrap(spacing: 12, runSpacing: 4, children: metaBits),
+                    if (metaBits.isNotEmpty && tagChips.isNotEmpty)
+                      const SizedBox(height: 6),
+                    if (tagChips.isNotEmpty)
+                      Wrap(spacing: 8, runSpacing: 6, children: tagChips),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -307,13 +338,13 @@ class TagChip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.primarySoft.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
       ),
       child: Text(
         '#$label',
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: const Color(0xFF1A5FA8),
+          color: AppColors.primaryDeep,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -332,7 +363,7 @@ class TagChip extends StatelessWidget {
       onTap: onTap,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         child: ExcludeSemantics(child: chip),
       ),
     );
@@ -372,7 +403,7 @@ class _OverdueChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.warningSoft,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.22)),
       ),
       child: Text(
@@ -397,7 +428,7 @@ class InfoChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Text(
         label,
