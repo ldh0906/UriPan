@@ -441,8 +441,9 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                       ),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeOutCubic,
+                        reverseDuration: const Duration(milliseconds: 160),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
                         transitionBuilder: (child, animation) {
                           final offset = Tween<Offset>(
                             begin: const Offset(0, 0.015),
