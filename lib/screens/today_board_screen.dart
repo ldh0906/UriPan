@@ -444,6 +444,16 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                         reverseDuration: const Duration(milliseconds: 160),
                         switchInCurve: Curves.easeOut,
                         switchOutCurve: Curves.easeIn,
+                        // 기본 layoutBuilder는 center 정렬이라, 높이가 다른 탭끼리
+                        // 크로스페이드할 때 사라지는 탭이 새 탭 높이에 맞춰 세로로
+                        // 밀리며 잔상/점프가 생긴다. 스크롤뷰 상단 기준에 맞춰 top 정렬.
+                        layoutBuilder: (currentChild, previousChildren) => Stack(
+                          alignment: Alignment.topCenter,
+                          children: [
+                            ...previousChildren,
+                            ?currentChild,
+                          ],
+                        ),
                         transitionBuilder: (child, animation) {
                           final offset = Tween<Offset>(
                             begin: const Offset(0, 0.015),
@@ -451,9 +461,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
                           ).animate(animation);
                           return FadeTransition(
                             opacity: animation,
+                            // 무거운 탭 서브트리를 레이어로 캐시해, 페이드 동안 매
+                            // 프레임 리페인트 대신 opacity 합성만 하도록(끊김 완화).
                             child: SlideTransition(
                               position: offset,
-                              child: child,
+                              child: RepaintBoundary(child: child),
                             ),
                           );
                         },
