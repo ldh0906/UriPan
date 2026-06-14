@@ -2037,6 +2037,10 @@ void main() {
     await tester.ensureVisible(
       find.widgetWithText(FilledButton, '\uCD94\uAC00'),
     );
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uCD94\uAC00'),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
     await tester.pumpAndSettle();
 
@@ -2187,6 +2191,10 @@ void main() {
       find.widgetWithText(TextField, '\uC81C\uBAA9'),
       'Past task',
     );
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uCD94\uAC00'),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
     await tester.pumpAndSettle();
 
@@ -2225,6 +2233,10 @@ void main() {
       find.widgetWithText(TextField, '\uC81C\uBAA9'),
       'Future task',
     );
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uCD94\uAC00'),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
     await tester.pumpAndSettle();
 
@@ -2249,6 +2261,10 @@ void main() {
       const MaterialApp(home: Scaffold(body: AddItemSheet())),
     );
 
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, '\uCD94\uAC00'),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, '\uCD94\uAC00'));
     await tester.pumpAndSettle();
 

@@ -316,7 +316,7 @@ class BoardSessionController extends ChangeNotifier {
     }
   }
 
-  Future<void> ensureRecurrences() async {
+  Future<void> ensureRecurrences({bool silent = false}) async {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
     _errorMessage = null;
@@ -331,6 +331,7 @@ class BoardSessionController extends ChangeNotifier {
       _items = loadedItems;
     } catch (error) {
       if (!_isCurrentStateRequest(requestId)) return;
+      if (silent) return;
       _errorMessage = error.toString();
       rethrow;
     } finally {

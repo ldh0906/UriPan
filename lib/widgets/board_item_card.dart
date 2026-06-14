@@ -153,6 +153,11 @@ class BoardItemCard extends StatelessWidget {
       }
     }
     if (isOverdue) metaBits.add(const _OverdueChip());
+    if (item.recurrenceId != null) {
+      metaBits.add(
+        const _MetaBit(icon: Icons.event_repeat_rounded, label: '반복'),
+      );
+    }
 
     final personLabel = item.assigneeName ?? item.owner;
     if (personLabel.isNotEmpty) {

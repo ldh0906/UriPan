@@ -79,6 +79,7 @@ class ItemDetailSheet extends StatelessWidget {
                   if (item.assigneeName != null)
                     InfoChip(label: '\uB2F4\uB2F9: ${item.assigneeName}'),
                   InfoChip(label: dateLabel ?? item.timeLabel),
+                  if (item.recurrenceId != null) const InfoChip(label: '반복'),
                   if (item.isPinned) const InfoChip(label: '\uACE0\uC815'),
                   if (item.type == BoardItemType.task)
                     InfoChip(
