@@ -833,6 +833,22 @@ class _FakeBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> createRecurringItem(String boardId, BoardItemDraft draft) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateRecurringSeries(
+    String recurrenceId,
+    BoardItemDraft draft,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> ensureRecurrences(String boardId) async {}
+
+  @override
   Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) async {
     for (final entry in itemsByBoard.entries) {
       final index = entry.value.indexWhere((item) => item.id == itemId);

@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/board_item.dart';
 import 'board_item_time_label.dart';
+import 'recurrence.dart';
 
 String resolveBoardDisplayName({
   required String? userId,
@@ -17,6 +18,103 @@ String? _leftMemberSnapshotLabel(String? snapshotName) {
   final trimmed = snapshotName?.trim();
   if (trimmed == null || trimmed.isEmpty) return null;
   return '$trimmed (\uB098\uAC10)';
+}
+
+void _validateRecurringDraft(
+  BoardItemDraft draft, {
+  bool requireFrequency = true,
+}) {
+  if (draft.type == BoardItemType.notice) {
+    throw StateError('recurring_type_not_supported');
+  }
+  if (requireFrequency && draft.recurrenceFrequency == null) {
+    throw StateError('recurrence_frequency_required');
+  }
+  if (requireFrequency && draft.recurrenceEndsOn == null) {
+    throw StateError('recurrence_ends_on_required');
+  }
+  if (draft.type == BoardItemType.schedule && draft.startsAt == null) {
+    throw StateError('schedule_start_required');
+  }
+  if (draft.type == BoardItemType.task && draft.dueAt == null) {
+    throw StateError('task_due_required');
+  }
+}
+
+DateTime _recurrenceStartDate(BoardItemDraft draft) {
+  final value = draft.type == BoardItemType.schedule
+      ? draft.startsAt
+      : draft.dueAt;
+  if (value == null) throw StateError('recurrence_start_required');
+  return _dateOnly(value);
+}
+
+DateTime _dateOnly(DateTime value) {
+  final local = value.toLocal();
+  return DateTime(local.year, local.month, local.day);
+}
+
+Duration _localTimeOfDay(BoardItemDraft draft) {
+  final value = draft.type == BoardItemType.schedule
+      ? draft.startsAt
+      : draft.dueAt;
+  if (value == null) throw StateError('recurrence_time_required');
+  final local = value.toLocal();
+  return Duration(
+    hours: local.hour,
+    minutes: local.minute,
+    seconds: local.second,
+  );
+}
+
+Duration? _draftDuration(BoardItemDraft draft) {
+  if (draft.type != BoardItemType.schedule) return null;
+  final startsAt = draft.startsAt;
+  final dueAt = draft.dueAt;
+  if (startsAt == null || dueAt == null) return null;
+  return dueAt.difference(startsAt);
+}
+
+String _dateString(DateTime value) {
+  final date = _dateOnly(value);
+  return '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+}
+
+String _timeString(Duration value) {
+  final hours = value.inHours.toString().padLeft(2, '0');
+  final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
+  final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
+  return '$hours:$minutes:$seconds';
+}
+
+String? _intervalString(Duration? value) {
+  if (value == null) return null;
+  final sign = value.isNegative ? '-' : '';
+  final duration = value.abs();
+  final hours = duration.inHours.toString().padLeft(2, '0');
+  final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+  final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+  return '$sign$hours:$minutes:$seconds';
+}
+
+class _MemoryRecurrence {
+  const _MemoryRecurrence({
+    required this.id,
+    required this.boardId,
+    required this.draft,
+    required this.startsOn,
+    required this.endsOn,
+    required this.frequency,
+  });
+
+  final String id;
+  final String boardId;
+  final BoardItemDraft draft;
+  final DateTime startsOn;
+  final DateTime endsOn;
+  final RecurrenceFrequency frequency;
 }
 
 abstract class BoardRepository {
@@ -77,7 +175,19 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<void> createRecurringItem(String boardId, BoardItemDraft draft) {
+    throw UnimplementedError();
+  }
+
   Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) {
+    throw UnimplementedError();
+  }
+
+  Future<void> updateRecurringSeries(String recurrenceId, BoardItemDraft draft) {
+    throw UnimplementedError();
+  }
+
+  Future<void> ensureRecurrences(String boardId) {
     throw UnimplementedError();
   }
 
@@ -112,6 +222,7 @@ class MemoryBoardRepository implements BoardRepository {
   final List<BoardItem> _items;
   final List<BoardComment> _comments = [];
   final Map<String, String> _itemBoardIds = {};
+  final Map<String, _MemoryRecurrence> _recurrences = {};
   final Map<String, Map<String, String>> _nicknamesByBoard = {};
   final Map<String, BoardInvite> _activeInvitesByBoard = {};
   final List<BoardSummary> _boards = [
@@ -364,6 +475,27 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> createRecurringItem(String boardId, BoardItemDraft draft) async {
+    _validateRecurringDraft(draft);
+    final recurrenceId = 'memory-recurrence-${_recurrences.length + 1}';
+    final startsOn = _recurrenceStartDate(draft);
+    final recurrence = _MemoryRecurrence(
+      id: recurrenceId,
+      boardId: boardId,
+      draft: draft,
+      startsOn: startsOn,
+      endsOn: _dateOnly(draft.recurrenceEndsOn!),
+      frequency: draft.recurrenceFrequency!,
+    );
+    _recurrences[recurrenceId] = recurrence;
+    _materializeMemoryRecurrence(
+      recurrence,
+      from: startsOn,
+      through: _dateOnly(DateTime.now()).add(const Duration(days: 45)),
+    );
+  }
+
+  @override
   Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) async {
     final index = _items.indexWhere((item) => item.id == itemId);
     if (index < 0) throw StateError('Item not found');
@@ -395,6 +527,56 @@ class MemoryBoardRepository implements BoardRepository {
     );
     _items[index] = updated;
     return updated;
+  }
+
+  @override
+  Future<void> updateRecurringSeries(
+    String recurrenceId,
+    BoardItemDraft draft,
+  ) async {
+    _validateRecurringDraft(draft, requireFrequency: false);
+    final old = _recurrences[recurrenceId];
+    if (old == null) throw StateError('Recurrence not found');
+    final today = _dateOnly(DateTime.now());
+    final updated = _MemoryRecurrence(
+      id: recurrenceId,
+      boardId: old.boardId,
+      draft: draft,
+      startsOn: old.startsOn,
+      endsOn: _dateOnly(draft.recurrenceEndsOn ?? old.endsOn),
+      frequency: old.frequency,
+    );
+    _recurrences[recurrenceId] = updated;
+    _items.removeWhere((item) {
+      if (item.recurrenceId != recurrenceId) return false;
+      final occurrenceDate = item.occurrenceLocalDate;
+      if (occurrenceDate == null) return false;
+      return !occurrenceDate.isBefore(today);
+    });
+    _itemBoardIds.removeWhere((itemId, _) {
+      return !_items.any((item) => item.id == itemId);
+    });
+    _materializeMemoryRecurrence(
+      updated,
+      from: today,
+      through: today.add(const Duration(days: 45)),
+    );
+  }
+
+  @override
+  Future<void> ensureRecurrences(String boardId) async {
+    final today = _dateOnly(DateTime.now());
+    final through = today.add(const Duration(days: 45));
+    for (final recurrence in _recurrences.values) {
+      if (recurrence.boardId != boardId || recurrence.endsOn.isBefore(today)) {
+        continue;
+      }
+      _materializeMemoryRecurrence(
+        recurrence,
+        from: today,
+        through: through,
+      );
+    }
   }
 
   @override
@@ -500,6 +682,78 @@ class MemoryBoardRepository implements BoardRepository {
         (type == BoardItemType.notice ? '\uC77D\uAE30' : '\uC624\uB298');
   }
 
+  void _materializeMemoryRecurrence(
+    _MemoryRecurrence recurrence, {
+    required DateTime from,
+    required DateTime through,
+  }) {
+    final rule = RecurrenceRule(
+      frequency: recurrence.frequency,
+      startsOn: recurrence.startsOn,
+      endsOn: recurrence.endsOn,
+      localTime: _localTimeOfDay(recurrence.draft),
+    );
+    final dates = recurrenceOccurrenceDates(
+      rule: rule,
+      from: from,
+      through: through,
+    );
+    for (final date in dates) {
+      final exists = _items.any((item) {
+        return item.recurrenceId == recurrence.id &&
+            item.occurrenceLocalDate == date;
+      });
+      if (exists) continue;
+      final item = _memoryOccurrenceItem(recurrence, date);
+      _items.add(item);
+      _itemBoardIds[item.id] = recurrence.boardId;
+    }
+  }
+
+  BoardItem _memoryOccurrenceItem(
+    _MemoryRecurrence recurrence,
+    DateTime occurrenceDate,
+  ) {
+    final draft = recurrence.draft;
+    final localTime = _localTimeOfDay(draft);
+    final occurrenceAt = DateTime(
+      occurrenceDate.year,
+      occurrenceDate.month,
+      occurrenceDate.day,
+      localTime.inHours,
+      localTime.inMinutes.remainder(60),
+      localTime.inSeconds.remainder(60),
+    );
+    final duration = draft.type == BoardItemType.schedule &&
+            draft.startsAt != null &&
+            draft.dueAt != null
+        ? draft.dueAt!.difference(draft.startsAt!)
+        : Duration.zero;
+    final startsAt = draft.type == BoardItemType.schedule ? occurrenceAt : null;
+    final dueAt = draft.type == BoardItemType.schedule
+        ? occurrenceAt.add(duration)
+        : occurrenceAt;
+    return BoardItem(
+      id: 'memory-item-${recurrence.id}-${_dateString(occurrenceDate)}',
+      type: draft.type,
+      title: draft.title,
+      detail: draft.detail,
+      owner: _effectiveName(recurrence.boardId, _myProfile.id),
+      createdById: _myProfile.id,
+      assignedToId: draft.assignedTo,
+      assigneeName: draft.assignedTo == null
+          ? null
+          : _effectiveName(recurrence.boardId, draft.assignedTo!),
+      timeLabel: _timeLabel(draft.type, startsAt, dueAt),
+      startsAt: startsAt,
+      dueAt: dueAt,
+      isPinned: draft.isPinned,
+      tags: normalizeBoardItemTags(draft.tags),
+      recurrenceId: recurrence.id,
+      occurrenceLocalDate: occurrenceDate,
+    );
+  }
+
   void _updateBoardMemberCount(String boardId) {
     final index = _boards.indexWhere((board) => board.id == boardId);
     if (index < 0) return;
@@ -574,6 +828,7 @@ class SupabaseBoardRepository implements BoardRepository {
   static const _itemSelectColumns =
       'id, board_id, type, title, detail, starts_at, due_at, is_done, '
       'is_pinned, requires_confirmation, tags, created_by, assigned_to, '
+      'recurrence_id, occurrence_local_date, '
       'created_by_name_snapshot, assigned_to_name_snapshot, '
       'item_confirmations(user_id), item_comments(count)';
 
@@ -857,6 +1112,26 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> createRecurringItem(String boardId, BoardItemDraft draft) async {
+    _validateRecurringDraft(draft);
+    await _client.rpc(
+      'create_recurring_board_item',
+      params: {
+        'p_board_id': boardId,
+        'p_type': draft.type.wireName,
+        'p_title': draft.title,
+        'p_detail': draft.detail,
+        'p_assigned_to': draft.assignedTo,
+        'p_local_time': _timeString(_localTimeOfDay(draft)),
+        'p_frequency': draft.recurrenceFrequency!.wireName,
+        'p_starts_on': _dateString(_recurrenceStartDate(draft)),
+        'p_ends_on': _dateString(draft.recurrenceEndsOn!),
+        'p_duration': _intervalString(_draftDuration(draft)),
+      },
+    );
+  }
+
+  @override
   Future<BoardItem> updateItem(String itemId, BoardItemDraft draft) async {
     final now = DateTime.now();
     final startsAt = draft.type == BoardItemType.schedule
@@ -890,6 +1165,53 @@ class SupabaseBoardRepository implements BoardRepository {
       boardId: rowBoardId,
     );
     return _itemFromRow(row, names);
+  }
+
+  @override
+  Future<void> updateRecurringSeries(
+    String recurrenceId,
+    BoardItemDraft draft,
+  ) async {
+    _validateRecurringDraft(draft, requireFrequency: false);
+    await _client.rpc(
+      'update_recurring_board_item',
+      params: {
+        'p_recurrence_id': recurrenceId,
+        'p_title': draft.title,
+        'p_detail': draft.detail,
+        'p_clear_detail': draft.detail.isEmpty,
+        'p_assigned_to': draft.assignedTo,
+        'p_clear_assigned_to': draft.assignedTo == null,
+        'p_local_time': _timeString(_localTimeOfDay(draft)),
+        'p_ends_on': draft.recurrenceEndsOn == null
+            ? null
+            : _dateString(draft.recurrenceEndsOn!),
+        'p_duration': _intervalString(_draftDuration(draft)),
+      },
+    );
+  }
+
+  @override
+  Future<void> ensureRecurrences(String boardId) async {
+    final today = _dateOnly(DateTime.now());
+    final through = today.add(const Duration(days: 45));
+    final rows = await _client
+        .from('board_item_recurrences')
+        .select('id')
+        .eq('board_id', boardId)
+        .gte('ends_on', _dateString(today));
+
+    for (final row in rows) {
+      final recurrenceId = row['id'] as String?;
+      if (recurrenceId == null) continue;
+      await _client.rpc(
+        'ensure_recurrence_occurrences',
+        params: {
+          'p_recurrence_id': recurrenceId,
+          'p_through': _dateString(through),
+        },
+      );
+    }
   }
 
   @override
@@ -1132,6 +1454,8 @@ class SupabaseBoardRepository implements BoardRepository {
             return confirmation['user_id'] == currentUserId;
           }),
       tags: _tagsFromRow(row['tags']),
+      recurrenceId: row['recurrence_id'] as String?,
+      occurrenceLocalDate: _dateFromRow(row['occurrence_local_date']),
     );
   }
 
@@ -1203,6 +1527,13 @@ class SupabaseBoardRepository implements BoardRepository {
   }
 
   String? _utcIsoString(DateTime? value) => value?.toUtc().toIso8601String();
+
+  DateTime? _dateFromRow(Object? value) {
+    if (value is! String || value.isEmpty) return null;
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return null;
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
 }
 
 class _ProfileRow {
