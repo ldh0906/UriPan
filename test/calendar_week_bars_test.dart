@@ -27,10 +27,14 @@ void main() {
     });
 
     test('normalizes UTC input before finding the local week start', () {
-      expect(
-        startOfCalendarWeek(DateTime.utc(2026, 6, 6, 15, 30)),
-        DateTime(2026, 6, 7),
-      );
+      // expected는 러너 타임존에 맞춰 동적 계산한다. 하드코딩하면 KST에서만
+      // 통과하고 UTC CI 러너에서는 깨진다(2026-06-14 CI red 원인).
+      final instant = DateTime.utc(2026, 6, 6, 15, 30);
+      final local = instant.toLocal();
+      final expected = DateTime(local.year, local.month, local.day)
+          .subtract(Duration(days: local.weekday % 7));
+
+      expect(startOfCalendarWeek(instant), expected);
     });
   });
 
