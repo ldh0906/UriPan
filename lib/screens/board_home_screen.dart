@@ -470,7 +470,8 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   }
 
   Future<void> _deleteItem(BoardItem item) async {
-    if (item.recurrenceId != null) {
+    final recurrenceId = item.recurrenceId;
+    if (recurrenceId != null) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -493,8 +494,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     }
 
     await _runAction(() async {
-      // TODO: 시리즈 삭제 전용 컨트롤러 메서드가 추가되면 반복 항목은 그 경로로 분기한다.
-      await _controller.deleteItem(item.id);
+      if (recurrenceId == null) {
+        await _controller.deleteItem(item.id);
+      } else {
+        await _controller.deleteRecurringSeries(recurrenceId);
+      }
     });
   }
 

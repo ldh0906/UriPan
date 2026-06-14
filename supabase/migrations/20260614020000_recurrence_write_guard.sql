@@ -8,6 +8,9 @@
 -- 소유자(postgres) 권한의 current_user 로 실행되므로 통과한다.
 --
 -- completeTask 같은 is_done update 는 두 recurrence 컬럼이 불변이면 통과한다.
+-- recurrence_id / occurrence_local_date 를 null 로 비우는 update 는 허용한다. A1 FK의
+-- on delete set null 동작과 "반복 시리즈 삭제(과거 보존/미래 삭제)" RPC가 authenticated
+-- 컨텍스트에서도 과거 occurrence 를 standalone 기록으로 남길 수 있어야 하기 때문이다.
 --
 -- 위험/판정 포인트:
 --   * current_user 기반 판정은 Supabase의 authenticated 역할 실행 가정에 의존한다.
@@ -37,8 +40,13 @@ begin
   end if;
 
   if tg_op = 'UPDATE' then
-    if new.recurrence_id is distinct from old.recurrence_id
-      or new.occurrence_local_date is distinct from old.occurrence_local_date then
+    if (
+      new.recurrence_id is distinct from old.recurrence_id
+      and new.recurrence_id is not null
+    ) or (
+      new.occurrence_local_date is distinct from old.occurrence_local_date
+      and new.occurrence_local_date is not null
+    ) then
       raise exception 'recurrence_columns_are_managed' using errcode = '42501';
     end if;
 

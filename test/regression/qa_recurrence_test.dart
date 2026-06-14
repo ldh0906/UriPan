@@ -291,6 +291,35 @@ void main() {
       expect(after, hasLength(4));
     });
 
+    test('deleteRecurringSeries preserves past occurrences and removes future ones', () async {
+      final repository = MemoryBoardRepository([]);
+      final today = _today();
+
+      await repository.createRecurringItem(
+        'memory-board',
+        _taskDraft(
+          title: 'Take medicine',
+          dueAt: _atHour(_offsetDate(today, -2), 9),
+          recurrenceEndsOn: _offsetDate(today, 2),
+        ),
+      );
+      final before = await repository.loadBoardItems(boardId: 'memory-board');
+      final recurrenceId = before.singleWhere(
+        (item) => _sameDate(item.occurrenceLocalDate!, today),
+      ).recurrenceId!;
+
+      await repository.deleteRecurringSeries(recurrenceId);
+      await repository.ensureRecurrences('memory-board');
+
+      final after = await repository.loadBoardItems(boardId: 'memory-board');
+
+      expect(_dateKeys(after.map((item) => item.occurrenceLocalDate!)), [
+        _dateKey(_offsetDate(today, -2)),
+        _dateKey(_offsetDate(today, -1)),
+      ]);
+      expect(after.every((item) => item.recurrenceId == null), isTrue);
+    });
+
     test('createRecurringItem rejects notice type', () async {
       final repository = MemoryBoardRepository([]);
 

@@ -846,6 +846,11 @@ class _FakeBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> deleteRecurringSeries(String recurrenceId) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> ensureRecurrences(String boardId) async {}
 
   @override

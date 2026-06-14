@@ -187,6 +187,10 @@ abstract class BoardRepository {
     throw UnimplementedError();
   }
 
+  Future<void> deleteRecurringSeries(String recurrenceId) {
+    throw UnimplementedError();
+  }
+
   Future<void> ensureRecurrences(String boardId) {
     throw UnimplementedError();
   }
@@ -564,6 +568,30 @@ class MemoryBoardRepository implements BoardRepository {
   }
 
   @override
+  Future<void> deleteRecurringSeries(String recurrenceId) async {
+    if (!_recurrences.containsKey(recurrenceId)) {
+      throw StateError('Recurrence not found');
+    }
+
+    final today = _dateOnly(DateTime.now());
+    _recurrences.remove(recurrenceId);
+    _items.removeWhere((item) {
+      if (item.recurrenceId != recurrenceId) return false;
+      final occurrenceDate = item.occurrenceLocalDate;
+      if (occurrenceDate == null) return false;
+      return !occurrenceDate.isBefore(today);
+    });
+    for (var index = 0; index < _items.length; index += 1) {
+      final item = _items[index];
+      if (item.recurrenceId != recurrenceId) continue;
+      _items[index] = item.copyWith(recurrenceId: null);
+    }
+    _itemBoardIds.removeWhere((itemId, _) {
+      return !_items.any((item) => item.id == itemId);
+    });
+  }
+
+  @override
   Future<void> ensureRecurrences(String boardId) async {
     final today = _dateOnly(DateTime.now());
     final through = today.add(const Duration(days: 45));
@@ -665,6 +693,13 @@ class MemoryBoardRepository implements BoardRepository {
 
   @override
   Future<void> deleteItem(String itemId) async {
+    final index = _items.indexWhere((item) => item.id == itemId);
+    final recurrenceId = index < 0 ? null : _items[index].recurrenceId;
+    if (recurrenceId != null) {
+      await deleteRecurringSeries(recurrenceId);
+      return;
+    }
+
     final before = _items.length;
     _items.removeWhere((item) => item.id == itemId);
     if (_items.length == before) throw StateError('Item not found');
@@ -1188,6 +1223,14 @@ class SupabaseBoardRepository implements BoardRepository {
             : _dateString(draft.recurrenceEndsOn!),
         'p_duration': _intervalString(_draftDuration(draft)),
       },
+    );
+  }
+
+  @override
+  Future<void> deleteRecurringSeries(String recurrenceId) async {
+    await _client.rpc(
+      'delete_recurring_series',
+      params: {'p_recurrence_id': recurrenceId},
     );
   }
 
