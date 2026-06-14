@@ -59,6 +59,43 @@ List<BoardItem> filterTaskBoardItems(
   return indexed.map((entry) => entry.$2).toList(growable: false);
 }
 
+/// "할 일" 탭 배지/오버듀 강조의 집계 범위.
+/// 제품 결정(2026-06-14): 내가 챙길 수 있는 일 = 내 담당 + 미배정.
+/// 타인 담당 할 일은 보드 전체 목록에는 보이되 내 배지/오버듀에는 잡지 않는다.
+bool isTaskInMyScope(BoardItem item, {required String? currentUserId}) {
+  final assignee = item.assignedToId;
+  return assignee == null || assignee == currentUserId;
+}
+
+bool isOverdueTask(
+  BoardItem item, {
+  required DateTime now,
+  required String? currentUserId,
+}) {
+  final dueAt = item.dueAt;
+  return item.type == BoardItemType.task &&
+      !item.isDone &&
+      dueAt != null &&
+      dueAt.isBefore(now) &&
+      isTaskInMyScope(item, currentUserId: currentUserId);
+}
+
+int taskBadgeCount(
+  List<BoardItem> items, {
+  required DateTime now,
+  required String? currentUserId,
+}) {
+  final endOfToday = DateTime(now.year, now.month, now.day + 1);
+  return items.where((item) {
+    final dueAt = item.dueAt;
+    return item.type == BoardItemType.task &&
+        !item.isDone &&
+        dueAt != null &&
+        dueAt.isBefore(endOfToday) &&
+        isTaskInMyScope(item, currentUserId: currentUserId);
+  }).length;
+}
+
 DateTime moveCalendarMonth(DateTime selectedDate, int monthDelta) {
   final targetMonthStart = DateTime(
     selectedDate.year,
@@ -862,13 +899,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
         .toList(growable: false);
   }
 
-  bool _isOverdueTask(BoardItem item) {
-    final dueAt = item.dueAt;
-    return item.type == BoardItemType.task &&
-        !item.isDone &&
-        dueAt != null &&
-        dueAt.isBefore(widget.now());
-  }
+  bool _isOverdueTask(BoardItem item) => isOverdueTask(
+    item,
+    now: widget.now(),
+    currentUserId: widget.currentUserId,
+  );
 
   int _noticeBadgeCount(List<BoardItem> items) {
     return items
@@ -881,17 +916,11 @@ class _TodayBoardScreenState extends State<TodayBoardScreen> {
         .length;
   }
 
-  int _taskBadgeCount(List<BoardItem> items) {
-    final now = widget.now();
-    final endOfToday = DateTime(now.year, now.month, now.day + 1);
-    return items.where((item) {
-      final dueAt = item.dueAt;
-      return item.type == BoardItemType.task &&
-          !item.isDone &&
-          dueAt != null &&
-          dueAt.isBefore(endOfToday);
-    }).length;
-  }
+  int _taskBadgeCount(List<BoardItem> items) => taskBadgeCount(
+    items,
+    now: widget.now(),
+    currentUserId: widget.currentUserId,
+  );
 
   List<BoardItem> _sortedNotices(List<BoardItem> notices) {
     final indexed = notices.indexed.toList(growable: false)
