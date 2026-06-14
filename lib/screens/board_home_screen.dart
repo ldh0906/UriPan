@@ -86,6 +86,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
 
   Future<void> _refresh() async {
     await _controller.load();
+    await _ensureRecurrencesQuietly();
   }
 
   Future<void> _createBoard() async {
@@ -189,7 +190,10 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
       userName: _currentUserDisplayName(),
       boards: _controller.boards,
       activeBoardId: board.id,
-      onSelectBoard: (id) => _runAction(() => _controller.switchBoard(id)),
+      onSelectBoard: (id) => _runAction(() async {
+        await _controller.switchBoard(id);
+        await _ensureRecurrencesQuietly();
+      }),
       myProfile: _controller.myProfile,
       currentBoardMember: _currentBoardMember(),
       remindersEnabled: _remindersEnabled,
@@ -215,8 +219,16 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   Future<void> _loadInitialBoard() async {
     await _loadReminderPreferences();
     await _controller.load();
+    await _ensureRecurrencesQuietly();
     await _ensureSchedulerReady();
     await _syncRemindersIfNeeded(force: true);
+  }
+
+  Future<void> _ensureRecurrencesQuietly() async {
+    if (_controller.activeBoard == null) return;
+    try {
+      await _controller.ensureRecurrences(silent: true);
+    } catch (_) {}
   }
 
   Future<void> _loadReminderPreferences() async {
@@ -419,7 +431,11 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (draft == null) return;
 
     await _runAction(() async {
-      await _controller.createItem(draft);
+      if (draft.recurrenceFrequency == null) {
+        await _controller.createItem(draft);
+      } else {
+        await _controller.createRecurringItem(draft);
+      }
     });
   }
 
@@ -432,7 +448,12 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
     if (draft == null) return;
 
     await _runAction(() async {
-      await _controller.updateItem(item.id, draft);
+      final recurrenceId = item.recurrenceId;
+      if (recurrenceId == null) {
+        await _controller.updateItem(item.id, draft);
+      } else {
+        await _controller.updateRecurringSeries(recurrenceId, draft);
+      }
     });
   }
 
@@ -449,8 +470,35 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
   }
 
   Future<void> _deleteItem(BoardItem item) async {
+    final recurrenceId = item.recurrenceId;
+    if (recurrenceId != null) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('반복 항목 삭제'),
+          content: const Text('이 반복 전체를 삭제합니다. 계속할까요?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('삭제'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (confirmed != true) return;
+    }
+
     await _runAction(() async {
-      await _controller.deleteItem(item.id);
+      if (recurrenceId == null) {
+        await _controller.deleteItem(item.id);
+      } else {
+        await _controller.deleteRecurringSeries(recurrenceId);
+      }
     });
   }
 
@@ -639,7 +687,7 @@ class _BoardHomeScreenState extends State<BoardHomeScreen> {
             message: _friendlyDatabaseError(snapshot.error.toString()),
             onRetry: () {
               setState(() {
-                _initialLoad = _controller.load();
+                _initialLoad = _loadInitialBoard();
               });
             },
             onSignOut: _signOut,

@@ -247,6 +247,28 @@ class BoardSessionController extends ChangeNotifier {
     }
   }
 
+  Future<void> createRecurringItem(BoardItemDraft draft) async {
+    final board = _requireActiveBoard();
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    _safeNotify();
+
+    try {
+      await _repository.createRecurringItem(board.id, draft);
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
+    }
+  }
+
   Future<void> updateItem(String itemId, BoardItemDraft draft) async {
     final board = _requireActiveBoard();
     final requestId = _nextStateRequest();
@@ -262,6 +284,76 @@ class BoardSessionController extends ChangeNotifier {
       _items = loadedItems;
     } catch (error) {
       if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
+    }
+  }
+
+  Future<void> updateRecurringSeries(
+    String recurrenceId,
+    BoardItemDraft draft,
+  ) async {
+    final board = _requireActiveBoard();
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    _safeNotify();
+
+    try {
+      await _repository.updateRecurringSeries(recurrenceId, draft);
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
+    }
+  }
+
+  Future<void> deleteRecurringSeries(String recurrenceId) async {
+    final board = _requireActiveBoard();
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    _safeNotify();
+
+    try {
+      await _repository.deleteRecurringSeries(recurrenceId);
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      _errorMessage = error.toString();
+      rethrow;
+    } finally {
+      if (_isCurrentStateRequest(requestId)) _safeNotify();
+    }
+  }
+
+  Future<void> ensureRecurrences({bool silent = false}) async {
+    final board = _requireActiveBoard();
+    final requestId = _nextStateRequest();
+    _errorMessage = null;
+    _safeNotify();
+
+    try {
+      await _repository.ensureRecurrences(board.id);
+      final loadedItems = await _repository.loadBoardItems(boardId: board.id);
+      if (!_isCurrentStateRequest(requestId) || _activeBoard?.id != board.id) {
+        return;
+      }
+      _items = loadedItems;
+    } catch (error) {
+      if (!_isCurrentStateRequest(requestId)) return;
+      if (silent) return;
       _errorMessage = error.toString();
       rethrow;
     } finally {

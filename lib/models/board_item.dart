@@ -1,3 +1,5 @@
+import '../services/recurrence.dart';
+
 enum BoardItemType { schedule, task, notice }
 
 extension BoardItemTypeWire on BoardItemType {
@@ -58,6 +60,8 @@ class BoardItem {
     this.isConfirmedByMe = false,
     this.confirmedUserIds = const [],
     this.tags = const [],
+    this.recurrenceId,
+    this.occurrenceLocalDate,
   });
 
   static const Object _unset = Object();
@@ -81,6 +85,8 @@ class BoardItem {
   final bool isConfirmedByMe;
   final List<String> confirmedUserIds;
   final List<String> tags;
+  final String? recurrenceId;
+  final DateTime? occurrenceLocalDate;
 
   BoardItem copyWith({
     String? id,
@@ -102,6 +108,8 @@ class BoardItem {
     bool? isConfirmedByMe,
     List<String>? confirmedUserIds,
     List<String>? tags,
+    Object? recurrenceId = _unset,
+    Object? occurrenceLocalDate = _unset,
   }) {
     return BoardItem(
       id: id ?? this.id,
@@ -129,6 +137,12 @@ class BoardItem {
       isConfirmedByMe: isConfirmedByMe ?? this.isConfirmedByMe,
       confirmedUserIds: confirmedUserIds ?? this.confirmedUserIds,
       tags: tags ?? this.tags,
+      recurrenceId: recurrenceId == _unset
+          ? this.recurrenceId
+          : recurrenceId as String?,
+      occurrenceLocalDate: occurrenceLocalDate == _unset
+          ? this.occurrenceLocalDate
+          : occurrenceLocalDate as DateTime?,
     );
   }
 
@@ -278,6 +292,8 @@ class BoardItemDraft {
     this.requiresConfirmation = false,
     this.isPinned = false,
     this.tags = const [],
+    this.recurrenceFrequency,
+    this.recurrenceEndsOn,
   });
 
   final BoardItemType type;
@@ -289,4 +305,6 @@ class BoardItemDraft {
   final bool requiresConfirmation;
   final bool isPinned;
   final List<String> tags;
+  final RecurrenceFrequency? recurrenceFrequency;
+  final DateTime? recurrenceEndsOn;
 }

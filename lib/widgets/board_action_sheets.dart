@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/board_item.dart';
+import '../services/recurrence.dart';
 
 Future<BoardItemDraft?> showAddItemSheet(
   BuildContext context, {
@@ -156,11 +157,17 @@ class _AddItemSheetState extends State<AddItemSheet> {
   bool _hasEndDate = false;
   bool _isPinned = false;
   bool _requiresConfirmation = true;
+  RecurrenceFrequency? _recurrenceFrequency;
+  DateTime? _recurrenceEndsOn;
   String? _assignedToId;
   String? _titleError;
   String? _dateTimeError;
+  String? _recurrenceError;
 
   bool get _isEditing => widget.initialItem != null;
+  bool get _isEditingRecurring => widget.initialItem?.recurrenceId != null;
+  bool get _canRepeat =>
+      _type == BoardItemType.schedule || _type == BoardItemType.task;
 
   @override
   void initState() {
@@ -234,6 +241,11 @@ class _AddItemSheetState extends State<AddItemSheet> {
                         setState(() {
                           _type = values.single;
                           _dateTimeError = null;
+                          _recurrenceError = null;
+                          if (!_canRepeat) {
+                            _recurrenceFrequency = null;
+                            _recurrenceEndsOn = null;
+                          }
                           if (_type == BoardItemType.schedule && !_hasEndDate) {
                             _endDate = _selectedDate;
                             _endTime = _selectedTime;
@@ -290,6 +302,29 @@ class _AddItemSheetState extends State<AddItemSheet> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 12),
+                _RecurrenceSection(
+                  frequency: _recurrenceFrequency,
+                  endsOn: _recurrenceEndsOn,
+                  summaryText: _recurrenceSummaryText,
+                  errorText: _recurrenceError,
+                  isEditingRecurring: _isEditingRecurring,
+                  isEditable: !_isEditing,
+                  onFrequencyChanged: (value) {
+                    setState(() {
+                      _recurrenceFrequency = value;
+                      _recurrenceError = null;
+                      if (value == null) {
+                        _recurrenceEndsOn = null;
+                      } else {
+                        _recurrenceEndsOn ??= _recurrenceStartDate.add(
+                          const Duration(days: 30),
+                        );
+                      }
+                    });
+                  },
+                  onPickEndsOn: _pickRecurrenceEndsOn,
+                ),
                 const SizedBox(height: 12),
               ],
               if (_type == BoardItemType.task &&
@@ -446,6 +481,25 @@ class _AddItemSheetState extends State<AddItemSheet> {
       );
       return;
     }
+    final recurrenceFrequency = _canRepeat ? _recurrenceFrequency : null;
+    final recurrenceEndsOn = recurrenceFrequency == null
+        ? null
+        : _recurrenceEndsOn;
+    if (recurrenceFrequency != null && recurrenceEndsOn == null) {
+      setState(
+        () => _recurrenceError = '반복 종료일을 선택해주세요.',
+      );
+      return;
+    }
+    if (recurrenceFrequency != null &&
+        recurrenceEndsOn != null &&
+        _dateOnly(recurrenceEndsOn).isBefore(_dateOnly(selectedDateTime))) {
+      setState(
+        () => _recurrenceError =
+            '반복 종료일은 시작일보다 빠를 수 없어요.',
+      );
+      return;
+    }
 
     Navigator.pop(
       context,
@@ -464,6 +518,36 @@ class _AddItemSheetState extends State<AddItemSheet> {
             _type == BoardItemType.notice && _requiresConfirmation,
         isPinned: _isPinned,
         tags: _parsedTags,
+        recurrenceFrequency: recurrenceFrequency,
+        recurrenceEndsOn: recurrenceEndsOn == null
+            ? null
+            : _dateOnly(recurrenceEndsOn),
+      ),
+    );
+  }
+
+  DateTime get _recurrenceStartDate {
+    return DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+    );
+  }
+
+  String? get _recurrenceSummaryText {
+    final frequency = _recurrenceFrequency;
+    final endsOn = _recurrenceEndsOn;
+    if (frequency == null || endsOn == null) return null;
+
+    return recurrenceSummaryText(
+      RecurrenceRule(
+        frequency: frequency,
+        startsOn: _recurrenceStartDate,
+        endsOn: endsOn,
+        localTime: Duration(
+          hours: _selectedTime.hour,
+          minutes: _selectedTime.minute,
+        ),
       ),
     );
   }
@@ -505,6 +589,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
     setState(() {
       _selectedDate = picked;
       _dateTimeError = null;
+      _recurrenceError = null;
       if (_type == BoardItemType.schedule && !_hasEndDate) {
         _endDate = picked;
       }
@@ -551,6 +636,129 @@ class _AddItemSheetState extends State<AddItemSheet> {
       _endTime = picked;
       _dateTimeError = null;
     });
+  }
+
+  Future<void> _pickRecurrenceEndsOn() async {
+    final initialDate = _recurrenceEndsOn ?? _recurrenceStartDate;
+    final range = selectableDatePickerRange(initialDate);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateOnly(initialDate),
+      firstDate: range.start,
+      lastDate: range.end,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _recurrenceEndsOn = picked;
+      _recurrenceError = null;
+    });
+  }
+}
+
+class _RecurrenceSection extends StatelessWidget {
+  const _RecurrenceSection({
+    required this.frequency,
+    required this.endsOn,
+    required this.summaryText,
+    required this.errorText,
+    required this.isEditingRecurring,
+    required this.isEditable,
+    required this.onFrequencyChanged,
+    required this.onPickEndsOn,
+  });
+
+  final RecurrenceFrequency? frequency;
+  final DateTime? endsOn;
+  final String? summaryText;
+  final String? errorText;
+  final bool isEditingRecurring;
+  final bool isEditable;
+  final ValueChanged<RecurrenceFrequency?> onFrequencyChanged;
+  final VoidCallback onPickEndsOn;
+
+  @override
+  Widget build(BuildContext context) {
+    final endsOn = this.endsOn;
+    final dateLabel = endsOn == null
+        ? '종료일 선택'
+        : '${endsOn.year}.${endsOn.month.toString().padLeft(2, '0')}.'
+              '${endsOn.day.toString().padLeft(2, '0')}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('반복', style: Theme.of(context).textTheme.labelLarge),
+        if (isEditingRecurring) ...[
+          const SizedBox(height: 6),
+          Text(
+            '이 반복 전체를 수정합니다.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+        if (!isEditable) ...[
+          const SizedBox(height: 6),
+          Text(
+            isEditingRecurring
+                ? '반복 주기는 기존대로 유지됩니다.'
+                : '반복 설정은 새 항목 작성 시 선택할 수 있어요.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        if (isEditable)
+          SegmentedButton<RecurrenceFrequency?>(
+            segments: const [
+              ButtonSegment(value: null, label: Text('반복 안 함')),
+              ButtonSegment(
+                value: RecurrenceFrequency.daily,
+                label: Text('매일'),
+              ),
+              ButtonSegment(
+                value: RecurrenceFrequency.weekly,
+                label: Text('매주'),
+              ),
+              ButtonSegment(
+                value: RecurrenceFrequency.monthly,
+                label: Text('매월'),
+              ),
+            ],
+            selected: {frequency},
+            onSelectionChanged: (values) => onFrequencyChanged(values.single),
+          ),
+        if (frequency != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onPickEndsOn,
+            icon: const Icon(Icons.event_repeat_rounded),
+            label: Text('반복 종료일 $dateLabel'),
+          ),
+          if (summaryText != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              summaryText!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ],
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 
